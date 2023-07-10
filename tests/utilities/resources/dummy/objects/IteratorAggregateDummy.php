@@ -17,16 +17,14 @@
 
 declare(strict_types=1);
 
-/**
- * 除外ファイルパス設定
- *
- * @see \PhpCsFixer\Finder::notPath()
- */
-return [
-    '*.xml',
-    '.php_cs',
-    '.project.php_cs',
-    'composer.*',
-    'phpunit.xml*',
-    'README.md',
-];
+namespace tacd\tests\utilities\resources\dummy\objects;
+
+final class IteratorAggregateDummy implements \IteratorAggregate
+{
+    public const ARRAY = [1, 2, 3, 4, 5];
+
+    public function getIterator(): \Traversable
+    {
+        return new \ArrayIterator(self::ARRAY);
+    }
+}

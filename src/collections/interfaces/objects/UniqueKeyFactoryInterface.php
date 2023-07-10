@@ -17,16 +17,18 @@
 
 declare(strict_types=1);
 
+namespace tacd\collections\interfaces\objects;
+
 /**
- * 除外ファイルパス設定
- *
- * @see \PhpCsFixer\Finder::notPath()
+ * オブジェクトコレクション向けユニークキー構築インターフェース
  */
-return [
-    '*.xml',
-    '.php_cs',
-    '.project.php_cs',
-    'composer.*',
-    'phpunit.xml*',
-    'README.md',
-];
+interface UniqueKeyFactoryInterface
+{
+    /**
+     * 指定されたオブジェクトからユニークキーを返します。
+     *
+     * @param  object     $element オブジェクト
+     * @return int|string ユニークキー
+     */
+    public static function createUniqueKey(object $element): string|int;
+}

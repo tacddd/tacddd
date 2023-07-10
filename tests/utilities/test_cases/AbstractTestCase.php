@@ -17,16 +17,11 @@
 
 declare(strict_types=1);
 
+namespace tacd\tests\utilities\test_cases;
+
 /**
- * 除外ファイルパス設定
- *
- * @see \PhpCsFixer\Finder::notPath()
+ * @internal
  */
-return [
-    '*.xml',
-    '.php_cs',
-    '.project.php_cs',
-    'composer.*',
-    'phpunit.xml*',
-    'README.md',
-];
+abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+{
+}
