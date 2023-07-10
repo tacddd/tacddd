@@ -17,16 +17,19 @@
 
 declare(strict_types=1);
 
+namespace tacd\collections\traits\objects\magical_accesser;
+
 /**
- * 除外ファイルパス設定
- *
- * @see \PhpCsFixer\Finder::notPath()
+ * オブジェクトコレクションマジックアクセス特性
  */
-return [
-    '*.xml',
-    '.php_cs',
-    '.project.php_cs',
-    'composer.*',
-    'phpunit.xml*',
-    'README.md',
-];
+interface ObjectCollectionMagicalAccessorInterface
+{
+    /**
+     * Magical method
+     *
+     * @param  string $method_name メソッド名
+     * @param  array  $arguments   引数
+     * @return mixed  返り値
+     */
+    public function __call(string $method_name, array $arguments): mixed;
+}

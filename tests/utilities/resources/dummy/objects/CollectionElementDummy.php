@@ -17,16 +17,29 @@
 
 declare(strict_types=1);
 
-/**
- * 除外ファイルパス設定
- *
- * @see \PhpCsFixer\Finder::notPath()
- */
-return [
-    '*.xml',
-    '.php_cs',
-    '.project.php_cs',
-    'composer.*',
-    'phpunit.xml*',
-    'README.md',
-];
+namespace tacd\tests\utilities\resources\dummy\objects;
+
+final class CollectionElementDummy
+{
+    public function __construct(
+        private int $id,
+        private string $group,
+        private string $name,
+    ) {
+    }
+
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    public function getGroup()
+    {
+        return $this->group;
+    }
+
+    public function getName()
+    {
+        return $this->name;
+    }
+}

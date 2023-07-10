@@ -4,8 +4,8 @@
    | | (_| | (__| |_| | |_| | |_| |
    |_|\__,_|\___|____/|____/|____/
 
-@category    TacD
-@package     TacD
+@category    TacDDD
+@package     TacDDD
 @author      wakaba <wakabadou@gmail.com>
 @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
 @license     http://opensource.org/licenses/MIT The MIT License.

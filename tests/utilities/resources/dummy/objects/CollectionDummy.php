@@ -17,16 +17,25 @@
 
 declare(strict_types=1);
 
+namespace tacd\tests\utilities\resources\dummy\objects;
+
+use tacd\collections\traits\objects\ObjectCollectionInterface;
+use tacd\collections\traits\objects\ObjectCollectionTrait;
+
 /**
- * 除外ファイルパス設定
- *
- * @see \PhpCsFixer\Finder::notPath()
+ * @method CollectionElementDummy getById(int $id)
  */
-return [
-    '*.xml',
-    '.php_cs',
-    '.project.php_cs',
-    'composer.*',
-    'phpunit.xml*',
-    'README.md',
-];
+final class CollectionDummy implements ObjectCollectionInterface
+{
+    use ObjectCollectionTrait;
+
+    public static function getAllowedClasses(): string|array
+    {
+        return CollectionElementDummy::class;
+    }
+
+    public static function createUniqueKey(object $element): string|int
+    {
+        return $element->getId();
+    }
+}
