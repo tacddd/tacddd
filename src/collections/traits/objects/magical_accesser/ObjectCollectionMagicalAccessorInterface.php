@@ -17,13 +17,36 @@
 
 declare(strict_types=1);
 
-namespace tacd\collections\traits\objects\magical_accesser;
+namespace tacddd\collections\traits\objects\magical_accesser;
 
 /**
  * オブジェクトコレクションマジックアクセス特性
  */
 interface ObjectCollectionMagicalAccessorInterface
 {
+    /**
+     * 受け入れ可能なクラスを返します。
+     *
+     * @return string|array 受け入れ可能なクラス
+     */
+    public static function getAllowedClasses(): string|array;
+
+    /**
+     * 指定されたオブジェクトからユニークキーを返します。
+     *
+     * @param  object     $element オブジェクト
+     * @return int|string ユニークキー
+     */
+    public static function createUniqueKey(object $element): string|int;
+
+    /**
+     * キーがstring|intではなかった場合に調整して返します。
+     *
+     * @param  mixed      $key キー
+     * @return string|int 調整済みキー
+     */
+    public static function adjustKey(mixed $key): string|int;
+
     /**
      * Magical method
      *

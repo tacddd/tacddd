@@ -17,30 +17,15 @@
 
 declare(strict_types=1);
 
-namespace tacd\collections\traits\objects;
+namespace tacddd\collections\traits\objects;
 
-use tacd\collections\traits\objects\magical_accesser\ObjectCollectionMagicalAccessorInterface;
+use tacddd\collections\traits\objects\magical_accesser\ObjectCollectionMagicalAccessorInterface;
 
 /**
  * コレクション特性
  */
 interface ObjectCollectionInterface extends \IteratorAggregate, ObjectCollectionMagicalAccessorInterface
 {
-    /**
-     * 受け入れ可能なクラスを返します。
-     *
-     * @return string|array 受け入れ可能なクラス
-     */
-    public static function getAllowedClasses(): string|array;
-
-    /**
-     * 指定されたオブジェクトからユニークキーを返します。
-     *
-     * @param  object     $element オブジェクト
-     * @return int|string ユニークキー
-     */
-    public static function createUniqueKey(object $element): string|int;
-
     /**
      * constructor
      *

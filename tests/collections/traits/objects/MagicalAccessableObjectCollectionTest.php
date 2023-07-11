@@ -17,12 +17,12 @@
 
 declare(strict_types=1);
 
-namespace tacd\tests\collections\traits\objects;
+namespace tacddd\tests\collections\traits\objects;
 
 use PHPUnit\Framework\Attributes\Test;
-use tacd\tests\utilities\resources\dummy\objects\CollectionDummy;
-use tacd\tests\utilities\resources\dummy\objects\CollectionElementDummy;
-use tacd\tests\utilities\test_cases\AbstractTestCase;
+use tacddd\tests\utilities\resources\dummy\objects\CollectionDummy;
+use tacddd\tests\utilities\resources\dummy\objects\CollectionElementDummy;
+use tacddd\tests\utilities\test_cases\AbstractTestCase;
 
 /**
  * @internal
@@ -91,12 +91,38 @@ class MagicalAccessableObjectCollectionTest extends AbstractTestCase
         $collection->removeByIdInGroup([2, 'yuio']);
         $this->assertFalse($collection->has(2));
         $this->assertFalse($collection->hasByIdInGroup([2, 'yuio']));
+    }
 
+    #[Test]
+    public function groupBy(): void
+    {
         $collection     = new CollectionDummy([
             $asdf   = new CollectionElementDummy(1, 'asdf', 'value1'),
             $zxcv   = new CollectionElementDummy(2, 'asdf', 'value2'),
             $qwer   = new CollectionElementDummy(3, 'zxcv', 'value3'),
         ]);
+
+        $this->assertSame([
+            1 => $asdf,
+            2 => $zxcv,
+            3 => $qwer,
+        ], $collection->groupById());
+
+        $this->assertSame([
+            1 => ['asdf' => $asdf],
+            2 => ['asdf' => $zxcv],
+            3 => ['zxcv' => $qwer],
+        ], $collection->groupByIdInGroup());
+
+        $this->assertSame([
+            'asdf' => [
+                1 => $asdf,
+                2 => $zxcv,
+            ],
+            'zxcv' => [
+                3 => $qwer,
+            ],
+        ], $collection->groupByGroupInId());
     }
 
     #[Test]
@@ -112,6 +138,7 @@ class MagicalAccessableObjectCollectionTest extends AbstractTestCase
         $this->assertSame($zxcv, $collection->get(2));
 
         $this->assertSame($asdf, $collection->getByIdInGroup([1, 'asdf']));
+
         $this->assertSame($asdf, $collection->getByIdInGroup(1, 'asdf'));
 
         $collection->removeByIdInGroup([1, 'asdf']);

@@ -17,9 +17,9 @@
 
 declare(strict_types=1);
 
-namespace tacd\collections\traits\objects;
+namespace tacddd\collections\traits\objects;
 
-use tacd\collections\traits\objects\magical_accesser\ObjectCollectionMagicalAccessorTrait;
+use tacddd\collections\traits\objects\magical_accesser\ObjectCollectionMagicalAccessorTrait;
 
 /**
  * オブジェクトコレクション特性
@@ -32,44 +32,6 @@ trait ObjectCollectionTrait
      * @return array オプション
      */
     protected array $options;
-
-    /**
-     * 受け入れ可能なクラスを返します。
-     *
-     * @return string|array 受け入れ可能なクラス
-     */
-    abstract public static function getAllowedClasses(): string|array;
-
-    /**
-     * 指定されたオブジェクトからユニークキーを返します。
-     *
-     * @param  object     $element オブジェクト
-     * @return int|string ユニークキー
-     */
-    abstract public static function createUniqueKey(object $element): string|int;
-
-    /**
-     * 受け入れ可能なクラスかどうかを返します。
-     *
-     * @param  string $class クラスパス
-     * @return bool   受け入れ可能なクラスかどうか
-     */
-    public static function isAllowedClass(object|string $class): bool
-    {
-        $allowed_classes    = static::getAllowedClasses();
-
-        foreach (\is_array($allowed_classes) ? $allowed_classes : [$allowed_classes] as $allowed_class) {
-            if ($class instanceof $allowed_class) {
-                return true;
-            }
-
-            if (\is_subclass_of($class, $allowed_class, true)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 
     /**
      * constructor
@@ -95,12 +57,16 @@ trait ObjectCollectionTrait
     public function add(object $element): static
     {
         if (!static::isAllowedClass($element)) {
-            exit;
-
             throw new \TypeError(\sprintf('受け入れ可能外のクラスを指定されました。class:%s, allowed_classes:%s', $element::class, \implode(', ', (array) static::getAllowedClasses())));
         }
 
-        $this->collection[$this->createUniqueKey($element)] = $element;
+        $unique_key = static::createUniqueKey($element);
+
+        if (!\is_string($unique_key) && !\is_int($unique_key)) {
+            $unique_key = static::adjustKey($unique_key);
+        }
+
+        $this->collection[$unique_key] = $element;
 
         return $this;
     }
@@ -151,7 +117,11 @@ trait ObjectCollectionTrait
                 throw new \TypeError(\sprintf('受け入れ不能なクラスオブジェクトを指定されました。class:%s', $key::class));
             }
 
-            $key    = static::createUniqueKey($key);
+            $key = static::createUniqueKey($key);
+
+            if (!\is_string($key) && !\is_int($key)) {
+                $key = static::adjustKey($key);
+            }
         }
 
         unset($this->collection[$key]);
