@@ -13,8 +13,8 @@ TacDDD（タックディー）は戦術的DDDの迅速な立ち上げを支援�
 次の特性を使う事により、容易に任意の階層構造として値を取り出すことができます。
 
 ```php
-use tacd\collections\traits\objects\ObjectCollectionInterface;
-use tacd\collections\traits\objects\ObjectCollectionTrait;
+use tacddd\collections\traits\objects\ObjectCollectionInterface;
+use tacddd\collections\traits\objects\ObjectCollectionTrait;
 
 final class ElementCollection implements ObjectCollectionInterface
 {
@@ -32,6 +32,22 @@ final class ElementCollection implements ObjectCollectionInterface
         return $element->getId();
     }
 }
+```
+
+エンティティなど、対象が値オブジェクトを持ちgetterから取得した値から直接`string|int`を引けない場合は、次の`adjustKey`も追加してください。
+
+```php
+    /**
+     * キーがstring|intではなかった場合に調整して返します。
+     *
+     * @param  mixed      $key キー
+     * @return string|int 調整済みキー
+     */
+    public static function adjustKey(mixed $key): string|int
+    {
+        // 値オブジェクトが仮にpublic readonly string $value;を持つ場合
+        return $key->value;
+    }
 ```
 
 `Element`クラスが次のインターフェースを持っていた場合、その後に続くデータアクセスが可能となります。
@@ -83,7 +99,28 @@ $elementCollection->getByGroupInName('bravo', 'にほへ'); // $bravoを取得�
 $elementCollection->getByGroupInName(['bravo', 'にほへ']); // $bravoを取得できる
 ```
 
-※ 現時点では中途階層に対するグルーピングした結果の取得はできません。
+グルーピングした結果を取得したい場合は、`groupBy`プリフィックスを利用してください。
+
+```php
+$elementCollection->getByGroupInNameInId(); // 次の形式の配列を取得できる
+/*
+[
+    'alpha' => [
+        'いろは'    => [
+            1   => $alpha,
+        ]
+    ],
+    'bravo' => [
+        'にほへ'    => [
+            2   => $bravo,
+        ],
+        'とちり'    => [
+            3   => $charley,
+        ],
+    ],
+]
+*/
+```
 
 ## object collection factory
 
@@ -94,7 +131,7 @@ $elementCollection->getByGroupInName(['bravo', 'にほへ']); // $bravoを取得
 受け入れ可能クラスとユニークIDの指定のみは流石に記述が必要です。
 
 ```php
-use tacd\collections\MagicalAccessCollectionFactory;
+use tacddd\collections\MagicalAccessCollectionFactory;
 
 $collection = MagicalAccessCollectionFactory::createObjectCollection(Element::class, function(Element $element): string|int {
     return $element->getId();
@@ -107,8 +144,8 @@ $collection = MagicalAccessCollectionFactory::createObjectCollection(Element::cl
 クロージャだと要求が明確にならないので不安という方は`UniqueKeyFactoryInterface`をご利用ください。
 
 ```php
-use tacd\collections\MagicalAccessCollectionFactory;
-use tacd\collections\interfaces\objects\UniqueKeyFactoryInterface;
+use tacddd\collections\MagicalAccessCollectionFactory;
+use tacddd\collections\interfaces\objects\UniqueKeyFactoryInterface;
 
 $collection = MagicalAccessCollectionFactory::createObjectCollection(
     Element::class,

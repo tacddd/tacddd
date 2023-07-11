@@ -17,7 +17,7 @@
 
 declare(strict_types=1);
 
-namespace tacd\collections\interfaces\objects;
+namespace tacddd\collections\interfaces\objects;
 
 /**
  * オブジェクトコレクション向けユニークキー構築インターフェース

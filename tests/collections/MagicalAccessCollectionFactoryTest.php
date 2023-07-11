@@ -17,13 +17,13 @@
 
 declare(strict_types=1);
 
-namespace tacd\tests\collections;
+namespace tacddd\tests\collections;
 
 use PHPUnit\Framework\Attributes\Test;
-use tacd\collections\interfaces\objects\UniqueKeyFactoryInterface;
-use tacd\collections\MagicalAccessCollectionFactory;
-use tacd\tests\utilities\resources\dummy\objects\CollectionElementDummy;
-use tacd\tests\utilities\test_cases\AbstractTestCase;
+use tacddd\collections\interfaces\objects\UniqueKeyFactoryInterface;
+use tacddd\collections\MagicalAccessCollectionFactory;
+use tacddd\tests\utilities\resources\dummy\objects\CollectionElementDummy;
+use tacddd\tests\utilities\test_cases\AbstractTestCase;
 
 /**
  * @internal

@@ -17,7 +17,7 @@
 
 declare(strict_types=1);
 
-namespace tacd\tests\utilities\resources\dummy\objects;
+namespace tacddd\tests\utilities\resources\dummy\objects;
 
 final class IteratorAggregateDummy implements \IteratorAggregate
 {

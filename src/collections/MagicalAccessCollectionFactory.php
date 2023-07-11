@@ -17,11 +17,12 @@
 
 declare(strict_types=1);
 
-namespace tacd\collections;
+namespace tacddd\collections;
 
-use tacd\collections\interfaces\objects\UniqueKeyFactoryInterface;
-use tacd\collections\traits\objects\ObjectCollectionInterface;
-use tacd\collections\traits\objects\ObjectCollectionTrait;
+use tacddd\collections\interfaces\objects\AdjustKeyFactoryInterface;
+use tacddd\collections\interfaces\objects\UniqueKeyFactoryInterface;
+use tacddd\collections\traits\objects\ObjectCollectionInterface;
+use tacddd\collections\traits\objects\ObjectCollectionTrait;
 
 /**
  * マジカルアクセスコレクションファクトリ
@@ -31,20 +32,23 @@ final class MagicalAccessCollectionFactory
     /**
      * マジカルアクセスオブジェクトコレクションを生成して返します。
      *
-     * @param  string|object|array                $class           受け入れ可能なクラス
-     * @param  UniqueKeyFactoryInterface|\Closure $createUniqueKey ユニークキー生成機
-     * @param  array                              $elements        初期状態で投入したいオブジェクト群
-     * @param  array                              $options         オプション
-     * @return ObjectCollectionInterface          マジカルアクセスオブジェクトコレクション
+     * @param  string|object|array                     $class           受け入れ可能なクラス
+     * @param  UniqueKeyFactoryInterface|\Closure      $createUniqueKey ユニークキー生成機
+     * @param  array                                   $elements        初期状態で投入したいオブジェクト群
+     * @param  null|AdjustKeyFactoryInterface|\Closure $adjustKey       キーアジャスタ
+     * @param  array                                   $options         オプション
+     * @return ObjectCollectionInterface               マジカルアクセスオブジェクトコレクション
      */
     public static function createObjectCollection(
         string|object|array $class,
         UniqueKeyFactoryInterface|\Closure $createUniqueKey,
         iterable $elements = [],
+        null|AdjustKeyFactoryInterface|\Closure $adjustKey = null,
         array $options = [],
     ): ObjectCollectionInterface {
         $options['allowed_classes']     = \is_object($class) ? $class::class : $class;
         $options['create_unique_key']   = $createUniqueKey;
+        $options['adjust_key']          = $adjustKey;
 
         return new class($elements, $options) implements ObjectCollectionInterface {
             use ObjectCollectionTrait;
@@ -60,6 +64,11 @@ final class MagicalAccessCollectionFactory
             private static UniqueKeyFactoryInterface|\Closure $createUniqueKey;
 
             /**
+             * @var null|AdjustKeyFactoryInterface|\Closure キーアジャスタ
+             */
+            private static null|AdjustKeyFactoryInterface|\Closure $adjustKey;
+
+            /**
              * constructor
              *
              * @param iterable $elements 初期状態として受け入れるオブジェクトの配列
@@ -67,10 +76,13 @@ final class MagicalAccessCollectionFactory
              */
             public function __construct(iterable $elements = [], array $options = [])
             {
-                self::$allowedClasses     = $options['allowed_classes'];
+                self::$allowedClasses   = $options['allowed_classes'];
 
-                $createUniqueKey          = $options['create_unique_key'];
-                self::$createUniqueKey    = $createUniqueKey instanceof UniqueKeyFactoryInterface ? $createUniqueKey::createUniqueKey(...) : $createUniqueKey;
+                $createUniqueKey        = $options['create_unique_key'];
+                self::$createUniqueKey  = $createUniqueKey instanceof UniqueKeyFactoryInterface ? $createUniqueKey::createUniqueKey(...) : $createUniqueKey;
+
+                $adjustKey              = $options['adjust_key'];
+                self::$adjustKey        = $adjustKey;
 
                 $this->options  = $options;
 
@@ -100,6 +112,23 @@ final class MagicalAccessCollectionFactory
                 $createUniqueKey    = self::$createUniqueKey;
 
                 return $createUniqueKey($element);
+            }
+
+            /**
+             * キーがstring|intではなかった場合に調整して返します。
+             *
+             * @param  mixed      $key キー
+             * @return string|int 調整済みキー
+             */
+            public static function adjustKey(mixed $key): string|int
+            {
+                if (self::$adjustKey === null) {
+                    return $key;
+                }
+
+                $adjustKey    = self::$adjustKey;
+
+                return $adjustKey($key);
             }
         };
     }

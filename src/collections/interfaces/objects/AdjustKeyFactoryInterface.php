@@ -17,11 +17,18 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\collections\interfaces\objects;
 
 /**
- * @internal
+ * オブジェクトコレクション向けキーアジャスタ構築インターフェース
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+interface AdjustKeyFactoryInterface
 {
+    /**
+     * キーがstring|intではなかった場合に調整して返します。
+     *
+     * @param  mixed      $key キー
+     * @return string|int 調整済みキー
+     */
+    public static function adjustKey(mixed $key): string|int;
 }

@@ -17,7 +17,7 @@
 
 declare(strict_types=1);
 
-namespace tacd\collections\traits\objects\magical_accesser;
+namespace tacddd\collections\traits\objects\magical_accesser;
 
 /**
  * オブジェクトコレクションマジックアクセス特性
@@ -45,6 +45,108 @@ trait ObjectCollectionMagicalAccessorTrait
     protected array $collectionPursedNameMap = [];
 
     /**
+     * @var array エレメントが持つパブリックメソッドリスト
+     */
+    protected array $elementMethodList  = [];
+
+    /**
+     * 受け入れ可能なクラスを返します。
+     *
+     * @return string|array 受け入れ可能なクラス
+     */
+    abstract public static function getAllowedClasses(): string|array;
+
+    /**
+     * 指定されたオブジェクトからユニークキーを返します。
+     *
+     * @param  object     $element オブジェクト
+     * @return int|string ユニークキー
+     */
+    abstract public static function createUniqueKey(object $element): string|int;
+
+    /**
+     * 受け入れ可能なクラスかどうかを返します。
+     *
+     * @param  string $class クラスパス
+     * @return bool   受け入れ可能なクラスかどうか
+     */
+    public static function isAllowedClass(object|string $class): bool
+    {
+        foreach (\is_array($allowed_classes = static::getAllowedClasses()) ? $allowed_classes : $allowed_classes = [$allowed_classes] as $allowed_class) {
+            if ($class instanceof $allowed_class) {
+                return true;
+            }
+
+            if (\is_subclass_of($class, $allowed_class, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * キーがstring|intではなかった場合に調整して返します。
+     *
+     * @param  mixed      $key キー
+     * @return string|int 調整済みキー
+     */
+    public static function adjustKey(mixed $key): string|int
+    {
+        return $key;
+    }
+
+    /**
+     * 受け入れるクラスが持つパブリックメソッドのリストを返します。
+     *
+     * @return array 受け入れるクラスが持つパブリックメソッドのリスト
+     */
+    protected function getElementMethodList(): array
+    {
+        if (empty($this->elementMethodList)) {
+            $element_method_list    = [];
+
+            foreach (\is_array($allowed_classes = $this->getAllowedClasses()) ? $allowed_classes : [$allowed_classes] as $allowed_class) {
+                foreach ((new \ReflectionClass($allowed_class))->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+                    $method_name    = $method->getName();
+
+                    if (!\str_starts_with($method_name, 'get')) {
+                        continue;
+                    }
+
+                    $element_method_list[$method->getName()]    = [
+                        'map_key'   => $map_key = \mb_substr($method_name, 4),
+                        'length'    => \mb_strlen($map_key),
+                    ];
+                }
+            }
+
+            \uksort($element_method_list, function($a, $b): int {
+                return \strlen($b) <=> \strlen($a) ?: \strnatcmp($b, $a);
+            });
+
+            $this->elementMethodList    = $element_method_list;
+        }
+
+        return $this->elementMethodList;
+    }
+
+    /**
+     * マップキーをパースして返します。
+     *
+     * @param  string $map_key マップキー
+     * @return array  キー配列
+     */
+    protected function parseMapKey(string $map_key): array
+    {
+        if (!\str_contains($map_key, 'In')) {
+            return [$map_key];
+        }
+
+        return \explode('In', $map_key);
+    }
+
+    /**
      * 構築に必要な情報を構築して返します。
      *
      * @param  object[] $arguments                  取り込み対象のオブジェクト配列
@@ -60,12 +162,24 @@ trait ObjectCollectionMagicalAccessorTrait
 
             foreach ($collection_pursed_name_map as $map_key => $names) {
                 foreach ($names as $name) {
-                    $keys[$map_key][$name]  = $argument->{\sprintf('get%s', $name)}();
+                    $key = $argument->{\sprintf('get%s', $name)}();
+
+                    if (!\is_string($key) && !\is_int($key)) {
+                        $key = static::adjustKey($key);
+                    }
+
+                    $keys[$map_key][$name]  = $key;
                 }
             }
 
+            $unique_key = static::createUniqueKey($argument);
+
+            if (!\is_string($unique_key) && !\is_int($unique_key)) {
+                $unique_key = static::adjustKey($unique_key);
+            }
+
             $build_spec_list[$idx]   = [
-                'unique_id' => static::createUniqueKey($argument),
+                'unique_id' => $unique_key,
                 'keys'      => $keys,
             ];
         }
@@ -133,6 +247,62 @@ trait ObjectCollectionMagicalAccessorTrait
     }
 
     /**
+     * Magical group
+     *
+     * @param  string $map_key マップ名
+     * @return static このインスタンス
+     */
+    protected function magicalGroup(
+        string $map_key,
+    ): array {
+        if (!isset($this->collectionKeyMap[$map_key])) {
+            $this->collectionKeyMap[$map_key]  = [];
+        }
+
+        if (!isset($this->collectionPursedNameMap[$map_key])) {
+            $this->collectionPursedNameMap[$map_key] = $this->parseMapKey($map_key);
+        }
+
+        $collection_pursed_name_map = $this->collectionPursedNameMap[$map_key];
+
+        $last_idx   = \array_key_last($collection_pursed_name_map);
+        $last_name  = $collection_pursed_name_map[$last_idx];
+        unset($collection_pursed_name_map[$last_idx]);
+
+        $group  = [];
+
+        foreach ($this->collection as $element) {
+            $tmp    = &$group;
+
+            $last_key   = $element->{\sprintf('get%s', $last_name)}();
+
+            if (!\is_string($last_key) && !\is_int($last_key)) {
+                $last_key = static::adjustKey($last_key);
+            }
+
+            foreach ($collection_pursed_name_map as $name) {
+                $key = $element->{\sprintf('get%s', $name)}();
+
+                if (!\is_string($key) && !\is_int($key)) {
+                    $key = static::adjustKey($key);
+                }
+
+                if (!\array_key_exists($key, $tmp)) {
+                    $tmp[$key] = [];
+                }
+
+                $tmp = &$tmp[$key];
+            }
+
+            $tmp[$last_key] = $element;
+
+            unset($tmp);
+        }
+
+        return $group;
+    }
+
+    /**
      * Magical remove
      *
      * @param  array  $arguments 引数
@@ -144,7 +314,7 @@ trait ObjectCollectionMagicalAccessorTrait
         string $map_key,
     ): static {
         if (!isset($this->collectionPursedNameMap[$map_key])) {
-            $this->collectionPursedNameMap[$map_key] = \explode('In', $map_key);
+            $this->collectionPursedNameMap[$map_key] = $this->parseMapKey($map_key);
         }
 
         $tmp = $this->collectionKeyMap[$map_key];
@@ -233,7 +403,7 @@ trait ObjectCollectionMagicalAccessorTrait
         }
 
         if (!isset($this->collectionPursedNameMap[$map_key])) {
-            $this->collectionPursedNameMap[$map_key] = \explode('In', $map_key);
+            $this->collectionPursedNameMap[$map_key] = $this->parseMapKey($map_key);
         }
 
         $build_spec_list    = $this->createBuildSpecList($arguments, $this->collectionPursedNameMap);
@@ -292,6 +462,7 @@ trait ObjectCollectionMagicalAccessorTrait
 
         foreach ([
             'removeBy'  => ['length' => 8],
+            'groupBy'   => ['length' => 7],
             'getBy'     => ['length' => 5],
             'setBy'     => ['length' => 5],
             'hasBy'     => ['length' => 5],
@@ -323,6 +494,9 @@ trait ObjectCollectionMagicalAccessorTrait
         }
 
         return match ($action_name) {
+            'group'     => $this->magicalGroup(
+                map_key  : $map_key,
+            ),
             'remove'    => $this->magicalRemove(
                 arguments           : $arguments,
                 map_key             : $map_key,
@@ -339,7 +513,7 @@ trait ObjectCollectionMagicalAccessorTrait
                 arguments           : $arguments,
                 map_key             : $map_key,
             ),
-            default => throw new \Exception(\sprintf('Error: method not found %s()', $method_name)),
+            default     => throw new \Exception(\sprintf('Error: method not found %s()', $method_name)),
         };
     }
 }

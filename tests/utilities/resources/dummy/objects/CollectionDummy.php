@@ -17,10 +17,10 @@
 
 declare(strict_types=1);
 
-namespace tacd\tests\utilities\resources\dummy\objects;
+namespace tacddd\tests\utilities\resources\dummy\objects;
 
-use tacd\collections\traits\objects\ObjectCollectionInterface;
-use tacd\collections\traits\objects\ObjectCollectionTrait;
+use tacddd\collections\traits\objects\ObjectCollectionInterface;
+use tacddd\collections\traits\objects\ObjectCollectionTrait;
 
 /**
  * @method CollectionElementDummy getById(int $id)

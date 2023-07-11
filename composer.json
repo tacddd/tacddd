@@ -12,20 +12,20 @@
         }
     ],
     "config": {
-        "autoloader-suffix": "tacd"
+        "autoloader-suffix": "tacddd"
     },
     "autoload": {
         "psr-4": {
-            "tacd\\": "./src/"
+            "tacddd\\": "./src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "tacd\\tests\\": "./tests/"
+            "tacddd\\tests\\": "./tests/"
         }
     },
     "keywords": [
-        "tacd"
+        "tacddd"
     ],
     "require": {
         "php": ">=8.2.0",
