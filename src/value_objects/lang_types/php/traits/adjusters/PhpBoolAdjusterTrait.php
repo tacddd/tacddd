@@ -17,22 +17,26 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\lang_types\php\traits\adjusters;
 
 /**
- * @internal
+ * 言語型：PHP：bool：adjuster method
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+trait PhpBoolAdjusterTrait
 {
-    public function setUp(): void
+    /**
+     * adjust
+     *
+     * @param  string|int|float|bool $value 値
+     * @return bool                  調整済みの値
+     */
+    public static function adjust(string|int|float|bool $value): bool
     {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
+        if (\is_bool($value)) {
+            return $value;
+        }
 
-    public function tearDown(): void
-    {
-        \restore_error_handler();
+        return \filter_var($value, \FILTER_VALIDATE_BOOLEAN, \FILTER_NULL_ON_FAILURE)
+         ?? throw new \TypeError(\sprintf('真偽値として利用できない値が指定されました。value:"%s"', $value));
     }
 }

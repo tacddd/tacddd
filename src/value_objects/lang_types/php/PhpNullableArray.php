@@ -17,22 +17,25 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\lang_types\php;
+
+use tacddd\value_objects\lang_types\php\abstracts\AbstractPhpNullableArray;
+use tacddd\value_objects\lang_types\php\traits\factory_methods\PhpNullableArrayFactoryMethodTrait;
 
 /**
- * @internal
+ * 言語型：PHP：nullable array
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+final readonly class PhpNullableArray extends AbstractPhpNullableArray
 {
-    public function setUp(): void
-    {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
+    use PhpNullableArrayFactoryMethodTrait;
 
-    public function tearDown(): void
+    /**
+     * ユビキタス言語名を返します。
+     *
+     * @return string ユビキタス言語名
+     */
+    public static function getName(): string
     {
-        \restore_error_handler();
+        return 'PHP nullable array 型';
     }
 }

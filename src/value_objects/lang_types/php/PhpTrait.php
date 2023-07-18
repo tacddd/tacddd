@@ -17,22 +17,25 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\lang_types\php;
+
+use tacddd\value_objects\lang_types\php\abstracts\AbstractPhpTrait;
+use tacddd\value_objects\lang_types\php\traits\factory_methods\PhpTraitFactoryMethodTrait;
 
 /**
- * @internal
+ * 言語型：PHP：trait
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+final readonly class PhpTrait extends AbstractPhpTrait
 {
-    public function setUp(): void
-    {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
+    use PhpTraitFactoryMethodTrait;
 
-    public function tearDown(): void
+    /**
+     * ユビキタス言語名を返します。
+     *
+     * @return string ユビキタス言語名
+     */
+    public static function getName(): string
     {
-        \restore_error_handler();
+        return 'PHP trait 型';
     }
 }

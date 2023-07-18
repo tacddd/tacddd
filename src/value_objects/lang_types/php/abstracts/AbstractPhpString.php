@@ -17,22 +17,19 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\lang_types\php\abstracts;
+
+use tacddd\value_objects\interfaces\ValueObjectInterface;
 
 /**
- * @internal
+ * 抽象言語型：PHP：string
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+abstract readonly class AbstractPhpString implements ValueObjectInterface
 {
-    public function setUp(): void
+    /**
+     * constructor
+     */
+    public function __construct(public string $value)
     {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
-
-    public function tearDown(): void
-    {
-        \restore_error_handler();
     }
 }

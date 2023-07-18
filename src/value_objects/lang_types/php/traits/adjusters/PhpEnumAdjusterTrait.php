@@ -17,22 +17,21 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\lang_types\php\traits\adjusters;
 
 /**
- * @internal
+ * 言語型：PHP：enum：adjuster method
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+trait PhpEnumAdjusterTrait
 {
-    public function setUp(): void
+    /**
+     * adjust
+     *
+     * @param  object $value 値
+     * @return string 調整済みの値
+     */
+    public static function adjust(object $value): object
     {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
-
-    public function tearDown(): void
-    {
-        \restore_error_handler();
+        return $value;
     }
 }

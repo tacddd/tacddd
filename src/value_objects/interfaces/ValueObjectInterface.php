@@ -17,22 +17,17 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\interfaces;
 
 /**
- * @internal
+ * 値オブジェクトインターフェース
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+interface ValueObjectInterface
 {
-    public function setUp(): void
-    {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
-
-    public function tearDown(): void
-    {
-        \restore_error_handler();
-    }
+    /**
+     * ユビキタス言語名を返します。
+     *
+     * @return string ユビキタス言語名
+     */
+    public static function getName(): string;
 }

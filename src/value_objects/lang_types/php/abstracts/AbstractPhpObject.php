@@ -17,22 +17,22 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\lang_types\php\abstracts;
+
+use tacddd\value_objects\interfaces\ValueObjectInterface;
 
 /**
- * @internal
+ * 抽象言語型：PHP：object
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+abstract readonly class AbstractPhpObject implements ValueObjectInterface
 {
-    public function setUp(): void
+    /**
+     * constructor
+     */
+    public function __construct(public object $value)
     {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
-
-    public function tearDown(): void
-    {
-        \restore_error_handler();
+        if (\enum_exists($this->value::class)) {
+            throw new \ValueError(\sprintf('列挙型を与えられました。value:"%s"', $this->value::class));
+        }
     }
 }

@@ -17,22 +17,24 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\lang_types\php\abstracts;
+
+use tacddd\value_objects\interfaces\ValueObjectInterface;
 
 /**
- * @internal
+ * 抽象言語型：PHP：enum
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+abstract readonly class AbstractPhpEnum implements ValueObjectInterface
 {
-    public function setUp(): void
+    /**
+     * constructor
+     *
+     * @param object $value 値
+     */
+    public function __construct(public object $value)
     {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
-
-    public function tearDown(): void
-    {
-        \restore_error_handler();
+        if (!\enum_exists($value::class, false)) {
+            throw new \ValueError(\sprintf('存在しないまたはアクセスできない列挙型（"%s"）を指定されました。', $value::class));
+        }
     }
 }

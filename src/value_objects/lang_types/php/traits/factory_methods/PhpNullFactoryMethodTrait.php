@@ -17,22 +17,29 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\lang_types\php\traits\factory_methods;
+
+use tacddd\value_objects\lang_types\php\traits\adjusters\PhpNullAdjusterTrait;
 
 /**
- * @internal
+ * 言語型：PHP：null：factory method
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+trait PhpNullFactoryMethodTrait
 {
-    public function setUp(): void
-    {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
+    use PhpNullAdjusterTrait;
 
-    public function tearDown(): void
+    /**
+     * factory
+     *
+     * @param  null|self $value 値
+     * @return static    このインスタンス
+     */
+    public static function of(self|null $value): static
     {
-        \restore_error_handler();
+        if ($value instanceof self) {
+            return $value;
+        }
+
+        return new static(static::adjust($value));
     }
 }

@@ -17,22 +17,25 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\lang_types\php;
+
+use tacddd\value_objects\lang_types\php\abstracts\AbstractPhpArray;
+use tacddd\value_objects\lang_types\php\traits\factory_methods\PhpArrayFactoryMethodTrait;
 
 /**
- * @internal
+ * 言語型：PHP：array
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+readonly class PhpArray extends AbstractPhpArray
 {
-    public function setUp(): void
-    {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
+    use PhpArrayFactoryMethodTrait;
 
-    public function tearDown(): void
+    /**
+     * ユビキタス言語名を返します。
+     *
+     * @return string ユビキタス言語名
+     */
+    public static function getName(): string
     {
-        \restore_error_handler();
+        return 'PHP array 型';
     }
 }

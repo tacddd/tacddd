@@ -17,22 +17,29 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\lang_types\php\traits\adjusters;
 
 /**
- * @internal
+ * 言語型：PHP：array：adjuster method
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+trait PhpArrayAdjusterTrait
 {
-    public function setUp(): void
+    /**
+     * adjust
+     *
+     * @param  self|\IteratorAggregate|\Iterator|array $value 値
+     * @return array                                   調整済みの値
+     */
+    public static function adjust(\IteratorAggregate|\Iterator|array $value): array
     {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
+        if ($value instanceof \IteratorAggregate) {
+            $value = $value->getIterator();
+        }
 
-    public function tearDown(): void
-    {
-        \restore_error_handler();
+        if ($value instanceof \Iterator) {
+            $value = \iterator_to_array($value);
+        }
+
+        return $value;
     }
 }
