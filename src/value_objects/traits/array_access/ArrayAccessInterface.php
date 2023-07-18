@@ -17,22 +17,16 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\traits\array_access;
+
+use tacddd\value_objects\interfaces\ValueObjectInterface;
 
 /**
- * @internal
+ * 配列型値オブジェクトインターフェース
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+interface ArrayAccessInterface extends
+    ValueObjectInterface,
+    \ArrayAccess,
+    \IteratorAggregate
 {
-    public function setUp(): void
-    {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
-
-    public function tearDown(): void
-    {
-        \restore_error_handler();
-    }
 }

@@ -17,22 +17,21 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\lang_types\php\traits\adjusters;
 
 /**
- * @internal
+ * 言語型：PHP：null：adjuster method
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+trait PhpNullAdjusterTrait
 {
-    public function setUp(): void
+    /**
+     * adjust
+     *
+     * @param  null $value 値
+     * @return null 調整済みの値
+     */
+    public static function adjust(null $value): null
     {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
-
-    public function tearDown(): void
-    {
-        \restore_error_handler();
+        return $value;
     }
 }

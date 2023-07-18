@@ -17,22 +17,25 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\lang_types\php;
+
+use tacddd\value_objects\lang_types\php\abstracts\AbstractPhpList;
+use tacddd\value_objects\lang_types\php\traits\factory_methods\PhpListFactoryMethodTrait;
 
 /**
- * @internal
+ * 言語型：PHP：array list
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+final readonly class PhpList extends AbstractPhpList
 {
-    public function setUp(): void
-    {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
+    use PhpListFactoryMethodTrait;
 
-    public function tearDown(): void
+    /**
+     * ユビキタス言語名を返します。
+     *
+     * @return string ユビキタス言語名
+     */
+    public static function getName(): string
     {
-        \restore_error_handler();
+        return 'PHP array list 型';
     }
 }

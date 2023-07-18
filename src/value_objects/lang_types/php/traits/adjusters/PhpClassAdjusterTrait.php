@@ -17,22 +17,25 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\lang_types\php\traits\adjusters;
 
 /**
- * @internal
+ * 言語型：PHP：class：adjuster method
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+trait PhpClassAdjusterTrait
 {
-    public function setUp(): void
+    /**
+     * adjust
+     *
+     * @param  object|string $value 値
+     * @return string        調整済みの値
+     */
+    public static function adjust(object|string $value): string
     {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
+        if (\is_object($value)) {
+            return $value::class;
+        }
 
-    public function tearDown(): void
-    {
-        \restore_error_handler();
+        return $value;
     }
 }

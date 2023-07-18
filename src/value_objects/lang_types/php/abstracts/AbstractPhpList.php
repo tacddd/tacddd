@@ -17,22 +17,25 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\value_objects\lang_types\php\abstracts;
+
+use tacddd\value_objects\traits\array_access\ArrayAccessInterface;
+use tacddd\value_objects\traits\array_access\ArrayAccessTrait;
 
 /**
- * @internal
+ * 抽象言語型：PHP：array list
  */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+abstract readonly class AbstractPhpList implements ArrayAccessInterface
 {
-    public function setUp(): void
-    {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
+    use ArrayAccessTrait;
 
-    public function tearDown(): void
+    /**
+     * constructor
+     */
+    public function __construct(public array $value)
     {
-        \restore_error_handler();
+        if (!\array_is_list($value)) {
+            throw new \ValueError('リストではない配列を指定されました。');
+        }
     }
 }

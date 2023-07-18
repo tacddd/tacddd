@@ -17,22 +17,13 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\test_cases;
+namespace tacddd\tests\utilities\resources\dummy\objects;
 
-/**
- * @internal
- */
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+interface DummyInterface
 {
-    public function setUp(): void
-    {
-        \set_error_handler(function($errno, $errstr, $errfile, $errline): void {
-            throw new \RuntimeException(\sprintf('Error #%s: %s on %s(%s)', $errno, $errstr, $errfile, $errline));
-        });
-    }
+    public const PUBLIC_CONST = 'PUBLIC_CONST';
 
-    public function tearDown(): void
-    {
-        \restore_error_handler();
-    }
+    public static function publicStatic(): string;
+
+    public function public(): string;
 }
