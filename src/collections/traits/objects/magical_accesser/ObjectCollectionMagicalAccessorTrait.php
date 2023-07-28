@@ -162,21 +162,11 @@ trait ObjectCollectionMagicalAccessorTrait
 
             foreach ($collection_pursed_name_map as $map_key => $names) {
                 foreach ($names as $name) {
-                    $key = $argument->{\sprintf('get%s', $name)}();
-
-                    if (!\is_string($key) && !\is_int($key)) {
-                        $key = static::adjustKey($key);
-                    }
-
-                    $keys[$map_key][$name]  = $key;
+                    $keys[$map_key][$name]  = static::adjustKey($argument->{\sprintf('get%s', $name)}());
                 }
             }
 
             $unique_key = static::createUniqueKey($argument);
-
-            if (!\is_string($unique_key) && !\is_int($unique_key)) {
-                $unique_key = static::adjustKey($unique_key);
-            }
 
             $build_spec_list[$idx]   = [
                 'unique_id' => $unique_key,
@@ -274,18 +264,10 @@ trait ObjectCollectionMagicalAccessorTrait
         foreach ($this->collection as $element) {
             $tmp    = &$group;
 
-            $last_key   = $element->{\sprintf('get%s', $last_name)}();
-
-            if (!\is_string($last_key) && !\is_int($last_key)) {
-                $last_key = static::adjustKey($last_key);
-            }
+            $last_key = static::adjustKey($element->{\sprintf('get%s', $last_name)}());
 
             foreach ($collection_pursed_name_map as $name) {
-                $key = $element->{\sprintf('get%s', $name)}();
-
-                if (!\is_string($key) && !\is_int($key)) {
-                    $key = static::adjustKey($key);
-                }
+                $key = static::adjustKey($element->{\sprintf('get%s', $name)}());
 
                 if (!\array_key_exists($key, $tmp)) {
                     $tmp[$key] = [];
