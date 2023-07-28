@@ -20,6 +20,8 @@ declare(strict_types=1);
 namespace tacddd\tests\collections\traits\objects;
 
 use PHPUnit\Framework\Attributes\Test;
+use tacddd\tests\utilities\resources\dummy\collections\ValueObjectCollectionDummy;
+use tacddd\tests\utilities\resources\dummy\entities\ValueObjectCollectionEntityDummy;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionDummy;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionElementDummy;
 use tacddd\tests\utilities\test_cases\AbstractTestCase;
@@ -37,6 +39,9 @@ class MagicalAccessableObjectCollectionTest extends AbstractTestCase
             $zxcv   = new CollectionElementDummy(2, 'zxcv', 'value2'),
             $qwer   = new CollectionElementDummy(3, 'qwer', 'value3'),
         ]);
+
+        $this->assertFalse($collection->empty());
+        $this->assertSame(3, $collection->count());
 
         $this->assertSame($asdf, $collection->first());
         $this->assertSame($qwer, $collection->last());
@@ -147,5 +152,64 @@ class MagicalAccessableObjectCollectionTest extends AbstractTestCase
         $collection->setById($asdf);
         $collection->removeByIdInGroup(1, 'asdf');
         $this->assertFalse($collection->hasByIdInGroup(1, 'asdf'));
+    }
+
+    #[Test]
+    public function collectionCount(): void
+    {
+        $collection     = new CollectionDummy();
+
+        $this->assertTrue($collection->empty());
+        $this->assertSame(0, $collection->count());
+
+        $this->assertSame(null, $collection->first());
+        $this->assertSame(null, $collection->last());
+
+        $this->assertSame(null, $collection->get(0));
+
+        $collection->add($asdf = new CollectionElementDummy(1, 'asdf', 'value1'));
+
+        $this->assertFalse($collection->empty());
+        $this->assertSame(1, $collection->count());
+
+        $this->assertSame($asdf, $collection->first());
+        $this->assertSame($asdf, $collection->last());
+
+        $this->assertSame($asdf, $collection->get(1));
+    }
+
+    #[Test]
+    public function valueObjectCollection(): void
+    {
+        $collection     = new ValueObjectCollectionDummy();
+
+        $this->assertTrue($collection->empty());
+        $this->assertSame(0, $collection->count());
+
+        $this->assertSame(null, $collection->first());
+        $this->assertSame(null, $collection->last());
+
+        $this->assertSame(null, $collection->get(0));
+
+        $collection->add($asdf = ValueObjectCollectionEntityDummy::of(
+            1,
+            'asdf',
+            'value1',
+        ));
+
+        $this->assertFalse($collection->empty());
+        $this->assertSame(1, $collection->count());
+
+        $this->assertSame($asdf, $collection->first());
+        $this->assertSame($asdf, $collection->last());
+
+        $this->assertSame($asdf, $collection->get(1));
+        $this->assertSame($asdf, $collection->getById(1));
+        $this->assertSame($asdf, $collection->getByGroup('asdf'));
+        $this->assertSame($asdf, $collection->getByName('value1'));
+
+        $this->assertSame([$asdf->getId()->value => $asdf], $collection->groupById());
+        $this->assertSame([$asdf->getGroup()->value => $asdf], $collection->groupByGroup());
+        $this->assertSame([$asdf->getName()->value => $asdf], $collection->groupByName());
     }
 }

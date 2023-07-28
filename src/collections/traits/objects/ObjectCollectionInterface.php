@@ -24,7 +24,7 @@ use tacddd\collections\traits\objects\magical_accesser\ObjectCollectionMagicalAc
 /**
  * コレクション特性
  */
-interface ObjectCollectionInterface extends \IteratorAggregate, ObjectCollectionMagicalAccessorInterface
+interface ObjectCollectionInterface extends \IteratorAggregate, \Countable, ObjectCollectionMagicalAccessorInterface
 {
     /**
      * constructor
@@ -79,6 +79,20 @@ interface ObjectCollectionInterface extends \IteratorAggregate, ObjectCollection
      * @return object コレクションの最後の要素
      */
     public function last(): ?object;
+
+    /**
+     * 現在のコレクション数を返します。
+     *
+     * @return int 現在のコレクション数
+     */
+    public function count(): int;
+
+    /**
+     * 現在のコレクションが空かどうか返します。
+     *
+     * @return bool 現在のコレクションが空かどうか
+     */
+    public function empty(): bool;
 
     /**
      * イテレータを返します。

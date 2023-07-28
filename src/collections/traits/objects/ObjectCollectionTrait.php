@@ -150,6 +150,26 @@ trait ObjectCollectionTrait
     }
 
     /**
+     * 現在のコレクション数を返します。
+     *
+     * @return int 現在のコレクション数
+     */
+    public function count(): int
+    {
+        return \count($this->collection);
+    }
+
+    /**
+     * 現在のコレクションが空かどうか返します。
+     *
+     * @return bool 現在のコレクションが空かどうか
+     */
+    public function empty(): bool
+    {
+        return empty($this->collection);
+    }
+
+    /**
      * イテレータを返します。
      *
      * @return \Traversable イテレータ
