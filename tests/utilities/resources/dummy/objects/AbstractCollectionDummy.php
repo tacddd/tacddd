@@ -19,6 +19,29 @@ declare(strict_types=1);
 
 namespace tacddd\tests\utilities\resources\dummy\objects;
 
-final class CollectionDummy extends AbstractCollectionDummy
+use tacddd\collections\entities\traits\EntityCollectionInterface;
+use tacddd\collections\entities\traits\EntityCollectionTrait;
+
+abstract class AbstractCollectionDummy implements EntityCollectionInterface
 {
+    use EntityCollectionTrait;
+
+    public static function getAllowedClass(): string
+    {
+        return CollectionElementDummy::class;
+    }
+
+    public static function createUniqueId(object $element): string|int
+    {
+        return $element->getId();
+    }
+
+    public static function adjustKey(mixed $key): string|int
+    {
+        if (\is_object($key)) {
+            return $key->value;
+        }
+
+        return $key;
+    }
 }

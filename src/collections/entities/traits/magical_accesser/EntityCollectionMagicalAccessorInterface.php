@@ -17,35 +17,34 @@
 
 declare(strict_types=1);
 
-namespace tacddd\collections\traits\objects\magical_accesser;
+namespace tacddd\collections\entities\traits\magical_accesser;
 
 /**
  * オブジェクトコレクションマジックアクセス特性
  */
-interface ObjectCollectionMagicalAccessorInterface
+interface EntityCollectionMagicalAccessorInterface
 {
     /**
-     * 受け入れ可能なクラスを返します。
-     *
-     * @return string|array 受け入れ可能なクラス
+     * @var array アクション設定
      */
-    public static function getAllowedClasses(): string|array;
+    public const ACTION_SPEC_MAP = [
+        'findOneToMapBy'    => ['length' => 14, 'use_args' => true],
+        'findToMapBy'       => ['length' => 11, 'use_args' => true],
+        'toOneMapIn'        => ['length' => 10, 'use_args' => false],
+        'findOneBy'         => ['length' => 9, 'use_args' => true],
+        'removeBy'          => ['length' => 8, 'use_args' => true],
+        'toMapIn'           => ['length' => 7, 'use_args' => false],
+        'findBy'            => ['length' => 6, 'use_args' => true],
+        'hasBy'             => ['length' => 5, 'use_args' => true],
+    ];
 
     /**
-     * 指定されたオブジェクトからユニークキーを返します。
+     * マップキーをパースして返します。
      *
-     * @param  object     $element オブジェクト
-     * @return int|string ユニークキー
+     * @param  string $find_key マップキー
+     * @return array  キー配列
      */
-    public static function createUniqueKey(object $element): string|int;
-
-    /**
-     * キーがstring|intではなかった場合に調整して返します。
-     *
-     * @param  mixed      $key キー
-     * @return string|int 調整済みキー
-     */
-    public static function adjustKey(mixed $key): string|int;
+    public static function parseFindKey(string $find_key): array;
 
     /**
      * Magical method
