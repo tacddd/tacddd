@@ -23,7 +23,7 @@ use tacddd\tests\utilities\resources\dummy\value_objects\GroupDummy;
 use tacddd\tests\utilities\resources\dummy\value_objects\IdDummy;
 use tacddd\tests\utilities\resources\dummy\value_objects\NameDummy;
 
-final class ValueObjectCollectionEntityDummy
+final class EntityCollectionEntityDummy
 {
     public static function of(
         int $id,

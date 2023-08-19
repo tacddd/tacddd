@@ -17,18 +17,15 @@
 
 declare(strict_types=1);
 
-namespace tacddd\collections\interfaces\objects;
+namespace tacddd\tests\utilities\resources\dummy\objects;
+
+use tacddd\collections\entities\traits\magical_accesser\EntityCollectionMagicalAccessorInterface;
+use tacddd\collections\entities\traits\magical_accesser\EntityCollectionMagicalAccessorTrait;
 
 /**
- * オブジェクトコレクション向けユニークキー構築インターフェース
+ * @method CollectionElementDummy getById(int $id)
  */
-interface UniqueKeyFactoryInterface
+final class CollectionMagicalDummy extends AbstractCollectionDummy implements EntityCollectionMagicalAccessorInterface
 {
-    /**
-     * 指定されたオブジェクトからユニークキーを返します。
-     *
-     * @param  object     $element オブジェクト
-     * @return int|string ユニークキー
-     */
-    public static function createUniqueKey(object $element): string|int;
+    use EntityCollectionMagicalAccessorTrait;
 }
