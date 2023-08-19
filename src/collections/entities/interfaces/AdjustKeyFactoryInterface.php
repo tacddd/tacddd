@@ -17,8 +17,18 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\resources\dummy\objects;
+namespace tacddd\collections\entities\interfaces;
 
-final class CollectionDummy extends AbstractCollectionDummy
+/**
+ * オブジェクトコレクション向けキーアジャスタ構築インターフェース
+ */
+interface AdjustKeyFactoryInterface
 {
+    /**
+     * キーがstring|intではなかった場合に調整して返します。
+     *
+     * @param  mixed      $key キー
+     * @return string|int 調整済みキー
+     */
+    public static function adjustKey(mixed $key): string|int;
 }

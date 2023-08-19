@@ -17,18 +17,18 @@
 
 declare(strict_types=1);
 
-namespace tacddd\collections\interfaces\objects;
+namespace tacddd\collections\entities\interfaces;
 
 /**
- * オブジェクトコレクション向けキーアジャスタ構築インターフェース
+ * オブジェクトコレクション向けユニークID構築インターフェース
  */
-interface AdjustKeyFactoryInterface
+interface UniqueIdFactoryInterface
 {
     /**
-     * キーがstring|intではなかった場合に調整して返します。
+     * 指定されたオブジェクトからユニークIDを返します。
      *
-     * @param  mixed      $key キー
-     * @return string|int 調整済みキー
+     * @param  object     $element オブジェクト
+     * @return int|string ユニークID
      */
-    public static function adjustKey(mixed $key): string|int;
+    public static function createUniqueId(object $element): string|int;
 }

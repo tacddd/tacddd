@@ -22,7 +22,10 @@
     "autoload-dev": {
         "psr-4": {
             "tacddd\\tests\\": "./tests/"
-        }
+        },
+        "files": [
+            "tests/utilities/functions/functions.php"
+        ]
     },
     "keywords": [
         "tacddd"

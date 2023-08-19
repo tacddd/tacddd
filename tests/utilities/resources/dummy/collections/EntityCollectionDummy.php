@@ -19,23 +19,20 @@ declare(strict_types=1);
 
 namespace tacddd\tests\utilities\resources\dummy\collections;
 
-use tacddd\collections\traits\objects\ObjectCollectionInterface;
-use tacddd\collections\traits\objects\ObjectCollectionTrait;
-use tacddd\tests\utilities\resources\dummy\entities\ValueObjectCollectionEntityDummy;
+use tacddd\collections\entities\traits\EntityCollectionInterface;
+use tacddd\collections\entities\traits\EntityCollectionTrait;
+use tacddd\tests\utilities\resources\dummy\entities\EntityCollectionEntityDummy;
 
-/**
- * @method ValueObjectCollectionEntityDummy getById(int $id)
- */
-final class ValueObjectCollectionDummy implements ObjectCollectionInterface
+final class EntityCollectionDummy implements EntityCollectionInterface
 {
-    use ObjectCollectionTrait;
+    use EntityCollectionTrait;
 
-    public static function getAllowedClasses(): string|array
+    public static function getAllowedClass(): string
     {
-        return ValueObjectCollectionEntityDummy::class;
+        return EntityCollectionEntityDummy::class;
     }
 
-    public static function createUniqueKey(object $element): string|int
+    public static function createUniqueId(object $element): string|int
     {
         return $element->getId()->value;
     }

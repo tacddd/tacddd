@@ -17,51 +17,54 @@
 
 declare(strict_types=1);
 
-namespace tacddd\collections;
+namespace tacddd\collections\entities;
 
-use tacddd\collections\interfaces\objects\AdjustKeyFactoryInterface;
-use tacddd\collections\interfaces\objects\UniqueKeyFactoryInterface;
-use tacddd\collections\traits\objects\ObjectCollectionInterface;
-use tacddd\collections\traits\objects\ObjectCollectionTrait;
+use tacddd\collections\entities\interfaces\AdjustKeyFactoryInterface;
+use tacddd\collections\entities\interfaces\UniqueIdFactoryInterface;
+use tacddd\collections\entities\traits\EntityCollectionInterface;
+use tacddd\collections\entities\traits\EntityCollectionTrait;
+use tacddd\collections\entities\traits\magical_accesser\EntityCollectionMagicalAccessorInterface;
+use tacddd\collections\entities\traits\magical_accesser\EntityCollectionMagicalAccessorTrait;
 
 /**
- * マジカルアクセスコレクションファクトリ
+ * マジカルアクセスエンティティコレクションファクトリ
  */
-final class MagicalAccessCollectionFactory
+final class MagicalAccessEntityCollectionFactory
 {
     /**
      * マジカルアクセスオブジェクトコレクションを生成して返します。
      *
-     * @param  string|object|array                     $class           受け入れ可能なクラス
-     * @param  UniqueKeyFactoryInterface|\Closure      $createUniqueKey ユニークキー生成機
-     * @param  array                                   $elements        初期状態で投入したいオブジェクト群
-     * @param  null|AdjustKeyFactoryInterface|\Closure $adjustKey       キーアジャスタ
-     * @param  array                                   $options         オプション
-     * @return ObjectCollectionInterface               マジカルアクセスオブジェクトコレクション
+     * @param  string|object|array                     $class          受け入れ可能なクラス
+     * @param  UniqueIdFactoryInterface|\Closure       $createUniqueId ユニークID生成機
+     * @param  array                                   $elements       初期状態で投入したいオブジェクト群
+     * @param  null|AdjustKeyFactoryInterface|\Closure $adjustKey      キーアジャスタ
+     * @param  array                                   $options        オプション
+     * @return EntityCollectionInterface               マジカルアクセスオブジェクトコレクション
      */
-    public static function createObjectCollection(
+    public static function createEntityCollection(
         string|object|array $class,
-        UniqueKeyFactoryInterface|\Closure $createUniqueKey,
+        UniqueIdFactoryInterface|\Closure $createUniqueId,
         iterable $elements = [],
         null|AdjustKeyFactoryInterface|\Closure $adjustKey = null,
         array $options = [],
-    ): ObjectCollectionInterface {
+    ): EntityCollectionInterface {
         $options['allowed_classes']     = \is_object($class) ? $class::class : $class;
-        $options['create_unique_key']   = $createUniqueKey;
+        $options['create_unique_key']   = $createUniqueId;
         $options['adjust_key']          = $adjustKey;
 
-        return new class($elements, $options) implements ObjectCollectionInterface {
-            use ObjectCollectionTrait;
+        return new class($elements, $options) implements EntityCollectionInterface, EntityCollectionMagicalAccessorInterface {
+            use EntityCollectionTrait;
+            use EntityCollectionMagicalAccessorTrait;
 
             /**
-             * @var string|array 受け入れ可能なクラス
+             * @var string 受け入れ可能なクラス
              */
-            private static string|array $allowedClasses;
+            private static string $allowedClasses;
 
             /**
-             * @var UniqueKeyFactoryInterface|\Closure ユニークキー生成機
+             * @var UniqueIdFactoryInterface|\Closure ユニークID生成機
              */
-            private static UniqueKeyFactoryInterface|\Closure $createUniqueKey;
+            private static UniqueIdFactoryInterface|\Closure $createUniqueId;
 
             /**
              * @var null|AdjustKeyFactoryInterface|\Closure キーアジャスタ
@@ -78,8 +81,8 @@ final class MagicalAccessCollectionFactory
             {
                 self::$allowedClasses   = $options['allowed_classes'];
 
-                $createUniqueKey        = $options['create_unique_key'];
-                self::$createUniqueKey  = $createUniqueKey instanceof UniqueKeyFactoryInterface ? $createUniqueKey::createUniqueKey(...) : $createUniqueKey;
+                $createUniqueId        = $options['create_unique_key'];
+                self::$createUniqueId  = $createUniqueId instanceof UniqueIdFactoryInterface ? $createUniqueId::createUniqueId(...) : $createUniqueId;
 
                 $adjustKey              = $options['adjust_key'];
                 self::$adjustKey        = $adjustKey;
@@ -94,24 +97,24 @@ final class MagicalAccessCollectionFactory
             /**
              * 受け入れ可能なクラスを返します。
              *
-             * @return string|array 受け入れ可能なクラス
+             * @return string 受け入れ可能なクラス
              */
-            public static function getAllowedClasses(): string|array
+            public static function getAllowedClass(): string
             {
                 return self::$allowedClasses;
             }
 
             /**
-             * 指定されたオブジェクトからユニークキーを返します。
+             * 指定されたオブジェクトからユニークIDを返します。
              *
              * @param  object     $element オブジェクト
-             * @return int|string ユニークキー
+             * @return int|string ユニークID
              */
-            public static function createUniqueKey(object $element): string|int
+            public static function createUniqueId(object $element): string|int
             {
-                $createUniqueKey    = self::$createUniqueKey;
+                $createUniqueId    = self::$createUniqueId;
 
-                return $createUniqueKey($element);
+                return $createUniqueId($element);
             }
 
             /**
