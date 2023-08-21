@@ -51,6 +51,10 @@ class EntityCollectionTest extends AbstractTestCase
         $this->assertSame(['zxcv' => [2 => [$zxcv]]], $collection->findToMapBy(['id' => 2], ['group', 'id']));
         $this->assertSame(['zxcv' => [2 => $zxcv]], $collection->findOneToMapBy(['id' => 2], ['group', 'id']));
 
+        $this->assertSame($zxcv, $collection->find($zxcv));
+        $this->assertSame([$zxcv], $collection->findBy(['id' => $zxcv]));
+        $this->assertSame($zxcv, $collection->findOneBy(['id' => $zxcv]));
+
         // add
         $collection->add($hjkl = new CollectionElementDummy(4, 'qwer', 'value4'));
 
