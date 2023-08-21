@@ -36,8 +36,14 @@ abstract class AbstractCollectionDummy implements EntityCollectionInterface
         return $element->getId();
     }
 
-    public static function adjustKey(mixed $key): string|int
+    public static function adjustKey(mixed $key, ?string $method_key = null): string|int
     {
+        $allowed_class  = static::getAllowedClass();
+
+        if ($key instanceof $allowed_class) {
+            return $key->{'get' . $method_key}();
+        }
+
         if (\is_object($key)) {
             return $key->value;
         }
