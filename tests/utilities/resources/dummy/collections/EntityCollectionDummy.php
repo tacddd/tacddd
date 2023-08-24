@@ -37,7 +37,7 @@ final class EntityCollectionDummy implements EntityCollectionInterface
         return $element->getId()->value;
     }
 
-    public static function adjustKey(mixed $key): string|int
+    public static function adjustKey(mixed $key, ?string $access_key = null): string|int
     {
         return \is_object($key) ? $key->value : $key;
     }

@@ -21,7 +21,7 @@ namespace tacddd\tests\collections\entities\traits;
 
 use PHPUnit\Framework\Attributes\Test;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionDummy;
-use tacddd\tests\utilities\resources\dummy\objects\CollectionElementDummy;
+use tacddd\tests\utilities\resources\dummy\objects\CollectionEntityDummy;
 use tacddd\tests\utilities\test_cases\AbstractTestCase;
 
 /**
@@ -33,9 +33,9 @@ class EntityCollectionTest extends AbstractTestCase
     public function collection(): void
     {
         $collection     = new CollectionDummy([
-            $asdf   = new CollectionElementDummy(1, 'asdf', 'value1'),
-            $zxcv   = new CollectionElementDummy(2, 'zxcv', 'value2'),
-            $qwer   = new CollectionElementDummy(3, 'qwer', 'value3'),
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'qwer', 'value3'),
         ]);
 
         // init
@@ -56,7 +56,7 @@ class EntityCollectionTest extends AbstractTestCase
         $this->assertSame($zxcv, $collection->findOneBy(['id' => $zxcv]));
 
         // add
-        $collection->add($hjkl = new CollectionElementDummy(4, 'qwer', 'value4'));
+        $collection->add($hjkl = new CollectionEntityDummy(4, 'qwer', 'value4'));
 
         $this->assertFalse($collection->empty());
         $this->assertSame(4, $collection->count());
@@ -77,7 +77,7 @@ class EntityCollectionTest extends AbstractTestCase
         $this->assertSame(['qwer' => $qwer], $collection->findOneToMapBy(['group' => 'qwer']));
 
         // set
-        $collection->add($nm = new CollectionElementDummy(2, 'nm', 'value2_2'));
+        $collection->add($nm = new CollectionEntityDummy(2, 'nm', 'value2_2'));
 
         $this->assertFalse($collection->empty());
         $this->assertSame(4, $collection->count());
@@ -119,9 +119,9 @@ class EntityCollectionTest extends AbstractTestCase
     public function toMap(): void
     {
         $collection     = new CollectionDummy([
-            $asdf   = new CollectionElementDummy(1, 'asdf', 'value1'),
-            $zxcv   = new CollectionElementDummy(2, 'qwer', 'value2'),
-            $qwer   = new CollectionElementDummy(3, 'qwer', 'value3'),
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'qwer', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'qwer', 'value3'),
         ]);
 
         $this->assertSame(['asdf' => [$asdf], 'qwer' => [$zxcv, $qwer]], $collection->toMap(['group']));
@@ -132,16 +132,16 @@ class EntityCollectionTest extends AbstractTestCase
     #[Test]
     public function staticMethods(): void
     {
-        $this->assertSame(1, CollectionDummy::createUniqueId(new CollectionElementDummy(1, 'asdf', 'value1')));
-        $this->assertSame(2, CollectionDummy::createUniqueId(new CollectionElementDummy(2, 'zxcv', 'value2')));
+        $this->assertSame(1, CollectionDummy::createUniqueId(new CollectionEntityDummy(1, 'asdf', 'value1')));
+        $this->assertSame(2, CollectionDummy::createUniqueId(new CollectionEntityDummy(2, 'zxcv', 'value2')));
 
-        $this->assertSame(1, CollectionDummy::extractUniqueId(new CollectionElementDummy(1, 'asdf', 'value1')));
-        $this->assertSame(2, CollectionDummy::extractUniqueId(new CollectionElementDummy(2, 'zxcv', 'value2')));
+        $this->assertSame(1, CollectionDummy::extractUniqueId(new CollectionEntityDummy(1, 'asdf', 'value1')));
+        $this->assertSame(2, CollectionDummy::extractUniqueId(new CollectionEntityDummy(2, 'zxcv', 'value2')));
 
-        $this->assertSame(CollectionElementDummy::class, CollectionDummy::getAllowedClass());
+        $this->assertSame(CollectionEntityDummy::class, CollectionDummy::getAllowedClass());
 
-        $this->assertTrue(CollectionDummy::isAllowedClass(new CollectionElementDummy(1, 'asdf', 'value1')));
-        $this->assertTrue(CollectionDummy::isAllowedClass(CollectionElementDummy::class));
+        $this->assertTrue(CollectionDummy::isAllowedClass(new CollectionEntityDummy(1, 'asdf', 'value1')));
+        $this->assertTrue(CollectionDummy::isAllowedClass(CollectionEntityDummy::class));
         $this->assertFalse(CollectionDummy::isAllowedClass(\SplFileObject::class));
 
         $this->assertSame(1, CollectionDummy::adjustKey(1));
