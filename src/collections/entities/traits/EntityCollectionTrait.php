@@ -114,10 +114,10 @@ trait EntityCollectionTrait
      * キーがstring|intではなかった場合に調整して返します。
      *
      * @param  mixed       $key        キー
-     * @param  null|string $method_key メソッドキー
+     * @param  null|string $access_key アクセスキー
      * @return string|int  調整済みキー
      */
-    public static function adjustKey(mixed $key, ?string $method_key = null): string|int
+    public static function adjustKey(mixed $key, ?string $access_key = null): string|int
     {
         return $key;
     }
@@ -393,11 +393,11 @@ trait EntityCollectionTrait
             $in_nest_map_key     = [];
 
             foreach ($map_keys as $map_key) {
-                $method_key = \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => '']));
+                $access_key = \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => '']));
 
                 $in_nest_map_key[$map_key]  = static::adjustKey(
-                    $entity->{'get' . $method_key}(),
-                    $method_key,
+                    $entity->{'get' . $access_key}(),
+                    $access_key,
                 );
             }
 
@@ -473,11 +473,11 @@ trait EntityCollectionTrait
             $in_nest_map_key     = [];
 
             foreach ($map_keys as $map_key) {
-                $method_key = \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => '']));
+                $access_key = \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => '']));
 
                 $in_nest_map_key[$map_key]  = static::adjustKey(
-                    $entity->{'get' . $method_key}(),
-                    $method_key,
+                    $entity->{'get' . $access_key}(),
+                    $access_key,
                 );
             }
 
@@ -719,11 +719,11 @@ trait EntityCollectionTrait
         $criteria   = [];
 
         foreach ($criteria_keys as $key) {
-            $method_key = \ucfirst(\strtr(\ucwords(\strtr($key, ['_' => ' '])), [' ' => '']));
+            $access_key = \ucfirst(\strtr(\ucwords(\strtr($key, ['_' => ' '])), [' ' => '']));
 
             $criteria[$key] = static::adjustKey(
-                $entity->{'get' . $method_key}(),
-                $method_key,
+                $entity->{'get' . $access_key}(),
+                $access_key,
             );
         }
 
@@ -751,11 +751,11 @@ trait EntityCollectionTrait
         foreach ($criteria as $key => $value) {
             $criteria_keys[]    = $key;
 
-            $method_key = \ucfirst(\strtr(\ucwords(\strtr($key, ['_' => ' '])), [' ' => '']));
+            $access_key = \ucfirst(\strtr(\ucwords(\strtr($key, ['_' => ' '])), [' ' => '']));
 
             $in_nest_list[] = static::adjustKey(
-                $entity->{'get' . $method_key}(),
-                $method_key,
+                $entity->{'get' . $access_key}(),
+                $access_key,
             );
         }
 

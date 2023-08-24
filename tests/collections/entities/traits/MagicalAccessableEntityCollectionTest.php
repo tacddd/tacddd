@@ -20,7 +20,7 @@ declare(strict_types=1);
 namespace tacddd\tests\collections\entities\traits;
 
 use PHPUnit\Framework\Attributes\Test;
-use tacddd\tests\utilities\resources\dummy\objects\CollectionElementDummy;
+use tacddd\tests\utilities\resources\dummy\objects\CollectionEntityDummy;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionMagicalDummy;
 use tacddd\tests\utilities\test_cases\AbstractTestCase;
 
@@ -39,9 +39,9 @@ class MagicalAccessableEntityCollectionTest extends AbstractTestCase
         );
 
         $collection     = new CollectionMagicalDummy([
-            $asdf   = new CollectionElementDummy(1, 'asdf', 'value1'),
-            $zxcv   = new CollectionElementDummy(2, 'zxcv', 'value2'),
-            $qwer   = new CollectionElementDummy(3, 'qwer', 'value3'),
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'qwer', 'value3'),
         ]);
 
         $collection->ffindToMapByGroupInId('zxcv');
@@ -57,9 +57,9 @@ class MagicalAccessableEntityCollectionTest extends AbstractTestCase
         );
 
         $collection     = new CollectionMagicalDummy([
-            $asdf   = new CollectionElementDummy(1, 'asdf', 'value1'),
-            $zxcv   = new CollectionElementDummy(2, 'zxcv', 'value2'),
-            $qwer   = new CollectionElementDummy(3, 'qwer', 'value3'),
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'qwer', 'value3'),
         ]);
 
         $collection->findToMapByGroupInId('zxcv');
@@ -69,9 +69,9 @@ class MagicalAccessableEntityCollectionTest extends AbstractTestCase
     public function toMap(): void
     {
         $collection     = new CollectionMagicalDummy([
-            $asdf   = new CollectionElementDummy(1, 'asdf', 'value1'),
-            $zxcv   = new CollectionElementDummy(2, 'qwer', 'value2'),
-            $qwer   = new CollectionElementDummy(3, 'qwer', 'value3'),
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'qwer', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'qwer', 'value3'),
         ]);
 
         $this->assertSame(['asdf' => [$asdf], 'qwer' => [$zxcv, $qwer]], $collection->toMapInGroup());
@@ -83,9 +83,9 @@ class MagicalAccessableEntityCollectionTest extends AbstractTestCase
     public function collection(): void
     {
         $collection     = new CollectionMagicalDummy([
-            $asdf   = new CollectionElementDummy(1, 'asdf', 'value1'),
-            $zxcv   = new CollectionElementDummy(2, 'zxcv', 'value2'),
-            $qwer   = new CollectionElementDummy(3, 'qwer', 'value3'),
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'qwer', 'value3'),
         ]);
 
         // init
@@ -103,7 +103,7 @@ class MagicalAccessableEntityCollectionTest extends AbstractTestCase
         $this->assertSame(['zxcv' => [2 => $zxcv]], $collection->findOneToMapByGroupInId('zxcv', 2));
 
         // add
-        $collection->add($hjkl = new CollectionElementDummy(4, 'qwer', 'value4'));
+        $collection->add($hjkl = new CollectionEntityDummy(4, 'qwer', 'value4'));
 
         $this->assertSame([$zxcv], $collection->findById(2));
         $this->assertSame($zxcv, $collection->findOneById(2));
@@ -118,7 +118,7 @@ class MagicalAccessableEntityCollectionTest extends AbstractTestCase
         $this->assertSame(['qwer' => $qwer], $collection->findOneToMapByGroup('qwer'));
 
         // set
-        $collection->add($nm = new CollectionElementDummy(2, 'nm', 'value2_2'));
+        $collection->add($nm = new CollectionEntityDummy(2, 'nm', 'value2_2'));
 
         $this->assertSame([$nm], $collection->findById(2));
         $this->assertSame($nm, $collection->findOneById(2));
