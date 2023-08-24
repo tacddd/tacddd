@@ -79,7 +79,7 @@ trait EntityCollectionTrait
         $unique_key = static::createUniqueId($entity);
 
         if (!\is_string($unique_key) && !\is_int($unique_key)) {
-            $unique_key = static::adjustKey($unique_key);
+            $unique_key = static::adjustKey($unique_key, 'UniqueId');
         }
 
         return $unique_key;
@@ -113,10 +113,11 @@ trait EntityCollectionTrait
     /**
      * キーがstring|intではなかった場合に調整して返します。
      *
-     * @param  mixed      $key キー
-     * @return string|int 調整済みキー
+     * @param  mixed       $key        キー
+     * @param  null|string $method_key メソッドキー
+     * @return string|int  調整済みキー
      */
-    public static function adjustKey(mixed $key): string|int
+    public static function adjustKey(mixed $key, ?string $method_key = null): string|int
     {
         return $key;
     }
@@ -232,7 +233,11 @@ trait EntityCollectionTrait
     {
         $cache_map  = $this->loadCacheMap($criteria);
 
-        foreach ($criteria as $value) {
+        foreach ($criteria as $key => $value) {
+            if (\is_object($value)) {
+                $value  = $this->adjustKey($value, $key);
+            }
+
             if (\array_key_exists($value, $cache_map)) {
                 $cache_map = $cache_map[$value];
             } else {
@@ -277,7 +282,11 @@ trait EntityCollectionTrait
 
         $not_found  = false;
 
-        foreach ($criteria as $value) {
+        foreach ($criteria as $key => $value) {
+            if (\is_object($value)) {
+                $value  = $this->adjustKey($value, $key);
+            }
+
             if (\array_key_exists($value, $cache_map)) {
                 $cache_map = $cache_map[$value];
             } else {
@@ -315,7 +324,11 @@ trait EntityCollectionTrait
 
         $not_found  = false;
 
-        foreach ($criteria as $value) {
+        foreach ($criteria as $key => $value) {
+            if (\is_object($value)) {
+                $value  = $this->adjustKey($value, $key);
+            }
+
             if (\array_key_exists($value, $unique_id)) {
                 $unique_id = $unique_id[$value];
             } else {
@@ -351,6 +364,10 @@ trait EntityCollectionTrait
         foreach ($criteria as $key => $value) {
             $criteria_keys[]    = $key;
 
+            if (\is_object($value)) {
+                $value  = $this->adjustKey($value, $key);
+            }
+
             if (\array_key_exists($value, $cache_map)) {
                 $cache_map  = $cache_map[$value];
             } else {
@@ -376,8 +393,11 @@ trait EntityCollectionTrait
             $in_nest_map_key     = [];
 
             foreach ($map_keys as $map_key) {
+                $method_key = \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => '']));
+
                 $in_nest_map_key[$map_key]  = static::adjustKey(
-                    $entity->{'get' . \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => '']))}(),
+                    $entity->{'get' . $method_key}(),
+                    $method_key,
                 );
             }
 
@@ -424,6 +444,10 @@ trait EntityCollectionTrait
         foreach ($criteria as $key => $value) {
             $criteria_keys[]    = $key;
 
+            if (\is_object($value)) {
+                $value  = $this->adjustKey($value, $key);
+            }
+
             if (\array_key_exists($value, $cache_map)) {
                 $cache_map  = $cache_map[$value];
             } else {
@@ -449,8 +473,11 @@ trait EntityCollectionTrait
             $in_nest_map_key     = [];
 
             foreach ($map_keys as $map_key) {
+                $method_key = \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => '']));
+
                 $in_nest_map_key[$map_key]  = static::adjustKey(
-                    $entity->{'get' . \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => '']))}(),
+                    $entity->{'get' . $method_key}(),
+                    $method_key,
                 );
             }
 
@@ -503,7 +530,11 @@ trait EntityCollectionTrait
 
         $not_found  = false;
 
-        foreach ($criteria as $value) {
+        foreach ($criteria as $key => $value) {
+            if (\is_object($value)) {
+                $value  = $this->adjustKey($value, $key);
+            }
+
             if (\array_key_exists($value, $cache_map)) {
                 $cache_map = $cache_map[$value];
             } else {
@@ -688,8 +719,11 @@ trait EntityCollectionTrait
         $criteria   = [];
 
         foreach ($criteria_keys as $key) {
+            $method_key = \ucfirst(\strtr(\ucwords(\strtr($key, ['_' => ' '])), [' ' => '']));
+
             $criteria[$key] = static::adjustKey(
-                $entity->{'get' . \ucfirst(\strtr(\ucwords(\strtr($key, ['_' => ' '])), [' ' => '']))}(),
+                $entity->{'get' . $method_key}(),
+                $method_key,
             );
         }
 
@@ -717,8 +751,11 @@ trait EntityCollectionTrait
         foreach ($criteria as $key => $value) {
             $criteria_keys[]    = $key;
 
+            $method_key = \ucfirst(\strtr(\ucwords(\strtr($key, ['_' => ' '])), [' ' => '']));
+
             $in_nest_list[] = static::adjustKey(
-                $entity->{'get' . \ucfirst(\strtr(\ucwords(\strtr($key, ['_' => ' '])), [' ' => '']))}(),
+                $entity->{'get' . $method_key}(),
+                $method_key,
             );
         }
 

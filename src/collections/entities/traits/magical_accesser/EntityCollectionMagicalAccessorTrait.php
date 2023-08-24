@@ -27,16 +27,17 @@ trait EntityCollectionMagicalAccessorTrait
     /**
      * マップキーをパースして返します。
      *
-     * @param  string $find_key マップキー
+     * @param  string $find_key  マップキー
+     * @param  string $separator セパレータ
      * @return array  キー配列
      */
-    public static function parseFindKey(string $find_key): array
+    public static function parseFindKey(string $find_key, string $separator): array
     {
-        if (!\str_contains($find_key, 'In')) {
+        if (!\str_contains($find_key, $separator)) {
             return [$find_key];
         }
 
-        return \explode('In', $find_key);
+        return \explode($separator, $find_key);
     }
 
     /**
@@ -53,10 +54,11 @@ trait EntityCollectionMagicalAccessorTrait
                 $find_key   = \mb_substr($method_name, $spec['length']);
                 $action     = \mb_substr($action, 0, $spec['length']);
                 $use_args   = $spec['use_args'];
+                $separator  = $spec['separator'];
 
                 $criteria   = [];
 
-                $find_keys  = $this->parseFindKey($find_key);
+                $find_keys  = $this->parseFindKey($find_key, $separator);
 
                 if ($use_args) {
                     foreach ($find_keys as $idx => $cache_key) {

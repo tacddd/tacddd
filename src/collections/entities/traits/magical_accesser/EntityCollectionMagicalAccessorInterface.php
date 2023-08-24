@@ -28,23 +28,24 @@ interface EntityCollectionMagicalAccessorInterface
      * @var array アクション設定
      */
     public const ACTION_SPEC_MAP = [
-        'findOneToMapBy'    => ['length' => 14, 'use_args' => true],
-        'findToMapBy'       => ['length' => 11, 'use_args' => true],
-        'toOneMapIn'        => ['length' => 10, 'use_args' => false],
-        'findOneBy'         => ['length' => 9, 'use_args' => true],
-        'removeBy'          => ['length' => 8, 'use_args' => true],
-        'toMapIn'           => ['length' => 7, 'use_args' => false],
-        'findBy'            => ['length' => 6, 'use_args' => true],
-        'hasBy'             => ['length' => 5, 'use_args' => true],
+        'findOneToMapBy'    => ['length' => 14, 'use_args' => true,  'separator' => 'In'],
+        'findToMapBy'       => ['length' => 11, 'use_args' => true,  'separator' => 'In'],
+        'toOneMapIn'        => ['length' => 10, 'use_args' => false, 'separator' => 'In'],
+        'findOneBy'         => ['length' => 9,  'use_args' => true,  'separator' => 'And'],
+        'removeBy'          => ['length' => 8,  'use_args' => true,  'separator' => 'And'],
+        'toMapIn'           => ['length' => 7,  'use_args' => false, 'separator' => 'In'],
+        'findBy'            => ['length' => 6,  'use_args' => true,  'separator' => 'And'],
+        'hasBy'             => ['length' => 5,  'use_args' => true,  'separator' => 'And'],
     ];
 
     /**
      * マップキーをパースして返します。
      *
-     * @param  string $find_key マップキー
+     * @param  string $find_key  マップキー
+     * @param  string $separator セパレータ
      * @return array  キー配列
      */
-    public static function parseFindKey(string $find_key): array;
+    public static function parseFindKey(string $find_key, string $separator): array;
 
     /**
      * Magical method

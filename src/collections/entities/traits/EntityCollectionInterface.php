@@ -60,10 +60,11 @@ interface EntityCollectionInterface extends
     /**
      * キーがstring|intではなかった場合に調整して返します。
      *
-     * @param  mixed      $key キー
-     * @return string|int 調整済みキー
+     * @param  mixed       $key         キー
+     * @param  null|string $method_name メソッド名
+     * @return string|int  調整済みキー
      */
-    public static function adjustKey(mixed $key): string|int;
+    public static function adjustKey(mixed $key, ?string $method_name = null): string|int;
 
     /**
      * constructor
