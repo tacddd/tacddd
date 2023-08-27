@@ -76,13 +76,13 @@ trait EntityCollectionTrait
             throw new \TypeError(\sprintf('受け入れ可能外のクラスを指定されました。class:%s, allowed_class:%s', $entity::class, static::getAllowedClass()));
         }
 
-        $unique_key = static::createUniqueId($entity);
+        $unique_id = static::createUniqueId($entity);
 
-        if (!\is_string($unique_key) && !\is_int($unique_key)) {
-            $unique_key = static::adjustKey($unique_key, 'UniqueId');
+        if (!\is_string($unique_id) && !\is_int($unique_id)) {
+            $unique_id = static::adjustKey($unique_id, 'UniqueId');
         }
 
-        return $unique_key;
+        return $unique_id;
     }
 
     /**
@@ -152,13 +152,13 @@ trait EntityCollectionTrait
             throw new \TypeError(\sprintf('受け入れ可能外のクラスを指定されました。class:%s, allowed_class:%s', $entity::class, static::getAllowedClass()));
         }
 
-        $unique_key = static::extractUniqueId($entity);
+        $unique_id = static::extractUniqueId($entity);
 
-        foreach ($this->reverseCacheMap[$unique_key] ?? [] as $cache_key => $criteria_keys) {
+        foreach ($this->reverseCacheMap[$unique_id] ?? [] as $cache_key => $criteria_keys) {
             $this->setCache($cache_key, $entity, $this->createCriteriaForCache($criteria_keys, $entity));
         }
 
-        $this->collection[$unique_key]  = $entity;
+        $this->collection[$unique_id]  = $entity;
 
         return $this;
     }
@@ -513,7 +513,84 @@ trait EntityCollectionTrait
      */
     public function remove(object $entity): static
     {
-        unset($this->collection[static::extractUniqueId($entity)]);
+        $unique_id  = static::extractUniqueId($entity);
+
+        $key_map        = [];
+
+        foreach ($this->reverseCacheMap[$unique_id] as $cache_key => $criteria_keys) {
+            $in_nest_list   = [];
+
+            foreach ($criteria_keys as $criteria_key) {
+                if (!\array_key_exists($criteria_key, $key_map)) {
+                    $access_key = \ucfirst(\strtr(\ucwords(\strtr($criteria_key, ['_' => ' '])), [' ' => '']));
+
+                    $key_map[$criteria_key] = static::adjustKey(
+                        $entity->{'get' . $access_key}(),
+                        $access_key,
+                    );
+                }
+
+                $in_nest_list[] = $key_map[$criteria_key];
+            }
+
+            $tmp        = &$this->cacheMap[$cache_key];
+
+            foreach ($in_nest_list as $in_nest) {
+                $tmp    = &$tmp[$in_nest];
+            }
+
+            if ($tmp === null) {
+                continue;
+            }
+
+            $is_empty       = false;
+
+            foreach ($tmp as $idx => $value) {
+                if ($value === $unique_id) {
+                    unset($tmp[$idx]);
+
+                    $is_empty   = empty($tmp);
+                }
+            }
+
+            unset($tmp);
+
+            if ($is_empty) {
+                $tmp        = &$this->cacheMap[$cache_key];
+
+                $refs   = [];
+                $keys   = [];
+
+                foreach ($in_nest_list as $in_nest) {
+                    if (\is_array($tmp)) {
+                        if (empty($tmp)) {
+                            unset($tmp);
+                        } else {
+                            $refs[] = &$tmp;
+                            $keys[] = $in_nest;
+                        }
+                    }
+
+                    $tmp    = &$tmp[$in_nest];
+                }
+
+                foreach (\array_reverse(\array_keys($keys)) as $idx) {
+                    $in_nest    = $keys[$idx];
+
+                    if (empty($refs[$idx][$in_nest])) {
+                        unset($refs[$idx][$in_nest]);
+                    }
+                }
+
+                if (empty($this->cacheMap[$cache_key])) {
+                    unset($this->cacheMap[$cache_key]);
+                }
+
+                unset($tmp);
+            }
+
+            unset($this->collection[$unique_id]);
+        }
 
         return $this;
     }
@@ -526,31 +603,7 @@ trait EntityCollectionTrait
      */
     public function removeBy(array $criteria): static
     {
-        $cache_map  = $this->loadCacheMap($criteria);
-
-        $not_found  = false;
-
-        foreach ($criteria as $key => $value) {
-            if (\is_object($value)) {
-                $value  = $this->adjustKey($value, $key);
-            }
-
-            if (\array_key_exists($value, $cache_map)) {
-                $cache_map = $cache_map[$value];
-            } else {
-                $not_found  = true;
-
-                break;
-            }
-        }
-
-        if ($not_found) {
-            return $this;
-        }
-
-        foreach ($cache_map as $unique_id) {
-            unset($this->collection[$unique_id]);
-        }
+        $this->remove($this->findOneBy($criteria));
 
         return $this;
     }
@@ -616,7 +669,26 @@ trait EntityCollectionTrait
     {
         $cache_map = $this->loadCacheMap(\array_flip($map_keys));
 
-        $this->findForNestedArray($cache_map, false);
+        $tmp = &$cache_map;
+
+        unset($map_keys[\array_key_last($map_keys)]);
+
+        foreach ($map_keys as $map_kay) {
+            $key = \key($tmp);
+            $tmp = &$tmp[$key];
+        }
+
+        foreach ($tmp as &$list) {
+            foreach ($list as &$value) {
+                $value = $this->collection[$value];
+
+                unset($value);
+            }
+
+            unset($list);
+        }
+
+        unset($tmp);
 
         return $cache_map;
     }
@@ -630,7 +702,24 @@ trait EntityCollectionTrait
     {
         $cache_map = $this->loadCacheMap(\array_flip($map_keys));
 
-        $this->findForNestedArray($cache_map, true);
+        $tmp = &$cache_map;
+
+        unset($map_keys[\array_key_last($map_keys)]);
+
+        foreach ($map_keys as $map_kay) {
+            $key = \key($tmp);
+            $tmp = &$tmp[$key];
+        }
+
+        foreach ($tmp as &$list) {
+            $target         = $list[\array_key_first($list)];
+
+            $list = $this->collection[$target];
+
+            unset($list);
+        }
+
+        unset($tmp);
 
         return $cache_map;
     }
@@ -746,7 +835,7 @@ trait EntityCollectionTrait
 
         $criteria_keys  = [];
 
-        $unique_key = static::extractUniqueId($entity);
+        $unique_id = static::extractUniqueId($entity);
 
         foreach ($criteria as $key => $value) {
             $criteria_keys[]    = $key;
@@ -759,7 +848,7 @@ trait EntityCollectionTrait
             );
         }
 
-        $this->reverseCacheMap[$unique_key][$cache_key] = $criteria_keys;
+        $this->reverseCacheMap[$unique_id][$cache_key] = $criteria_keys;
 
         $tmp = &$this->cacheMap[$cache_key];
 
@@ -777,14 +866,14 @@ trait EntityCollectionTrait
 
         if (\array_key_exists($target_key, $tmp)) {
             foreach ($tmp[$target_key] as $idx => $uk) {
-                if ($uk === $unique_key) {
+                if ($uk === $unique_id) {
                     unset($tmp[$target_key][$idx]);
                 }
             }
 
-            $tmp[$target_key][] = $unique_key;
+            $tmp[$target_key][] = $unique_id;
         } else {
-            $tmp[$target_key] = [$unique_key];
+            $tmp[$target_key] = [$unique_id];
         }
 
         unset($tmp);
@@ -810,43 +899,5 @@ trait EntityCollectionTrait
         }
 
         return $this->cacheMap[$cache_key];
-    }
-
-    /**
-     * 階層構造を持つ配列の最終段の値をキーにし、マッチするエンティティに置換して返します。
-     *
-     * @param  array $array 階層構造を持つ配列
-     * @param  bool  $trim  最終段の配列を単数かするかどうか
-     * @return bool  最終段かどうか
-     */
-    protected function findForNestedArray(array &$array, bool $trim): bool
-    {
-        foreach ($array as $idx => &$value) {
-            if (\is_array($value)) {
-                if (true === $this->findForNestedArray($value, $trim)) {
-                    if ($trim) {
-                        $value  = $value[\array_key_first($value)];
-                    } else {
-                        foreach ($value as $in_idx => $tmp) {
-                            if ($tmp === null) {
-                                unset($value[$in_idx]);
-                            }
-                        }
-                    }
-                }
-            } else {
-                $value = $this->collection[$value];
-
-                if ($trim) {
-                    return true;
-                }
-            }
-
-            if (empty($value)) {
-                unset($array[$idx]);
-            }
-        }
-
-        return false;
     }
 }

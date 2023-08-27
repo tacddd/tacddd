@@ -122,11 +122,19 @@ class EntityCollectionTest extends AbstractTestCase
             $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
             $zxcv   = new CollectionEntityDummy(2, 'qwer', 'value2'),
             $qwer   = new CollectionEntityDummy(3, 'qwer', 'value3'),
+            $obj1   = new CollectionEntityDummy(4, '1111', 'value3'),
+            $obj2   = new CollectionEntityDummy(5, '1111', 'value3'),
+            $obj3   = new CollectionEntityDummy(6, '1111', 'value3'),
         ]);
 
-        $this->assertSame(['asdf' => [$asdf], 'qwer' => [$zxcv, $qwer]], $collection->toMap(['group']));
+        $collection->toOneMap(['group', 'name', 'id']);
 
-        $this->assertSame(['asdf' => $asdf, 'qwer' => $zxcv], $collection->toOneMap(['group']));
+        $this->assertSame(['asdf' => [$asdf], 'qwer' => [$zxcv, $qwer], '1111' => [$obj1, $obj2, $obj3]], $collection->toMap(['group']));
+
+        $collection->remove($zxcv);
+        $collection->remove($qwer);
+
+        $this->assertSame(['asdf' => [$asdf], '1111' => [$obj1, $obj2, $obj3]], $collection->toMap(['group']));
     }
 
     #[Test]
