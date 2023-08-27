@@ -28,7 +28,7 @@ abstract class AbstractCollectionDummy implements EntityCollectionInterface
 
     public static function getAllowedClass(): string
     {
-        return CollectionElementDummy::class;
+        return CollectionEntityDummy::class;
     }
 
     public static function createUniqueId(object $element): string|int
@@ -36,12 +36,12 @@ abstract class AbstractCollectionDummy implements EntityCollectionInterface
         return $element->getId();
     }
 
-    public static function adjustKey(mixed $key, ?string $method_key = null): string|int
+    public static function adjustKey(mixed $key, ?string $access_key = null): string|int
     {
         $allowed_class  = static::getAllowedClass();
 
         if ($key instanceof $allowed_class) {
-            return $key->{'get' . $method_key}();
+            return $key->{'get' . $access_key}();
         }
 
         if (\is_object($key)) {

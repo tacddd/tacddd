@@ -19,7 +19,7 @@ declare(strict_types=1);
 
 namespace tacddd\tests\utilities\resources\dummy\objects;
 
-final class CollectionElementDummy
+final class CollectionEntityDummy
 {
     public function __construct(
         private int $id,

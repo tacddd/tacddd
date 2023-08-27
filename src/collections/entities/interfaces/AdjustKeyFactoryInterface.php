@@ -27,8 +27,9 @@ interface AdjustKeyFactoryInterface
     /**
      * キーがstring|intではなかった場合に調整して返します。
      *
-     * @param  mixed      $key キー
-     * @return string|int 調整済みキー
+     * @param  mixed       $key        キー
+     * @param  null|string $access_key アクセスキー
+     * @return string|int  調整済みキー
      */
-    public static function adjustKey(mixed $key): string|int;
+    public static function adjustKey(mixed $key, ?string $access_key = null): string|int;
 }

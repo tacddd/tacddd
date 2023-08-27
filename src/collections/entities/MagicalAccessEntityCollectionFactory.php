@@ -36,7 +36,7 @@ final class MagicalAccessEntityCollectionFactory
      *
      * @param  string|object|array                     $class          受け入れ可能なクラス
      * @param  UniqueIdFactoryInterface|\Closure       $createUniqueId ユニークID生成機
-     * @param  array                                   $elements       初期状態で投入したいオブジェクト群
+     * @param  array                                   $entities       初期状態で投入したいオブジェクト群
      * @param  null|AdjustKeyFactoryInterface|\Closure $adjustKey      キーアジャスタ
      * @param  array                                   $options        オプション
      * @return EntityCollectionInterface               マジカルアクセスオブジェクトコレクション
@@ -44,7 +44,7 @@ final class MagicalAccessEntityCollectionFactory
     public static function createEntityCollection(
         string|object|array $class,
         UniqueIdFactoryInterface|\Closure $createUniqueId,
-        iterable $elements = [],
+        iterable $entities = [],
         null|AdjustKeyFactoryInterface|\Closure $adjustKey = null,
         array $options = [],
     ): EntityCollectionInterface {
@@ -52,7 +52,7 @@ final class MagicalAccessEntityCollectionFactory
         $options['create_unique_key']   = $createUniqueId;
         $options['adjust_key']          = $adjustKey;
 
-        return new class($elements, $options) implements EntityCollectionInterface, EntityCollectionMagicalAccessorInterface {
+        return new class($entities, $options) implements EntityCollectionInterface, EntityCollectionMagicalAccessorInterface {
             use EntityCollectionTrait;
             use EntityCollectionMagicalAccessorTrait;
 
@@ -74,10 +74,10 @@ final class MagicalAccessEntityCollectionFactory
             /**
              * constructor
              *
-             * @param iterable $elements 初期状態として受け入れるオブジェクトの配列
+             * @param iterable $entities 初期状態として受け入れるオブジェクトの配列
              * @param array    $options  オプション
              */
-            public function __construct(iterable $elements = [], array $options = [])
+            public function __construct(iterable $entities = [], array $options = [])
             {
                 self::$allowedClasses   = $options['allowed_classes'];
 
@@ -89,7 +89,7 @@ final class MagicalAccessEntityCollectionFactory
 
                 $this->options  = $options;
 
-                foreach ($elements as $element) {
+                foreach ($entities as $element) {
                     $this->add($element);
                 }
             }
@@ -121,10 +121,10 @@ final class MagicalAccessEntityCollectionFactory
              * キーがstring|intではなかった場合に調整して返します。
              *
              * @param  mixed       $key        キー
-             * @param  null|string $method_key メソッドキー
+             * @param  null|string $access_key アクセスキー
              * @return string|int  調整済みキー
              */
-            public static function adjustKey(mixed $key, ?string $method_key = null): string|int
+            public static function adjustKey(mixed $key, ?string $access_key = null): string|int
             {
                 if (self::$adjustKey === null) {
                     return $key;

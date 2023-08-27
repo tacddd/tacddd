@@ -16,20 +16,20 @@ TacDDD（タックディー）は戦術的DDDの迅速な立ち上げを支援�
 use tacddd\collections\entities\traits\EntityCollectionInterface;
 use tacddd\collections\entities\traits\EntityCollectionTrait;
 
-final class ElementCollection implements EntityCollectionInterface
+final class EntityCollection implements EntityCollectionInterface
 {
     use EntityCollectionTrait;
 
     // このコレクションが受け入れるクラスやインターフェースの設定
     public static function getAllowedClass(): string
     {
-        return Element::class;
+        return Entity::class;
     }
 
     // 受け入れたオブジェクトからユニークなキーを返す
-    public static function createUniqueId(object $element): string|int
+    public static function createUniqueId(object $entity): string|int
     {
-        return $element->getId();
+        return $entity->getId();
     }
 }
 ```
@@ -37,13 +37,14 @@ final class ElementCollection implements EntityCollectionInterface
 対象が値オブジェクトを持ちgetterから取得した値から直接`string|int`を引けない場合は、次の`adjustKey`も追加してください。
 
 ```php
-    /**
+   /**
      * キーがstring|intではなかった場合に調整して返します。
      *
-     * @param  mixed      $key キー
-     * @return string|int 調整済みキー
+     * @param  mixed       $key        キー
+     * @param  null|string $access_key アクセスキー
+     * @return string|int  調整済みキー
      */
-    public static function adjustKey(mixed $key): string|int
+    public static function adjustKey(mixed $key, ?string $access_key = null): string|int
     {
         // 値オブジェクトが仮にpublic readonly string $value;を持つ場合
         if (\is_object($key)) {
@@ -52,10 +53,10 @@ final class ElementCollection implements EntityCollectionInterface
     }
 ```
 
-`Element`クラスが次のインターフェースを持っていた場合、その後に続くデータアクセスが可能となります。
+`Entity`クラスが次のインターフェースを持っていた場合、その後に続くデータアクセスが可能となります。
 
 ```php
-final class Element
+final class Entity
 {
     public function __construct(
         private int $id,
@@ -82,26 +83,26 @@ final class Element
 ```
 
 ```php
-$elementCollection = new ElementCollection();
+$entityCollection = new EntityCollection();
 
-$alpha  = new Element(1, 'alpha', 'いろは');
-$elementCollection->add($alpha);
+$alpha  = new Entity(1, 'alpha', 'いろは');
+$entityCollection->add($alpha);
 
-$bravo  = new Element(2, 'bravo', 'にほへ');
-$elementCollection->add($bravo);
+$bravo  = new Entity(2, 'bravo', 'にほへ');
+$entityCollection->add($bravo);
 
-$charley    = new Element(3, 'bravo', 'とちり');
-$elementCollection->add($charley);
+$charley    = new Entity(3, 'bravo', 'とちり');
+$entityCollection->add($charley);
 
-$elementCollection->find(1); // $alphaを取得できる
+$entityCollection->find(1); // $alphaを取得できる
 
-$elementCollection->findBy(['name' => 'bravo']); // [$bravo, $charley]を取得できる
+$entityCollection->findBy(['name' => 'bravo']); // [$bravo, $charley]を取得できる
 ```
 
 グルーピングした結果を取得したい場合は、`toMap`メソッドを利用してください。
 
 ```php
-$elementCollection->toMap(['group', 'name', 'id']); // 次の形式の配列を取得できる
+$entityCollection->toMap(['group', 'name', 'id']); // 次の形式の配列を取得できる
 /*
 [
     'alpha' => [
@@ -130,7 +131,7 @@ $elementCollection->toMap(['group', 'name', 'id']); // 次の形式の配列を�
 末端が単一要素なグルーピングした結果を取得したい場合は、`toOneMap`メソッドを利用してください。
 
 ```php
-$elementCollection->toOneMap(['group', 'name', 'id']); // 次の形式の配列を取得できる
+$entityCollection->toOneMap(['group', 'name', 'id']); // 次の形式の配列を取得できる
 /*
 [
     'alpha' => [
@@ -160,7 +161,7 @@ use tacddd\collections\entities\traits\EntityCollectionTrait;
 use tacddd\collections\entities\traits\magical_accesser\EntityCollectionMagicalAccessorInterface;
 use tacddd\collections\entities\traits\magical_accesser\EntityCollectionMagicalAccessorTrait;
 
-final class MagicalElementCollection implements EntityCollectionInterface, EntityCollectionMagicalAccessorInterface
+final class MagicalEntityCollection implements EntityCollectionInterface, EntityCollectionMagicalAccessorInterface
 {
     use EntityCollectionTrait;
     use EntityCollectionMagicalAccessorTrait;
@@ -168,13 +169,13 @@ final class MagicalElementCollection implements EntityCollectionInterface, Entit
     // このコレクションが受け入れるクラスやインターフェースの設定
     public static function getAllowedClass(): string
     {
-        return Element::class;
+        return Entity::class;
     }
 
     // 受け入れたオブジェクトからユニークなキーを返す
-    public static function createUniqueId(object $element): string|int
+    public static function createUniqueId(object $entity): string|int
     {
-        return $element->getId();
+        return $entity->getId();
     }
 }
 ```
@@ -182,22 +183,22 @@ final class MagicalElementCollection implements EntityCollectionInterface, Entit
 次のように引数に引きずられる事なくアクセスができます。
 
 ```php
-$elementCollection = new ElementCollection();
+$entityCollection = new EntityCollection();
 
-$alpha  = new Element(1, 'alpha', 'いろは');
-$elementCollection->add($alpha);
+$alpha  = new Entity(1, 'alpha', 'いろは');
+$entityCollection->add($alpha);
 
-$bravo  = new Element(2, 'bravo', 'にほへ');
-$elementCollection->add($bravo);
+$bravo  = new Entity(2, 'bravo', 'にほへ');
+$entityCollection->add($bravo);
 
-$charley    = new Element(3, 'bravo', 'とちり');
-$elementCollection->add($charley);
+$charley    = new Entity(3, 'bravo', 'とちり');
+$entityCollection->add($charley);
 
-$elementCollection->findOneByName('alpha'); // $alphaを取得できる
+$entityCollection->findOneByName('alpha'); // $alphaを取得できる
 
-$elementCollection->findByName('bravo'); // [$bravo, $charley]を取得できる
+$entityCollection->findByName('bravo'); // [$bravo, $charley]を取得できる
 
-$elementCollection->toMapInGroupInNameInId(); // 次の形式の配列を取得できる
+$entityCollection->toMapInGroupInNameInId(); // 次の形式の配列を取得できる
 /*
 [
     'alpha' => [
@@ -222,7 +223,7 @@ $elementCollection->toMapInGroupInNameInId(); // 次の形式の配列を取得�
 ]
 */
 
-$elementCollection->toOneMapInGroupInNameInId(); // 次の形式の配列を取得できる
+$entityCollection->toOneMapInGroupInNameInId(); // 次の形式の配列を取得できる
 /*
 [
     'alpha' => [
@@ -253,11 +254,11 @@ $elementCollection->toOneMapInGroupInNameInId(); // 次の形式の配列を取�
 ```php
 use tacddd\collections\entities\MagicalAccessEntityCollectionFactory;
 
-$collection = MagicalAccessEntityCollectionFactory::createEntityCollection(Element::class, function(Element $element): string|int {
-    return $element->getId();
+$collection = MagicalAccessEntityCollectionFactory::createEntityCollection(Entity::class, function(Entity $entity): string|int {
+    return $entity->getId();
 }, [
-    new Element(1, 'alpha', 'いろは'),
-    new Element(2, 'bravo', 'にほへ'),
+    new Entity(1, 'alpha', 'いろは'),
+    new Entity(2, 'bravo', 'にほへ'),
 ]);
 ```
 
@@ -268,22 +269,22 @@ use tacddd\collections\entities\MagicalAccessEntityCollectionFactory;
 use tacddd\collections\entities\interfaces\UniqueIdFactoryInterface;
 
 $collection = MagicalAccessEntityCollectionFactory::createEntityCollection(
-    Element::class,
+    Entity::class,
     new class() implements UniqueIdFactoryInterface {
         /**
          * 指定されたオブジェクトからユニークIDを返します。
          *
-         * @param  Element      $element オブジェクト
+         * @param  Entity      $entity オブジェクト
          * @return int|string   ユニークID
          */
-        public static function createUniqueId(object $element): string|int
+        public static function createUniqueId(object $entity): string|int
         {
-            return $element->getId();
+            return $entity->getId();
         }
     },
     [
-        new Element(1, 'alpha', 'いろは'),
-        new Element(2, 'bravo', 'にほへ'),
+        new Entity(1, 'alpha', 'いろは'),
+        new Entity(2, 'bravo', 'にほへ'),
     ],
 );
 ```

@@ -23,7 +23,7 @@ use tacddd\collections\entities\traits\magical_accesser\EntityCollectionMagicalA
 use tacddd\collections\entities\traits\magical_accesser\EntityCollectionMagicalAccessorTrait;
 
 /**
- * @method CollectionElementDummy getById(int $id)
+ * @method CollectionEntityDummy getById(int $id)
  */
 final class CollectionMagicalDummy extends AbstractCollectionDummy implements EntityCollectionMagicalAccessorInterface
 {

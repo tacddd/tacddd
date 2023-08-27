@@ -22,7 +22,7 @@ namespace tacddd\tests\collections\entities;
 use PHPUnit\Framework\Attributes\Test;
 use tacddd\collections\entities\interfaces\UniqueIdFactoryInterface;
 use tacddd\collections\entities\MagicalAccessEntityCollectionFactory;
-use tacddd\tests\utilities\resources\dummy\objects\CollectionElementDummy;
+use tacddd\tests\utilities\resources\dummy\objects\CollectionEntityDummy;
 use tacddd\tests\utilities\test_cases\AbstractTestCase;
 
 /**
@@ -34,14 +34,14 @@ class MagicalAccessEntityCollectionFactoryTest extends AbstractTestCase
     public function createEntityCollection(): void
     {
         $collection = MagicalAccessEntityCollectionFactory::createEntityCollection(
-            CollectionElementDummy::class,
-            function(CollectionElementDummy $element): string|int {
+            CollectionEntityDummy::class,
+            function(CollectionEntityDummy $element): string|int {
                 return $element->getId();
             },
             [
-                $asdf   = new CollectionElementDummy(1, 'asdf', 'value1'),
-                $zxcv   = new CollectionElementDummy(2, 'zxcv', 'value2'),
-                $qwer   = new CollectionElementDummy(3, 'qwer', 'value3'),
+                $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+                $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+                $qwer   = new CollectionEntityDummy(3, 'qwer', 'value3'),
             ],
         );
 
@@ -57,7 +57,7 @@ class MagicalAccessEntityCollectionFactoryTest extends AbstractTestCase
         $this->assertFalse($collection->hasById(4));
 
         $collection = MagicalAccessEntityCollectionFactory::createEntityCollection(
-            CollectionElementDummy::class,
+            CollectionEntityDummy::class,
             new class() implements UniqueIdFactoryInterface {
                 /**
                  * 指定されたオブジェクトからユニークIDを返します。
@@ -71,9 +71,9 @@ class MagicalAccessEntityCollectionFactoryTest extends AbstractTestCase
                 }
             },
             [
-                $asdf   = new CollectionElementDummy(1, 'asdf', 'value1'),
-                $zxcv   = new CollectionElementDummy(2, 'zxcv', 'value2'),
-                $qwer   = new CollectionElementDummy(3, 'qwer', 'value3'),
+                $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+                $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+                $qwer   = new CollectionEntityDummy(3, 'qwer', 'value3'),
             ],
         );
 
