@@ -22,69 +22,93 @@ namespace tacddd\services\utilities\date_times;
 /**
  * 日付ユーティリティサービス
  */
-final class DateTimeUtilityService
+class DateTimeUtilityService
 {
     /**
      * @var array 日付計算結果キャッシュ
      */
-    private static array $cache = [];
+    private array $cache = [];
+
+    /**
+     * Constructors
+     *
+     * @param array $holidayMap       祝日マップ ['YYYY/mm/dd' => '任意の値'] 形式であること
+     * @param bool  $saturdayIsClosed 土曜日を休みとするかどうか
+     * @param bool  $monthCrossing    月を跨ぐかどうか
+     */
+    public function __construct(
+        private readonly array $holidayMap = [],
+        private readonly bool $saturdayIsClosed = true,
+        private readonly bool $monthCrossing = true,
+    ) {
+    }
 
     /**
      * 翌営業日を計算して返します。
      *
-     * @param  \DateTimeImmutable $dateTime           日付
-     * @param  array              $holiday_map        祝日マップ ['YYYY/mm/dd' => 'YYYY/mm/dd'] 形式であること
-     * @param  bool               $substitute_holiday 振替休日を加味するかどうか
-     * @param  bool               $saturday_is_closed 土曜日を休みとするかどうか
+     * @param  \DateTimeImmutable $baseDateTime 日付
      * @return \DateTimeImmutable 翌営業日
      */
-    public static function createNextWorkingDate(
-        \DateTimeImmutable $dateTime,
-        array $holiday_map,
-        bool $substitute_holiday = true,
-        bool $saturday_is_closed = true,
+    public function createNextWorkingDate(
+        \DateTimeImmutable $baseDateTime,
     ): \DateTimeImmutable {
+        $dateTime   = $baseDateTime;
+
         $cache_key  = $dateTime->format('Y/m/d');
 
-        $base_cache_key = \md5(\serialize([
-            $holiday_map,
-            $substitute_holiday,
-            $saturday_is_closed,
-        ]));
+        if (!$this->monthCrossing) {
+            $base_ym    = $dateTime->format('Y/m');
+        }
 
         forward:
 
-        if (isset(self::$cache[__FUNCTION__][$base_cache_key][$cache_key])) {
-            return self::$cache[__FUNCTION__][$base_cache_key][$cache_key];
+        if (isset($this->cache[__FUNCTION__][$cache_key])) {
+            return $this->cache[__FUNCTION__][$cache_key];
         }
 
         $day_diff = match ($w = $dateTime->format('w')) {
             '0'     => 1,
-            '6'     => $saturday_is_closed ? 2 : null,
+            '6'     => $this->saturdayIsClosed ? 2 : null,
             default => null,
         };
 
-        if ($substitute_holiday && $w === '1') {
-            if (isset($holiday_map[$dateTime->modify('-1 day')->format('Y/m/d')])) {
-                $day_diff   = 1;
-            }
-        }
-
         if ($day_diff !== null) {
-            $dateTime   = self::createNextWorkingDate(
-                $dateTime->modify(\sprintf('%+d day', $day_diff)),
-                $holiday_map,
-                $substitute_holiday,
-                $saturday_is_closed,
-            );
+            $dateTime = $dateTime->modify(\sprintf('%+d day', $day_diff));
         }
 
-        if (isset($holiday_map[$dateTime->format('Y/m/d')])) {
+        if (isset($this->holidayMap[$dateTime->format('Y/m/d')])) {
             $dateTime   = $dateTime->modify('+1 day');
 
             goto forward;
         }
 
-        return $cache[__FUNCTION__][$base_cache_key][$cache_key]  = $dateTime;
+        if ($this->monthCrossing) {
+            return $cache[__FUNCTION__][$cache_key]  = $dateTime;
+        }
+
+        if ($base_ym !== $dateTime->format('Y/m')) {
+            $dateTime   = $baseDateTime;
+
+            backward:
+
+            $backword_diff  = match ($w = $dateTime->format('w')) {
+                '0'     => $this->saturdayIsClosed ? -2 : -1,
+                '1'     => 1 - $w - $this->saturdayIsClosed ? -3 : -2,
+                '6'     => 1 - $w - $this->saturdayIsClosed ? -1 : 0,
+                default => 1 - $w,
+            };
+
+            $dateTime = $backword_diff === null ? $baseDateTime : $baseDateTime->modify(
+                \sprintf('%+d day', $backword_diff),
+            );
+
+            if (isset($this->holidayMap[$dateTime->format('Y/m/d')])) {
+                $dateTime   = $dateTime->modify('-1 day');
+
+                goto backward;
+            }
+        }
+
+        return $cache[__FUNCTION__][$cache_key]  = $dateTime;
     }
 }
