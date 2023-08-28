@@ -20,8 +20,10 @@ declare(strict_types=1);
 namespace tacddd\tests\collections\entities\traits;
 
 use PHPUnit\Framework\Attributes\Test;
+use tacddd\tests\utilities\resources\dummy\collections\EntityCollectionPropertyAccessDummy;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionDummy;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionEntityDummy;
+use tacddd\tests\utilities\resources\dummy\objects\CollectionEntityPropertyAccessDummy;
 use tacddd\tests\utilities\test_cases\AbstractTestCase;
 
 /**
@@ -157,5 +159,32 @@ class EntityCollectionTest extends AbstractTestCase
         $this->assertSame(1, CollectionDummy::adjustKey(new class() {
             public int $value = 1;
         }));
+    }
+
+    #[Test]
+    public function accessStyle(): void
+    {
+        $collection     = new EntityCollectionPropertyAccessDummy([
+            $asdf   = new CollectionEntityPropertyAccessDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityPropertyAccessDummy(2, 'zxcv', 'value2'),
+            $qwer   = new CollectionEntityPropertyAccessDummy(3, 'qwer', 'value3'),
+        ]);
+
+        // init
+        $this->assertFalse($collection->empty());
+        $this->assertSame(3, $collection->count());
+
+        $this->assertSame($asdf, $collection->first());
+        $this->assertSame($qwer, $collection->last());
+
+        $this->assertSame($zxcv, $collection->find(2));
+        $this->assertSame([$zxcv], $collection->findBy(['id' => 2]));
+        $this->assertSame($zxcv, $collection->findOneBy(['id' => 2]));
+        $this->assertSame(['zxcv' => [2 => [$zxcv]]], $collection->findToMapBy(['id' => 2], ['group', 'id']));
+        $this->assertSame(['zxcv' => [2 => $zxcv]], $collection->findOneToMapBy(['id' => 2], ['group', 'id']));
+
+        $this->assertSame($zxcv, $collection->find($zxcv));
+        $this->assertSame([$zxcv], $collection->findBy(['id' => $zxcv]));
+        $this->assertSame($zxcv, $collection->findOneBy(['id' => $zxcv]));
     }
 }

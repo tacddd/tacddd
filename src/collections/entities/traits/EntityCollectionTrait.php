@@ -19,6 +19,8 @@ declare(strict_types=1);
 
 namespace tacddd\collections\entities\traits;
 
+use tacddd\collections\entities\enums\AccessStyleEnum;
+
 /**
  * エンティティコレクション特性
  */
@@ -43,6 +45,11 @@ trait EntityCollectionTrait
      * @var array 逆引きキャッシュマップ
      */
     protected array $reverseCacheMap = [];
+
+    /**
+     * @var array アクセスキーキャッシュ
+     */
+    protected array $accessKeyCache = [];
 
     /**
      * @var array エレメントが持つパブリックメソッドリスト
@@ -120,6 +127,16 @@ trait EntityCollectionTrait
     public static function adjustKey(mixed $key, ?string $access_key = null): string|int
     {
         return $key;
+    }
+
+    /**
+     * エンティティの値の取得の仕方を返します。
+     *
+     * @return AccessStyleEnum エンティティの値の取得の仕方
+     */
+    protected static function getAccessStyle(): AccessStyleEnum
+    {
+        return AccessStyleEnum::Method;
     }
 
     /**
@@ -385,6 +402,8 @@ trait EntityCollectionTrait
 
         $map_keys   = empty($map_keys) ? $criteria_keys : $map_keys;
 
+        $accessStyle    = $this->getAccessStyle();
+
         foreach ($cache_map as $unique_id) {
             if (($entity = $this->collection[$unique_id] ?? null) === null) {
                 continue;
@@ -393,11 +412,21 @@ trait EntityCollectionTrait
             $in_nest_map_key     = [];
 
             foreach ($map_keys as $map_key) {
-                $access_key = \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => '']));
+                if (!\array_key_exists($map_key, $this->accessKeyCache)) {
+                    $this->accessKeyCache[$map_key] = match ($accessStyle->name) {
+                        AccessStyleEnum::Property->name     => \lcfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
+                        AccessStyleEnum::ArrayAccess->name  => $map_key,
+                        default                             => 'get' . \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
+                    };
+                }
 
                 $in_nest_map_key[$map_key]  = static::adjustKey(
-                    $entity->{'get' . $access_key}(),
-                    $access_key,
+                    match ($accessStyle->name) {
+                        AccessStyleEnum::Property->name     => $entity->{$this->accessKeyCache[$map_key]},
+                        AccessStyleEnum::ArrayAccess->name  => $entity[$this->accessKeyCache[$map_key]],
+                        default                             => $entity->{$this->accessKeyCache[$map_key]}(),
+                    },
+                    $this->accessKeyCache[$map_key],
                 );
             }
 
@@ -465,6 +494,8 @@ trait EntityCollectionTrait
 
         $map_keys   = empty($map_keys) ? $criteria_keys : $map_keys;
 
+        $accessStyle    = $this->getAccessStyle();
+
         foreach ($cache_map as $unique_id) {
             if (($entity = $this->collection[$unique_id] ?? null) === null) {
                 continue;
@@ -473,11 +504,21 @@ trait EntityCollectionTrait
             $in_nest_map_key     = [];
 
             foreach ($map_keys as $map_key) {
-                $access_key = \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => '']));
+                if (!\array_key_exists($map_key, $this->accessKeyCache)) {
+                    $this->accessKeyCache[$map_key] = match ($accessStyle->name) {
+                        AccessStyleEnum::Property->name     => \lcfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
+                        AccessStyleEnum::ArrayAccess->name  => $map_key,
+                        default                             => 'get' . \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
+                    };
+                }
 
                 $in_nest_map_key[$map_key]  = static::adjustKey(
-                    $entity->{'get' . $access_key}(),
-                    $access_key,
+                    match ($accessStyle->name) {
+                        AccessStyleEnum::Property->name     => $entity->{$this->accessKeyCache[$map_key]},
+                        AccessStyleEnum::ArrayAccess->name  => $entity[$this->accessKeyCache[$map_key]],
+                        default                             => $entity->{$this->accessKeyCache[$map_key]}(),
+                    },
+                    $this->accessKeyCache[$map_key],
                 );
             }
 
@@ -517,20 +558,32 @@ trait EntityCollectionTrait
 
         $key_map        = [];
 
+        $accessStyle    = $this->getAccessStyle();
+
         foreach ($this->reverseCacheMap[$unique_id] as $cache_key => $criteria_keys) {
             $in_nest_list   = [];
 
-            foreach ($criteria_keys as $criteria_key) {
-                if (!\array_key_exists($criteria_key, $key_map)) {
-                    $access_key = \ucfirst(\strtr(\ucwords(\strtr($criteria_key, ['_' => ' '])), [' ' => '']));
+            foreach ($criteria_keys as $map_key) {
+                if (!\array_key_exists($map_key, $key_map)) {
+                    if (!\array_key_exists($map_key, $this->accessKeyCache)) {
+                        $this->accessKeyCache[$map_key] = match ($accessStyle->name) {
+                            AccessStyleEnum::Property->name     => \lcfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
+                            AccessStyleEnum::ArrayAccess->name  => $map_key,
+                            default                             => 'get' . \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
+                        };
+                    }
 
-                    $key_map[$criteria_key] = static::adjustKey(
-                        $entity->{'get' . $access_key}(),
-                        $access_key,
+                    $key_map[$map_key] = static::adjustKey(
+                        match ($accessStyle->name) {
+                            AccessStyleEnum::Property->name     => $entity->{$this->accessKeyCache[$map_key]},
+                            AccessStyleEnum::ArrayAccess->name  => $entity[$this->accessKeyCache[$map_key]],
+                            default                             => $entity->{$this->accessKeyCache[$map_key]}(),
+                        },
+                        $this->accessKeyCache[$map_key],
                     );
                 }
 
-                $in_nest_list[] = $key_map[$criteria_key];
+                $in_nest_list[] = $key_map[$map_key];
             }
 
             $tmp        = &$this->cacheMap[$cache_key];
@@ -807,12 +860,24 @@ trait EntityCollectionTrait
     {
         $criteria   = [];
 
-        foreach ($criteria_keys as $key) {
-            $access_key = \ucfirst(\strtr(\ucwords(\strtr($key, ['_' => ' '])), [' ' => '']));
+        $accessStyle    = $this->getAccessStyle();
 
-            $criteria[$key] = static::adjustKey(
-                $entity->{'get' . $access_key}(),
-                $access_key,
+        foreach ($criteria_keys as $map_key) {
+            if (!\array_key_exists($map_key, $this->accessKeyCache)) {
+                $this->accessKeyCache[$map_key] = match ($accessStyle->name) {
+                    AccessStyleEnum::Property->name     => \lcfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
+                    AccessStyleEnum::ArrayAccess->name  => $map_key,
+                    default                             => 'get' . \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
+                };
+            }
+
+            $criteria[$map_key] = static::adjustKey(
+                match ($accessStyle->name) {
+                    AccessStyleEnum::Property->name     => $entity->{$this->accessKeyCache[$map_key]},
+                    AccessStyleEnum::ArrayAccess->name  => $entity[$this->accessKeyCache[$map_key]],
+                    default                             => $entity->{$this->accessKeyCache[$map_key]}(),
+                },
+                $this->accessKeyCache[$map_key],
             );
         }
 
@@ -837,14 +902,28 @@ trait EntityCollectionTrait
 
         $unique_id = static::extractUniqueId($entity);
 
-        foreach ($criteria as $key => $value) {
-            $criteria_keys[]    = $key;
+        $accessStyle    = $this->getAccessStyle();
 
-            $access_key = \ucfirst(\strtr(\ucwords(\strtr($key, ['_' => ' '])), [' ' => '']));
+        foreach ($criteria as $map_key => $value) {
+            $criteria_keys[]    = $map_key;
+
+            if (!\array_key_exists($map_key, $this->accessKeyCache)) {
+                $this->accessKeyCache[$map_key] = match ($accessStyle->name) {
+                    AccessStyleEnum::Property->name     => \lcfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
+                    AccessStyleEnum::ArrayAccess->name  => $map_key,
+                    default                             => 'get' . \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
+                };
+
+                \var_dump($this->accessKeyCache[$map_key]);
+            }
 
             $in_nest_list[] = static::adjustKey(
-                $entity->{'get' . $access_key}(),
-                $access_key,
+                match ($accessStyle->name) {
+                    AccessStyleEnum::Property->name     => $entity->{$this->accessKeyCache[$map_key]},
+                    AccessStyleEnum::ArrayAccess->name  => $entity[$this->accessKeyCache[$map_key]],
+                    default                             => $entity->{$this->accessKeyCache[$map_key]}(),
+                },
+                $this->accessKeyCache[$map_key],
             );
         }
 
