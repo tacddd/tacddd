@@ -17,7 +17,7 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\collections\entities\traits;
+namespace tacddd\tests\collections\objects\traits;
 
 use PHPUnit\Framework\Attributes\Test;
 use tacddd\tests\utilities\resources\dummy\collections\EntityCollectionPropertyAccessDummy;
@@ -29,7 +29,7 @@ use tacddd\tests\utilities\test_cases\AbstractTestCase;
 /**
  * @internal
  */
-class EntityCollectionTest extends AbstractTestCase
+class ObjectCollectionTest extends AbstractTestCase
 {
     #[Test]
     public function collection(): void
@@ -186,5 +186,23 @@ class EntityCollectionTest extends AbstractTestCase
         $this->assertSame($zxcv, $collection->find($zxcv));
         $this->assertSame([$zxcv], $collection->findBy(['id' => $zxcv]));
         $this->assertSame($zxcv, $collection->findOneBy(['id' => $zxcv]));
+    }
+
+    #[Test]
+    public function findValue(): void
+    {
+        $collection     = new CollectionDummy([
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'zxcv', 'value3'),
+        ]);
+
+        $this->assertSame('value1', $collection->findValue(1, 'name'));
+
+        $this->assertSame([1 => 'asdf', 2 => 'zxcv', 3 => 'zxcv'], $collection->findValueAll('group'));
+
+        $this->assertSame(['value2', 'value3'], $collection->findValueBy(['group' => 'zxcv'], 'name'));
+
+        $this->assertSame('value2', $collection->findValueOneBy(['group' => 'zxcv'], 'name'));
     }
 }

@@ -17,17 +17,17 @@
 
 declare(strict_types=1);
 
-namespace tacddd\collections\entities\traits;
+namespace tacddd\collections\objects\traits;
 
-use tacddd\collections\entities\enums\AccessStyleEnum;
+use tacddd\collections\objects\enums\KeyAccessTypeEnum;
 
 /**
- * エンティティコレクション特性
+ * オブジェクトコレクション特性
  */
-trait EntityCollectionTrait
+trait ObjectCollectionTrait
 {
     /**
-     * @var entity[] コレクション
+     * @var object[] コレクション
      */
     protected array $collection = [];
 
@@ -52,17 +52,17 @@ trait EntityCollectionTrait
     protected array $accessKeyCache = [];
 
     /**
-     * @var array エレメントが持つパブリックメソッドリスト
+     * @var array オブジェクトが持つアクセスポイントリスト
      */
-    protected array $entityMethodList  = [];
+    protected array $objectAccessPointList  = [];
 
     /**
-     * 指定されたエンティティからユニークIDを返します。
+     * 指定された値からユニークIDを返します。
      *
-     * @param  entity     $entity エンティティ
-     * @return string|int ユニークID
+     * @param  mixed      $value 値
+     * @return int|string ユニークID
      */
-    abstract public static function createUniqueId(object $entity): string|int;
+    abstract public static function createUniqueId(mixed $value): string|int;
 
     /**
      * 受け入れ可能なクラスを返します。
@@ -72,18 +72,18 @@ trait EntityCollectionTrait
     abstract public static function getAllowedClass(): string;
 
     /**
-     * 与えられたエンティティからユニークIDを抽出して返します。
+     * 与えられたオブジェクトからユニークIDを抽出して返します。
      *
-     * @param  entity     $entity エンティティ
+     * @param  object     $object オブジェクト
      * @return string|int ユニークID
      */
-    public static function extractUniqueId(object $entity): string|int
+    public static function extractUniqueId(object $object): string|int
     {
-        if (!static::isAllowedClass($entity)) {
-            throw new \TypeError(\sprintf('受け入れ可能外のクラスを指定されました。class:%s, allowed_class:%s', $entity::class, static::getAllowedClass()));
+        if (!static::isAllowedClass($object)) {
+            throw new \TypeError(\sprintf('受け入れ可能外のクラスを指定されました。class:%s, allowed_class:%s', $object::class, static::getAllowedClass()));
         }
 
-        $unique_id = static::createUniqueId($entity);
+        $unique_id = static::createUniqueId($object);
 
         if (!\is_string($unique_id) && !\is_int($unique_id)) {
             $unique_id = static::adjustKey($unique_id, 'UniqueId');
@@ -130,26 +130,26 @@ trait EntityCollectionTrait
     }
 
     /**
-     * エンティティの値の取得の仕方を返します。
+     * オブジェクトの値の取得の仕方を返します。
      *
-     * @return AccessStyleEnum エンティティの値の取得の仕方
+     * @return KeyAccessTypeEnum オブジェクトの値の取得の仕方
      */
-    protected static function getAccessStyle(): AccessStyleEnum
+    protected static function getKeyAccessType(): KeyAccessTypeEnum
     {
-        return AccessStyleEnum::Method;
+        return KeyAccessTypeEnum::Method;
     }
 
     /**
      * constructor
      *
-     * @param iterable $entities 初期状態として受け入れるエンティティの配列
-     * @param array    $options  オプション
+     * @param iterable $objects 初期状態として受け入れるオブジェクトの配列
+     * @param array    $options オプション
      */
-    public function __construct(iterable $entities = [], array $options = [])
+    public function __construct(iterable $objects = [], array $options = [])
     {
         $this->options  = $options;
 
-        $this->addAll($entities);
+        $this->addAll($objects);
     }
 
     public function test()
@@ -158,64 +158,64 @@ trait EntityCollectionTrait
     }
 
     /**
-     * エンティティを追加します。
+     * オブジェクトを追加します。
      *
-     * @param  entity $entity エンティティ
+     * @param  object $object オブジェクト
      * @return static このインスタンス
      */
-    public function add(object $entity): static
+    public function add(object $object): static
     {
-        if (!static::isAllowedClass($entity)) {
-            throw new \TypeError(\sprintf('受け入れ可能外のクラスを指定されました。class:%s, allowed_class:%s', $entity::class, static::getAllowedClass()));
+        if (!static::isAllowedClass($object)) {
+            throw new \TypeError(\sprintf('受け入れ可能外のクラスを指定されました。class:%s, allowed_class:%s', $object::class, static::getAllowedClass()));
         }
 
-        $unique_id = static::extractUniqueId($entity);
+        $unique_id = static::extractUniqueId($object);
 
         foreach ($this->reverseCacheMap[$unique_id] ?? [] as $cache_key => $criteria_keys) {
-            $this->setCache($cache_key, $entity, $this->createCriteriaForCache($criteria_keys, $entity));
+            $this->setCache($cache_key, $object, $this->createCriteriaForCache($criteria_keys, $object));
         }
 
-        $this->collection[$unique_id]  = $entity;
+        $this->collection[$unique_id]  = $object;
 
         return $this;
     }
 
     /**
-     * エンティティを纏めて追加します。
+     * オブジェクトを纏めて追加します。
      *
-     * @param  iterable $entities エンティティ
+     * @param  iterable $objects オブジェクト
      * @return static   このインスタンス
      */
-    public function addAll(iterable $entities): static
+    public function addAll(iterable $objects): static
     {
-        foreach ($entities as $entity) {
-            $this->add($entity);
+        foreach ($objects as $object) {
+            $this->add($object);
         }
 
         return $this;
     }
 
     /**
-     * エンティティがコレクションに含まれているかどうかを返します。
+     * オブジェクトがコレクションに含まれているかどうかを返します。
      *
-     * @param  entity $entity 検索対象
-     * @return bool   エンティティが存在するかどうか
+     * @param  object $object 検索対象
+     * @return bool   オブジェクトが存在するかどうか
      */
-    public function contains(object $entity): bool
+    public function contains(object $object): bool
     {
-        return \array_key_exists(static::extractUniqueId($entity), $this->collection);
+        return \array_key_exists(static::extractUniqueId($object), $this->collection);
     }
 
     /**
-     * 指定したエンティティが全てコレクションに含まれているかどうかを返します。
+     * 指定したオブジェクトが全てコレクションに含まれているかどうかを返します。
      *
-     * @param  iterable $entities 検索対象
-     * @return bool     エンティティが存在するかどうか
+     * @param  iterable $objects 検索対象
+     * @return bool     オブジェクトが存在するかどうか
      */
-    public function containsAll(iterable $entities): bool
+    public function containsAll(iterable $objects): bool
     {
-        foreach ($entities as $entity) {
-            if (!\array_key_exists(static::extractUniqueId($entity), $this->collection)) {
+        foreach ($objects as $object) {
+            if (!\array_key_exists(static::extractUniqueId($object), $this->collection)) {
                 return false;
             }
         }
@@ -224,15 +224,15 @@ trait EntityCollectionTrait
     }
 
     /**
-     * 指定したエンティティの何れかがコレクションに含まれているかどうかを返します。
+     * 指定したオブジェクトの何れかがコレクションに含まれているかどうかを返します。
      *
-     * @param  iterable $entities 検索対象
-     * @return bool     エンティティが存在するかどうか
+     * @param  iterable $objects 検索対象
+     * @return bool     オブジェクトが存在するかどうか
      */
-    public function containsAny(iterable $entities): bool
+    public function containsAny(iterable $objects): bool
     {
-        foreach ($entities as $entity) {
-            if (\array_key_exists(static::extractUniqueId($entity), $this->collection)) {
+        foreach ($objects as $object) {
+            if (\array_key_exists(static::extractUniqueId($object), $this->collection)) {
                 return true;
             }
         }
@@ -241,10 +241,10 @@ trait EntityCollectionTrait
     }
 
     /**
-     * 指定した検索条件のエンティティが存在するかどうかを返します。
+     * 指定した検索条件のオブジェクトが存在するかどうかを返します。
      *
      * @param  array $criteria 検索条件
-     * @return bool  エンティティが存在するかどうか
+     * @return bool  オブジェクトが存在するかどうか
      */
     public function hasBy(array $criteria): bool
     {
@@ -266,10 +266,10 @@ trait EntityCollectionTrait
     }
 
     /**
-     * 指定されたキーのエンティティを返します。
+     * 指定されたユニークキーのオブジェクトを返します。
      *
      * @param  int|string|object $unique_id ユニークID
-     * @return null|object       エンティティ
+     * @return null|object       オブジェクト
      */
     public function find(int|string|object $unique_id): ?object
     {
@@ -277,9 +277,35 @@ trait EntityCollectionTrait
     }
 
     /**
-     * コレクションの全エンティティを返します。
+     * 指定されたユニークキーのオブジェクトの指定されたアクセスキーの値を返します。
      *
-     * @return array コレクションの全エンティティ
+     * @param  int|string|object $unique_id ユニークID
+     * @param  string            $map_key   マップキー
+     * @return mixed             指定されたキーのオブジェクトの指定されたアクセスキーの値
+     */
+    public function findValue(int|string|object $unique_id, string $map_key): mixed
+    {
+        $object = $this->collection[\is_object($unique_id) ? static::extractUniqueId($unique_id) : $unique_id] ?? null;
+
+        if ($object === null) {
+            return $object;
+        }
+
+        $keyAccessType    = $this->getKeyAccessType();
+
+        \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
+
+        return match ($keyAccessType->name) {
+            KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
+            KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
+            default                               => $object->{$this->accessKeyCache[$map_key]}(),
+        };
+    }
+
+    /**
+     * コレクションの全オブジェクトを返します。
+     *
+     * @return array コレクションの全オブジェクト
      */
     public function findAll(): array
     {
@@ -287,7 +313,32 @@ trait EntityCollectionTrait
     }
 
     /**
-     * 指定したキーのエンティティを探して返します。
+     * コレクションの全オブジェクトの指定された値を返します。
+     *
+     * @param  string $map_key マップキー
+     * @return array  コレクションの全オブジェクトの指定された値
+     */
+    public function findValueAll(string $map_key): array
+    {
+        $result = [];
+
+        $keyAccessType    = $this->getKeyAccessType();
+
+        foreach ($this->collection as $idx => $object) {
+            \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
+
+            $result[$idx]   = match ($keyAccessType->name) {
+                KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
+                KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
+                default                               => $object->{$this->accessKeyCache[$map_key]}(),
+            };
+        }
+
+        return $result;
+    }
+
+    /**
+     * 指定したキーのオブジェクトを探して返します。
      *
      * @param  array    $criteria 検索条件
      * @param  array    $orderBy  ソート設定
@@ -320,8 +371,8 @@ trait EntityCollectionTrait
         $result         = [];
 
         foreach ($cache_map as $unique_id) {
-            if (($entity = $this->collection[$unique_id] ?? null) !== null) {
-                $result[]   = $entity;
+            if (($object = $this->collection[$unique_id] ?? null) !== null) {
+                $result[]   = $object;
             }
         }
 
@@ -329,7 +380,58 @@ trait EntityCollectionTrait
     }
 
     /**
-     * 指定したキーのエンティティを探して返します。
+     * 指定したキーのオブジェクトの値を探して返します。
+     *
+     * @param  array    $criteria 検索条件
+     * @param  string   $map_key  マップキー
+     * @param  array    $orderBy  ソート設定
+     * @return object[] 検索結果
+     */
+    public function findValueBy(array $criteria, string $map_key, array $orderBy = []): array
+    {
+        $cache_map  = $this->loadCacheMap($criteria);
+
+        $not_found  = false;
+
+        foreach ($criteria as $key => $value) {
+            if (\is_object($value)) {
+                $value  = $this->adjustKey($value, $key);
+            }
+
+            if (\array_key_exists($value, $cache_map)) {
+                $cache_map = $cache_map[$value];
+            } else {
+                $not_found  = true;
+
+                break;
+            }
+        }
+
+        if ($not_found) {
+            return [];
+        }
+
+        $result = [];
+
+        $keyAccessType  = $this->getKeyAccessType();
+
+        foreach ($cache_map as $unique_id) {
+            if (($object = $this->collection[$unique_id] ?? null) !== null) {
+                \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
+
+                $result[]   = match ($keyAccessType->name) {
+                    KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
+                    KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
+                    default                               => $object->{$this->accessKeyCache[$map_key]}(),
+                };
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * 指定したキーのオブジェクトを探して返します。
      *
      * @param  array  $criteria 検索条件
      * @param  array  $orderBy  ソート設定
@@ -365,12 +467,61 @@ trait EntityCollectionTrait
     }
 
     /**
-     * 指定したキーのエンティティを探して返します。
+     * 指定したキーのオブジェクトを探して値を返します。
+     *
+     * @param  array  $criteria 検索条件
+     * @param  string $map_key  マップキー
+     * @param  array  $orderBy  ソート設定
+     * @return mixed  検索結果
+     */
+    public function findValueOneBy(array $criteria, string $map_key, array $orderBy = []): mixed
+    {
+        $unique_id  = $this->loadCacheMap($criteria);
+
+        $not_found  = false;
+
+        foreach ($criteria as $key => $value) {
+            if (\is_object($value)) {
+                $value  = $this->adjustKey($value, $key);
+            }
+
+            if (\array_key_exists($value, $unique_id)) {
+                $unique_id = $unique_id[$value];
+            } else {
+                $not_found  = true;
+
+                break;
+            }
+        }
+
+        if ($not_found) {
+            return null;
+        }
+
+        $unique_id  = $unique_id[\array_key_first($unique_id)];
+
+        $keyAccessType  = $this->getKeyAccessType();
+
+        if (($object = $this->collection[$unique_id] ?? null) !== null) {
+            \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
+
+            return match ($keyAccessType->name) {
+                KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
+                KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
+                default                               => $object->{$this->accessKeyCache[$map_key]}(),
+            };
+        }
+
+        return null;
+    }
+
+    /**
+     * 指定したキーのオブジェクトを探して返します。
      *
      * @param  array $criteria 検索条件
      * @param  array $map_keys マップキー
      * @param  array $order_by ソート設定
-     * @return array エンティティ
+     * @return array オブジェクト
      */
     public function findToMapBy(array $criteria, array $map_keys = [], array $order_by = []): array
     {
@@ -402,29 +553,23 @@ trait EntityCollectionTrait
 
         $map_keys   = empty($map_keys) ? $criteria_keys : $map_keys;
 
-        $accessStyle    = $this->getAccessStyle();
+        $keyAccessType    = $this->getKeyAccessType();
 
         foreach ($cache_map as $unique_id) {
-            if (($entity = $this->collection[$unique_id] ?? null) === null) {
+            if (($object = $this->collection[$unique_id] ?? null) === null) {
                 continue;
             }
 
             $in_nest_map_key     = [];
 
             foreach ($map_keys as $map_key) {
-                if (!\array_key_exists($map_key, $this->accessKeyCache)) {
-                    $this->accessKeyCache[$map_key] = match ($accessStyle->name) {
-                        AccessStyleEnum::Property->name     => \lcfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
-                        AccessStyleEnum::ArrayAccess->name  => $map_key,
-                        default                             => 'get' . \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
-                    };
-                }
+                \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
 
                 $in_nest_map_key[$map_key]  = static::adjustKey(
-                    match ($accessStyle->name) {
-                        AccessStyleEnum::Property->name     => $entity->{$this->accessKeyCache[$map_key]},
-                        AccessStyleEnum::ArrayAccess->name  => $entity[$this->accessKeyCache[$map_key]],
-                        default                             => $entity->{$this->accessKeyCache[$map_key]}(),
+                    match ($keyAccessType->name) {
+                        KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
+                        KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
+                        default                               => $object->{$this->accessKeyCache[$map_key]}(),
                     },
                     $this->accessKeyCache[$map_key],
                 );
@@ -445,9 +590,9 @@ trait EntityCollectionTrait
             }
 
             if (\array_key_exists($target_key, $tmp) && \is_array($tmp[$target_key])) {
-                $tmp[$target_key][] = $entity;
+                $tmp[$target_key][] = $object;
             } else {
-                $tmp[$target_key] = [$entity];
+                $tmp[$target_key] = [$object];
             }
 
             unset($tmp);
@@ -457,12 +602,12 @@ trait EntityCollectionTrait
     }
 
     /**
-     * 指定したキーのエンティティを探して返します。
+     * 指定したキーのオブジェクトを探して返します。
      *
      * @param  array $criteria 検索条件
      * @param  array $map_keys マップキー
      * @param  array $order_by ソート設定
-     * @return array エンティティ
+     * @return array オブジェクト
      */
     public function findOneToMapBy(array $criteria, array $map_keys = [], array $order_by = []): array
     {
@@ -494,29 +639,23 @@ trait EntityCollectionTrait
 
         $map_keys   = empty($map_keys) ? $criteria_keys : $map_keys;
 
-        $accessStyle    = $this->getAccessStyle();
+        $keyAccessType    = $this->getKeyAccessType();
 
         foreach ($cache_map as $unique_id) {
-            if (($entity = $this->collection[$unique_id] ?? null) === null) {
+            if (($object = $this->collection[$unique_id] ?? null) === null) {
                 continue;
             }
 
             $in_nest_map_key     = [];
 
             foreach ($map_keys as $map_key) {
-                if (!\array_key_exists($map_key, $this->accessKeyCache)) {
-                    $this->accessKeyCache[$map_key] = match ($accessStyle->name) {
-                        AccessStyleEnum::Property->name     => \lcfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
-                        AccessStyleEnum::ArrayAccess->name  => $map_key,
-                        default                             => 'get' . \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
-                    };
-                }
+                \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
 
                 $in_nest_map_key[$map_key]  = static::adjustKey(
-                    match ($accessStyle->name) {
-                        AccessStyleEnum::Property->name     => $entity->{$this->accessKeyCache[$map_key]},
-                        AccessStyleEnum::ArrayAccess->name  => $entity[$this->accessKeyCache[$map_key]],
-                        default                             => $entity->{$this->accessKeyCache[$map_key]}(),
+                    match ($keyAccessType->name) {
+                        KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
+                        KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
+                        default                               => $object->{$this->accessKeyCache[$map_key]}(),
                     },
                     $this->accessKeyCache[$map_key],
                 );
@@ -537,7 +676,7 @@ trait EntityCollectionTrait
             }
 
             if (!\array_key_exists($target_key, $tmp)) {
-                $tmp[$target_key] = $entity;
+                $tmp[$target_key] = $object;
             }
 
             unset($tmp);
@@ -547,37 +686,31 @@ trait EntityCollectionTrait
     }
 
     /**
-     * エンティティを取り外します。
+     * オブジェクトを取り外します。
      *
-     * @param  entity $entity エンティティ
+     * @param  object $object オブジェクト
      * @return static このインスタンス
      */
-    public function remove(object $entity): static
+    public function remove(object $object): static
     {
-        $unique_id  = static::extractUniqueId($entity);
+        $unique_id  = static::extractUniqueId($object);
 
         $key_map        = [];
 
-        $accessStyle    = $this->getAccessStyle();
+        $keyAccessType    = $this->getKeyAccessType();
 
         foreach ($this->reverseCacheMap[$unique_id] as $cache_key => $criteria_keys) {
             $in_nest_list   = [];
 
             foreach ($criteria_keys as $map_key) {
                 if (!\array_key_exists($map_key, $key_map)) {
-                    if (!\array_key_exists($map_key, $this->accessKeyCache)) {
-                        $this->accessKeyCache[$map_key] = match ($accessStyle->name) {
-                            AccessStyleEnum::Property->name     => \lcfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
-                            AccessStyleEnum::ArrayAccess->name  => $map_key,
-                            default                             => 'get' . \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
-                        };
-                    }
+                    \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
 
                     $key_map[$map_key] = static::adjustKey(
-                        match ($accessStyle->name) {
-                            AccessStyleEnum::Property->name     => $entity->{$this->accessKeyCache[$map_key]},
-                            AccessStyleEnum::ArrayAccess->name  => $entity[$this->accessKeyCache[$map_key]],
-                            default                             => $entity->{$this->accessKeyCache[$map_key]}(),
+                        match ($keyAccessType->name) {
+                            KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
+                            KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
+                            default                               => $object->{$this->accessKeyCache[$map_key]}(),
                         },
                         $this->accessKeyCache[$map_key],
                     );
@@ -649,7 +782,7 @@ trait EntityCollectionTrait
     }
 
     /**
-     * 指定したキーのエンティティを取り外します。
+     * 指定したキーのオブジェクトを取り外します。
      *
      * @param  array  $criteria 検索条件
      * @return static このインスタンス
@@ -726,7 +859,7 @@ trait EntityCollectionTrait
 
         unset($map_keys[\array_key_last($map_keys)]);
 
-        foreach ($map_keys as $map_kay) {
+        foreach ($map_keys as $map_key) {
             $key = \key($tmp);
             $tmp = &$tmp[$key];
         }
@@ -759,7 +892,7 @@ trait EntityCollectionTrait
 
         unset($map_keys[\array_key_last($map_keys)]);
 
-        foreach ($map_keys as $map_kay) {
+        foreach ($map_keys as $map_key) {
             $key = \key($tmp);
             $tmp = &$tmp[$key];
         }
@@ -804,8 +937,8 @@ trait EntityCollectionTrait
      */
     protected function getObjectMethodList(): array
     {
-        if (empty($this->entityMethodList)) {
-            $entity_method_list    = [];
+        if (empty($this->objectAccessPointList)) {
+            $object_method_list    = [];
 
             foreach ((new \ReflectionClass(static::getAllowedClass(9)))->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
                 $method_name    = $method->getName();
@@ -814,20 +947,20 @@ trait EntityCollectionTrait
                     continue;
                 }
 
-                $entity_method_list[$method->getName()]    = [
+                $object_method_list[$method->getName()]    = [
                     'map_key'   => $map_key = \mb_substr($method_name, 4),
                     'length'    => \mb_strlen($map_key),
                 ];
             }
 
-            \uksort($entity_method_list, function($a, $b): int {
+            \uksort($object_method_list, function($a, $b): int {
                 return \strlen($b) <=> \strlen($a) ?: \strnatcmp($b, $a);
             });
 
-            $this->entityMethodList    = $entity_method_list;
+            $this->objectAccessPointList    = $object_method_list;
         }
 
-        return $this->entityMethodList;
+        return $this->objectAccessPointList;
     }
 
     /**
@@ -853,29 +986,23 @@ trait EntityCollectionTrait
      * キャッシュ用検索条件を構築します。
      *
      * @param  array  $criteria_keys 検索条件キー
-     * @param  object $entity        エンティティ
+     * @param  object $object        オブジェクト
      * @return array  キャッシュ用検索条件
      */
-    protected function createCriteriaForCache(array $criteria_keys, object $entity): array
+    protected function createCriteriaForCache(array $criteria_keys, object $object): array
     {
         $criteria   = [];
 
-        $accessStyle    = $this->getAccessStyle();
+        $keyAccessType    = $this->getKeyAccessType();
 
         foreach ($criteria_keys as $map_key) {
-            if (!\array_key_exists($map_key, $this->accessKeyCache)) {
-                $this->accessKeyCache[$map_key] = match ($accessStyle->name) {
-                    AccessStyleEnum::Property->name     => \lcfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
-                    AccessStyleEnum::ArrayAccess->name  => $map_key,
-                    default                             => 'get' . \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
-                };
-            }
+            \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
 
             $criteria[$map_key] = static::adjustKey(
-                match ($accessStyle->name) {
-                    AccessStyleEnum::Property->name     => $entity->{$this->accessKeyCache[$map_key]},
-                    AccessStyleEnum::ArrayAccess->name  => $entity[$this->accessKeyCache[$map_key]],
-                    default                             => $entity->{$this->accessKeyCache[$map_key]}(),
+                match ($keyAccessType->name) {
+                    KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
+                    KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
+                    default                               => $object->{$this->accessKeyCache[$map_key]}(),
                 },
                 $this->accessKeyCache[$map_key],
             );
@@ -888,40 +1015,32 @@ trait EntityCollectionTrait
      * キャッシュをセットします。
      *
      * @param string $cache_key キャッシュキー
-     * @param object $entity    キャッシュに設定するエンティティ
+     * @param object $object    キャッシュに設定するオブジェクト
      * @param array  $criteria  検索条件
      */
     protected function setCache(
         string $cache_key,
-        object $entity,
+        object $object,
         array $criteria,
     ): static {
         $in_nest_list   = [];
 
         $criteria_keys  = [];
 
-        $unique_id = static::extractUniqueId($entity);
+        $unique_id = static::extractUniqueId($object);
 
-        $accessStyle    = $this->getAccessStyle();
+        $keyAccessType    = $this->getKeyAccessType();
 
         foreach ($criteria as $map_key => $value) {
             $criteria_keys[]    = $map_key;
 
-            if (!\array_key_exists($map_key, $this->accessKeyCache)) {
-                $this->accessKeyCache[$map_key] = match ($accessStyle->name) {
-                    AccessStyleEnum::Property->name     => \lcfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
-                    AccessStyleEnum::ArrayAccess->name  => $map_key,
-                    default                             => 'get' . \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
-                };
-
-                \var_dump($this->accessKeyCache[$map_key]);
-            }
+            \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
 
             $in_nest_list[] = static::adjustKey(
-                match ($accessStyle->name) {
-                    AccessStyleEnum::Property->name     => $entity->{$this->accessKeyCache[$map_key]},
-                    AccessStyleEnum::ArrayAccess->name  => $entity[$this->accessKeyCache[$map_key]],
-                    default                             => $entity->{$this->accessKeyCache[$map_key]}(),
+                match ($keyAccessType->name) {
+                    KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
+                    KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
+                    default                               => $object->{$this->accessKeyCache[$map_key]}(),
                 },
                 $this->accessKeyCache[$map_key],
             );
@@ -972,11 +1091,28 @@ trait EntityCollectionTrait
         if (!\array_key_exists($cache_key, $this->cacheMap)) {
             $this->cacheMap[$cache_key] = [];
 
-            foreach ($this->collection as $entity) {
-                $this->setCache($cache_key, $entity, $criteria);
+            foreach ($this->collection as $object) {
+                $this->setCache($cache_key, $object, $criteria);
             }
         }
 
         return $this->cacheMap[$cache_key];
+    }
+
+    /**
+     * アクセスキーキャッシュを設定します。
+     *
+     * @param  string $map_key マップキー
+     * @return static このインスタンス
+     */
+    protected function setAccessKeyCache(string $map_key, ?KeyAccessTypeEnum $keyAccessType = null): static
+    {
+        $this->accessKeyCache[$map_key] = match (($keyAccessType ?? $this->getKeyAccessType())->name) {
+            KeyAccessTypeEnum::Property->name     => \lcfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
+            KeyAccessTypeEnum::ArrayAccess->name  => $map_key,
+            default                               => 'get' . \ucfirst(\strtr(\ucwords(\strtr($map_key, ['_' => ' '])), [' ' => ''])),
+        };
+
+        return $this;
     }
 }

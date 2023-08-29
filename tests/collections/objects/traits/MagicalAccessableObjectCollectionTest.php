@@ -17,7 +17,7 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\collections\entities\traits;
+namespace tacddd\tests\collections\objects\traits;
 
 use PHPUnit\Framework\Attributes\Test;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionEntityDummy;
@@ -27,7 +27,7 @@ use tacddd\tests\utilities\test_cases\AbstractTestCase;
 /**
  * @internal
  */
-class MagicalAccessableEntityCollectionTest extends AbstractTestCase
+class MagicalAccessableObjectCollectionTest extends AbstractTestCase
 {
     #[Test]
     public function methodNotFoundError(): void

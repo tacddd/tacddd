@@ -17,25 +17,19 @@
 
 declare(strict_types=1);
 
-namespace tacddd\collections\entities\enums;
+namespace tacddd\collections\interfaces;
 
 /**
- * コレクションキーへのアクセスの仕方列挙型
+ * オブジェクトコレクション向けキーアジャスタ構築インターフェース
  */
-enum AccessStyleEnum
+interface AdjustKeyFactoryInterface
 {
     /**
-     * コレクションからメソッド経由でキーを取得します。
+     * キーがstring|intではなかった場合に調整して返します。
+     *
+     * @param  mixed       $key        キー
+     * @param  null|string $access_key アクセスキー
+     * @return string|int  調整済みキー
      */
-    case Method;
-
-    /**
-     * コレクションからプロパティ経由でキーを取得します。
-     */
-    case Property;
-
-    /**
-     * コレクションから配列アクセス経由でキーを取得します。
-     */
-    case ArrayAccess;
+    public static function adjustKey(mixed $key, ?string $access_key = null): string|int;
 }

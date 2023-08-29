@@ -17,12 +17,12 @@
 
 declare(strict_types=1);
 
-namespace tacddd\collections\entities\traits\magical_accesser;
+namespace tacddd\collections\objects\traits\magical_accesser;
 
 /**
  * オブジェクトコレクションマジックアクセス特性
  */
-interface EntityCollectionMagicalAccessorInterface
+interface ObjectCollectionMagicalAccessorInterface
 {
     /**
      * @var array アクション設定
