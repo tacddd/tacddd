@@ -19,13 +19,13 @@ declare(strict_types=1);
 
 namespace tacddd\tests\utilities\resources\dummy\objects;
 
-use tacddd\collections\entities\traits\magical_accesser\EntityCollectionMagicalAccessorInterface;
-use tacddd\collections\entities\traits\magical_accesser\EntityCollectionMagicalAccessorTrait;
+use tacddd\collections\objects\traits\magical_accesser\ObjectCollectionMagicalAccessorInterface;
+use tacddd\collections\objects\traits\magical_accesser\ObjectCollectionMagicalAccessorTrait;
 
 /**
  * @method CollectionEntityDummy getById(int $id)
  */
-final class CollectionMagicalDummy extends AbstractCollectionDummy implements EntityCollectionMagicalAccessorInterface
+final class CollectionMagicalDummy extends AbstractCollectionDummy implements ObjectCollectionMagicalAccessorInterface
 {
-    use EntityCollectionMagicalAccessorTrait;
+    use ObjectCollectionMagicalAccessorTrait;
 }

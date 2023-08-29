@@ -17,18 +17,25 @@
 
 declare(strict_types=1);
 
-namespace tacddd\collections\entities\interfaces;
+namespace tacddd\collections\objects\enums;
 
 /**
- * オブジェクトコレクション向けユニークID構築インターフェース
+ * コレクションのキー値へのアクセスの仕方列挙型
  */
-interface UniqueIdFactoryInterface
+enum KeyAccessTypeEnum
 {
     /**
-     * 指定されたオブジェクトからユニークIDを返します。
-     *
-     * @param  object     $element オブジェクト
-     * @return int|string ユニークID
+     * コレクションからメソッド経由でキーを取得します。
      */
-    public static function createUniqueId(object $element): string|int;
+    case Method;
+
+    /**
+     * コレクションからプロパティ経由でキーを取得します。
+     */
+    case Property;
+
+    /**
+     * コレクションから配列アクセス経由でキーを取得します。
+     */
+    case ArrayAccess;
 }

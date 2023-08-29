@@ -17,12 +17,12 @@
 
 declare(strict_types=1);
 
-namespace tacddd\collections\entities\traits\magical_accesser;
+namespace tacddd\collections\objects\traits\magical_accesser;
 
 /**
  * オブジェクトコレクションマジックアクセス特性
  */
-trait EntityCollectionMagicalAccessorTrait
+trait ObjectCollectionMagicalAccessorTrait
 {
     /**
      * マップキーをパースして返します。

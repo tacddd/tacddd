@@ -17,7 +17,7 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\utilities\resources\dummy\entities;
+namespace tacddd\tests\utilities\resources\dummy\objects;
 
 use tacddd\tests\utilities\resources\dummy\value_objects\GroupDummy;
 use tacddd\tests\utilities\resources\dummy\value_objects\IdDummy;

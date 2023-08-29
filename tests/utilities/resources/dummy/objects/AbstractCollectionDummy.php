@@ -19,21 +19,21 @@ declare(strict_types=1);
 
 namespace tacddd\tests\utilities\resources\dummy\objects;
 
-use tacddd\collections\entities\traits\EntityCollectionInterface;
-use tacddd\collections\entities\traits\EntityCollectionTrait;
+use tacddd\collections\objects\traits\ObjectCollectionInterface;
+use tacddd\collections\objects\traits\ObjectCollectionTrait;
 
-abstract class AbstractCollectionDummy implements EntityCollectionInterface
+abstract class AbstractCollectionDummy implements ObjectCollectionInterface
 {
-    use EntityCollectionTrait;
+    use ObjectCollectionTrait;
 
     public static function getAllowedClass(): string
     {
         return CollectionEntityDummy::class;
     }
 
-    public static function createUniqueId(object $element): string|int
+    public static function createUniqueId(mixed $value): string|int
     {
-        return $element->getId();
+        return $value->getId();
     }
 
     public static function adjustKey(mixed $key, ?string $access_key = null): string|int

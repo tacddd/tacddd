@@ -17,23 +17,23 @@
 
 declare(strict_types=1);
 
-namespace tacddd\tests\collections\entities;
+namespace tacddd\tests\collections\objects;
 
 use PHPUnit\Framework\Attributes\Test;
-use tacddd\collections\entities\interfaces\UniqueIdFactoryInterface;
-use tacddd\collections\entities\MagicalAccessEntityCollectionFactory;
+use tacddd\collections\interfaces\UniqueIdFactoryInterface;
+use tacddd\collections\objects\ObjectCollectionFactory;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionEntityDummy;
 use tacddd\tests\utilities\test_cases\AbstractTestCase;
 
 /**
  * @internal
  */
-class MagicalAccessEntityCollectionFactoryTest extends AbstractTestCase
+class ObjectCollectionFactoryTest extends AbstractTestCase
 {
     #[Test]
-    public function createEntityCollection(): void
+    public function create(): void
     {
-        $collection = MagicalAccessEntityCollectionFactory::createEntityCollection(
+        $collection = ObjectCollectionFactory::create(
             CollectionEntityDummy::class,
             function(CollectionEntityDummy $element): string|int {
                 return $element->getId();
@@ -56,18 +56,18 @@ class MagicalAccessEntityCollectionFactoryTest extends AbstractTestCase
         $this->assertTrue($collection->hasById(2));
         $this->assertFalse($collection->hasById(4));
 
-        $collection = MagicalAccessEntityCollectionFactory::createEntityCollection(
+        $collection = ObjectCollectionFactory::create(
             CollectionEntityDummy::class,
             new class() implements UniqueIdFactoryInterface {
                 /**
-                 * 指定されたオブジェクトからユニークIDを返します。
+                 * 指定された値からユニークIDを返します。
                  *
-                 * @param  object     $element オブジェクト
+                 * @param  mixed      $value 値
                  * @return int|string ユニークID
                  */
-                public static function createUniqueId(object $element): string|int
+                public static function createUniqueId(mixed $value): string|int
                 {
-                    return $element->getId();
+                    return $value->getId();
                 }
             },
             [

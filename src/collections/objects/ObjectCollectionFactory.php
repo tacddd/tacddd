@@ -17,44 +17,44 @@
 
 declare(strict_types=1);
 
-namespace tacddd\collections\entities;
+namespace tacddd\collections\objects;
 
-use tacddd\collections\entities\interfaces\AdjustKeyFactoryInterface;
-use tacddd\collections\entities\interfaces\UniqueIdFactoryInterface;
-use tacddd\collections\entities\traits\EntityCollectionInterface;
-use tacddd\collections\entities\traits\EntityCollectionTrait;
-use tacddd\collections\entities\traits\magical_accesser\EntityCollectionMagicalAccessorInterface;
-use tacddd\collections\entities\traits\magical_accesser\EntityCollectionMagicalAccessorTrait;
+use tacddd\collections\interfaces\AdjustKeyFactoryInterface;
+use tacddd\collections\interfaces\UniqueIdFactoryInterface;
+use tacddd\collections\objects\traits\magical_accesser\ObjectCollectionMagicalAccessorInterface;
+use tacddd\collections\objects\traits\magical_accesser\ObjectCollectionMagicalAccessorTrait;
+use tacddd\collections\objects\traits\ObjectCollectionInterface;
+use tacddd\collections\objects\traits\ObjectCollectionTrait;
 
 /**
- * マジカルアクセスエンティティコレクションファクトリ
+ * オブジェクトコレクションファクトリ
  */
-final class MagicalAccessEntityCollectionFactory
+final class ObjectCollectionFactory
 {
     /**
-     * マジカルアクセスオブジェクトコレクションを生成して返します。
+     * オブジェクトコレクションを生成して返します。
      *
      * @param  string|object|array                     $class          受け入れ可能なクラス
      * @param  UniqueIdFactoryInterface|\Closure       $createUniqueId ユニークID生成機
-     * @param  array                                   $entities       初期状態で投入したいオブジェクト群
+     * @param  iterable                                $objects        初期状態で投入したいオブジェクト群
      * @param  null|AdjustKeyFactoryInterface|\Closure $adjustKey      キーアジャスタ
      * @param  array                                   $options        オプション
-     * @return EntityCollectionInterface               マジカルアクセスオブジェクトコレクション
+     * @return ObjectCollectionInterface               オブジェクトコレクション
      */
-    public static function createEntityCollection(
+    public static function create(
         string|object|array $class,
         UniqueIdFactoryInterface|\Closure $createUniqueId,
-        iterable $entities = [],
+        iterable $objects = [],
         null|AdjustKeyFactoryInterface|\Closure $adjustKey = null,
         array $options = [],
-    ): EntityCollectionInterface {
+    ): ObjectCollectionInterface {
         $options['allowed_classes']     = \is_object($class) ? $class::class : $class;
         $options['create_unique_key']   = $createUniqueId;
         $options['adjust_key']          = $adjustKey;
 
-        return new class($entities, $options) implements EntityCollectionInterface, EntityCollectionMagicalAccessorInterface {
-            use EntityCollectionTrait;
-            use EntityCollectionMagicalAccessorTrait;
+        return new class($objects, $options) implements ObjectCollectionInterface, ObjectCollectionMagicalAccessorInterface {
+            use ObjectCollectionTrait;
+            use ObjectCollectionMagicalAccessorTrait;
 
             /**
              * @var string 受け入れ可能なクラス
@@ -74,10 +74,10 @@ final class MagicalAccessEntityCollectionFactory
             /**
              * constructor
              *
-             * @param iterable $entities 初期状態として受け入れるオブジェクトの配列
-             * @param array    $options  オプション
+             * @param iterable $objects 初期状態として受け入れるオブジェクトの配列
+             * @param array    $options オプション
              */
-            public function __construct(iterable $entities = [], array $options = [])
+            public function __construct(iterable $objects = [], array $options = [])
             {
                 self::$allowedClasses   = $options['allowed_classes'];
 
@@ -89,8 +89,8 @@ final class MagicalAccessEntityCollectionFactory
 
                 $this->options  = $options;
 
-                foreach ($entities as $element) {
-                    $this->add($element);
+                foreach ($objects as $object) {
+                    $this->add($object);
                 }
             }
 
@@ -105,16 +105,16 @@ final class MagicalAccessEntityCollectionFactory
             }
 
             /**
-             * 指定されたオブジェクトからユニークIDを返します。
+             * 指定された値からユニークIDを返します。
              *
-             * @param  object     $element オブジェクト
+             * @param  mixed      $value 値
              * @return int|string ユニークID
              */
-            public static function createUniqueId(object $element): string|int
+            public static function createUniqueId(mixed $value): string|int
             {
                 $createUniqueId    = self::$createUniqueId;
 
-                return $createUniqueId($element);
+                return $createUniqueId($value);
             }
 
             /**

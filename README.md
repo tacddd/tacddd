@@ -13,12 +13,13 @@ TacDDD（タックディー）は戦術的DDDの迅速な立ち上げを支援�
 次の特性を使う事により、容易に任意の階層構造として値を取り出すことができます。
 
 ```php
-use tacddd\collections\entities\traits\EntityCollectionInterface;
-use tacddd\collections\entities\traits\EntityCollectionTrait;
+use tacddd\collections\objects\traits\ObjectCollectionInterface;
+use tacddd\collections\objects\traits\ObjectCollectionTrait;
 
-final class EntityCollection implements EntityCollectionInterface
+// 仮にエンティティのコレクションとする
+final class EntityCollection implements ObjectCollectionInterface
 {
-    use EntityCollectionTrait;
+    use ObjectCollectionTrait;
 
     // このコレクションが受け入れるクラスやインターフェースの設定
     public static function getAllowedClass(): string
@@ -26,10 +27,10 @@ final class EntityCollection implements EntityCollectionInterface
         return Entity::class;
     }
 
-    // 受け入れたオブジェクトからユニークなキーを返す
-    public static function createUniqueId(object $entity): string|int
+    // 受け入れた値（オブジェクト）からユニークなキーを返す
+    public static function createUniqueId(mixed $value): string|int
     {
-        return $entity->getId();
+        return $value->getId();
     }
 }
 ```
@@ -156,15 +157,17 @@ $entityCollection->toOneMap(['group', 'name', 'id']); // 次の形式の配列�
 次の特性を追加する事により、メソッドとして自明的なアクセスも可能になります。
 
 ```php
-use tacddd\collections\entities\traits\EntityCollectionInterface;
-use tacddd\collections\entities\traits\EntityCollectionTrait;
-use tacddd\collections\entities\traits\magical_accesser\EntityCollectionMagicalAccessorInterface;
-use tacddd\collections\entities\traits\magical_accesser\EntityCollectionMagicalAccessorTrait;
+use tacddd\collections\objects\traits\ObjectCollectionInterface;
+use tacddd\collections\objects\traits\ObjectCollectionTrait;
+use tacddd\collections\objects\traits\magical_accesser\ObjectCollectionMagicalAccessorInterface;
+use tacddd\collections\objects\traits\magical_accesser\ObjectCollectionMagicalAccessorTrait;
 
-final class MagicalEntityCollection implements EntityCollectionInterface, EntityCollectionMagicalAccessorInterface
+final class MagicalEntityCollection implements
+    ObjectCollectionInterface,
+    ObjectCollectionMagicalAccessorInterface
 {
-    use EntityCollectionTrait;
-    use EntityCollectionMagicalAccessorTrait;
+    use ObjectCollectionTrait;
+    use ObjectCollectionMagicalAccessorTrait;
 
     // このコレクションが受け入れるクラスやインターフェースの設定
     public static function getAllowedClass(): string
@@ -173,9 +176,9 @@ final class MagicalEntityCollection implements EntityCollectionInterface, Entity
     }
 
     // 受け入れたオブジェクトからユニークなキーを返す
-    public static function createUniqueId(object $entity): string|int
+    public static function createUniqueId(mixed $value): string|int
     {
-        return $entity->getId();
+        return $value->getId();
     }
 }
 ```
@@ -243,7 +246,7 @@ $entityCollection->toOneMapInGroupInNameInId(); // 次の形式の配列を取�
 */
 ```
 
-## entity collection factory
+## collection factory
 
 **コレクションクラスを作るのが手間**。わかります。
 
@@ -252,39 +255,48 @@ $entityCollection->toOneMapInGroupInNameInId(); // 次の形式の配列を取�
 受け入れ可能クラスとユニークIDの指定のみは流石に記述が必要です。
 
 ```php
-use tacddd\collections\entities\MagicalAccessEntityCollectionFactory;
+use tacddd\collections\CollectionFactory;
 
-$collection = MagicalAccessEntityCollectionFactory::createEntityCollection(Entity::class, function(Entity $entity): string|int {
-    return $entity->getId();
-}, [
-    new Entity(1, 'alpha', 'いろは'),
-    new Entity(2, 'bravo', 'にほへ'),
-]);
+$collection = CollectionFactory::createForObject(
+    class           : Entity::class,
+    createUniqueId  : function(mixed $value): string|int {
+        return $value->getId();
+    },
+    objects         : [
+        new Entity(1, 'alpha', 'いろは'),
+        new Entity(2, 'bravo', 'にほへ'),
+    ]
+);
 ```
 
 クロージャだと要求が明確にならないので不安という方は`UniqueIdFactoryInterface`をご利用ください。
 
 ```php
-use tacddd\collections\entities\MagicalAccessEntityCollectionFactory;
-use tacddd\collections\entities\interfaces\UniqueIdFactoryInterface;
+use tacddd\collections\CollectionFactory;
+use tacddd\collections\interfaces\UniqueIdFactoryInterface;
 
-$collection = MagicalAccessEntityCollectionFactory::createEntityCollection(
-    Entity::class,
-    new class() implements UniqueIdFactoryInterface {
-        /**
-         * 指定されたオブジェクトからユニークIDを返します。
-         *
-         * @param  Entity      $entity オブジェクト
-         * @return int|string   ユニークID
-         */
-        public static function createUniqueId(object $entity): string|int
+$collection = CollectionFactory::createForObject(
+    class           : Entity::class,
+    createUniqueId  : new class() implements UniqueIdFactoryInterface {
+        public static function createUniqueId(mixed $value): string|int
         {
-            return $entity->getId();
+            return $value->getId();
         }
     },
-    [
+    objects         : [
         new Entity(1, 'alpha', 'いろは'),
         new Entity(2, 'bravo', 'にほへ'),
     ],
 );
+```
+
+### tips
+
+とりあえずuniqueも何も関係なくオブジェクトを投入したい場合は、ユニークIDの抽出に`spl_object_id`を利用してみてください。
+
+```
+        public static function createUniqueId(mixed $value): string|int
+        {
+            return \spl_object_id($value);
+        }
 ```

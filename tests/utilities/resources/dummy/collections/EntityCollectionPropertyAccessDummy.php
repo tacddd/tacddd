@@ -19,23 +19,23 @@ declare(strict_types=1);
 
 namespace tacddd\tests\utilities\resources\dummy\collections;
 
-use tacddd\collections\entities\enums\AccessStyleEnum;
-use tacddd\collections\entities\traits\EntityCollectionInterface;
-use tacddd\collections\entities\traits\EntityCollectionTrait;
+use tacddd\collections\objects\enums\KeyAccessTypeEnum;
+use tacddd\collections\objects\traits\ObjectCollectionInterface;
+use tacddd\collections\objects\traits\ObjectCollectionTrait;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionEntityPropertyAccessDummy;
 
-final class EntityCollectionPropertyAccessDummy implements EntityCollectionInterface
+final class EntityCollectionPropertyAccessDummy implements ObjectCollectionInterface
 {
-    use EntityCollectionTrait;
+    use ObjectCollectionTrait;
 
     public static function getAllowedClass(): string
     {
         return CollectionEntityPropertyAccessDummy::class;
     }
 
-    public static function createUniqueId(object $element): string|int
+    public static function createUniqueId(mixed $value): string|int
     {
-        return $element->id;
+        return $value->id;
     }
 
     public static function adjustKey(mixed $key, ?string $access_key = null): string|int
@@ -43,8 +43,8 @@ final class EntityCollectionPropertyAccessDummy implements EntityCollectionInter
         return \is_object($key) ? $key->$access_key : $key;
     }
 
-    protected static function getAccessStyle(): AccessStyleEnum
+    protected static function getKeyAccessType(): KeyAccessTypeEnum
     {
-        return AccessStyleEnum::Property;
+        return KeyAccessTypeEnum::Property;
     }
 }
