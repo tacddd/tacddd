@@ -41,7 +41,7 @@ interface CollectionInterface extends
      * @param  null|string $access_key アクセスキー
      * @return string|int  調整済みキー
      */
-    public static function adjustKey(mixed $key, ?string $access_key = null): string|int;
+    public static function normalizeKey(mixed $key, ?string $access_key = null): string|int;
 
     /**
      * 指定した検索条件のオブジェクトが存在するかどうかを返します。

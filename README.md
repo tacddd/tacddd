@@ -35,7 +35,7 @@ final class EntityCollection implements ObjectCollectionInterface
 }
 ```
 
-対象が値オブジェクトを持ちgetterから取得した値から直接`string|int`を引けない場合は、次の`adjustKey`も追加してください。
+対象が値オブジェクトを持ちgetterから取得した値から直接`string|int`を引けない場合は、次の`normalizeKey`も追加してください。
 
 ```php
    /**
@@ -45,7 +45,7 @@ final class EntityCollection implements ObjectCollectionInterface
      * @param  null|string $access_key アクセスキー
      * @return string|int  調整済みキー
      */
-    public static function adjustKey(mixed $key, ?string $access_key = null): string|int
+    public static function normalizeKey(mixed $key, ?string $access_key = null): string|int
     {
         // 値オブジェクトが仮にpublic readonly string $value;を持つ場合
         if (\is_object($key)) {

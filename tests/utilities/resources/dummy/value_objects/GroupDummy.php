@@ -19,7 +19,7 @@ declare(strict_types=1);
 
 namespace tacddd\tests\utilities\resources\dummy\value_objects;
 
-use tacddd\value_objects\interfaces\ValueObjectInterface;
+use tacddd\value_objects\ValueObjectInterface;
 
 final readonly class GroupDummy implements ValueObjectInterface
 {

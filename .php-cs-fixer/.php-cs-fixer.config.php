@@ -396,7 +396,7 @@ return (new PhpCsFixer\Config())
         ],
     ],
     'php_unit_test_annotation'                          => [
-        'style' => 'annotation', // or 'prefix',
+        // 'style' => 'annotation', // or 'prefix',
     ],
     //     'php_unit_test_case_static_method_calls',   // @MEMO 明示的なデフォルト挙動
     //     'php_unit_test_class_requires_covers',      // @MEMO 明示的なデフォルト挙動
