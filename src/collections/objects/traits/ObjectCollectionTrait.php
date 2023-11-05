@@ -86,7 +86,7 @@ trait ObjectCollectionTrait
         $unique_id = static::createUniqueId($object);
 
         if (!\is_string($unique_id) && !\is_int($unique_id)) {
-            $unique_id = static::adjustKey($unique_id, 'UniqueId');
+            $unique_id = static::normalizeKey($unique_id, 'UniqueId');
         }
 
         return $unique_id;
@@ -124,7 +124,7 @@ trait ObjectCollectionTrait
      * @param  null|string $access_key アクセスキー
      * @return string|int  調整済みキー
      */
-    public static function adjustKey(mixed $key, ?string $access_key = null): string|int
+    public static function normalizeKey(mixed $key, ?string $access_key = null): string|int
     {
         return $key;
     }
@@ -196,6 +196,21 @@ trait ObjectCollectionTrait
     }
 
     /**
+     * オブジェクトを纏めて追加します。
+     *
+     * @param  iterable $collection オブジェクト
+     * @return static   このインスタンス
+     */
+    public function merge(iterable $collection): static
+    {
+        foreach ($collection as $object) {
+            $this->add($object);
+        }
+
+        return $this;
+    }
+
+    /**
      * オブジェクトがコレクションに含まれているかどうかを返します。
      *
      * @param  object $object 検索対象
@@ -252,7 +267,7 @@ trait ObjectCollectionTrait
 
         foreach ($criteria as $key => $value) {
             if (\is_object($value)) {
-                $value  = $this->adjustKey($value, $key);
+                $value  = $this->normalizeKey($value, $key);
             }
 
             if (\array_key_exists($value, $cache_map)) {
@@ -352,7 +367,7 @@ trait ObjectCollectionTrait
 
         foreach ($criteria as $key => $value) {
             if (\is_object($value)) {
-                $value  = $this->adjustKey($value, $key);
+                $value  = $this->normalizeKey($value, $key);
             }
 
             if (\array_key_exists($value, $cache_map)) {
@@ -395,7 +410,7 @@ trait ObjectCollectionTrait
 
         foreach ($criteria as $key => $value) {
             if (\is_object($value)) {
-                $value  = $this->adjustKey($value, $key);
+                $value  = $this->normalizeKey($value, $key);
             }
 
             if (\array_key_exists($value, $cache_map)) {
@@ -445,7 +460,7 @@ trait ObjectCollectionTrait
 
         foreach ($criteria as $key => $value) {
             if (\is_object($value)) {
-                $value  = $this->adjustKey($value, $key);
+                $value  = $this->normalizeKey($value, $key);
             }
 
             if (\array_key_exists($value, $unique_id)) {
@@ -482,7 +497,7 @@ trait ObjectCollectionTrait
 
         foreach ($criteria as $key => $value) {
             if (\is_object($value)) {
-                $value  = $this->adjustKey($value, $key);
+                $value  = $this->normalizeKey($value, $key);
             }
 
             if (\array_key_exists($value, $unique_id)) {
@@ -533,7 +548,7 @@ trait ObjectCollectionTrait
             $criteria_keys[]    = $key;
 
             if (\is_object($value)) {
-                $value  = $this->adjustKey($value, $key);
+                $value  = $this->normalizeKey($value, $key);
             }
 
             if (\array_key_exists($value, $cache_map)) {
@@ -565,7 +580,7 @@ trait ObjectCollectionTrait
             foreach ($map_keys as $map_key) {
                 \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
 
-                $in_nest_map_key[$map_key]  = static::adjustKey(
+                $in_nest_map_key[$map_key]  = static::normalizeKey(
                     match ($keyAccessType->name) {
                         KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
                         KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
@@ -619,7 +634,7 @@ trait ObjectCollectionTrait
             $criteria_keys[]    = $key;
 
             if (\is_object($value)) {
-                $value  = $this->adjustKey($value, $key);
+                $value  = $this->normalizeKey($value, $key);
             }
 
             if (\array_key_exists($value, $cache_map)) {
@@ -651,7 +666,7 @@ trait ObjectCollectionTrait
             foreach ($map_keys as $map_key) {
                 \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
 
-                $in_nest_map_key[$map_key]  = static::adjustKey(
+                $in_nest_map_key[$map_key]  = static::normalizeKey(
                     match ($keyAccessType->name) {
                         KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
                         KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
@@ -706,7 +721,7 @@ trait ObjectCollectionTrait
                 if (!\array_key_exists($map_key, $key_map)) {
                     \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
 
-                    $key_map[$map_key] = static::adjustKey(
+                    $key_map[$map_key] = static::normalizeKey(
                         match ($keyAccessType->name) {
                             KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
                             KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
@@ -849,6 +864,7 @@ trait ObjectCollectionTrait
     /**
      * コレクションを指定したキーの階層構造を持つマップに変換して返します。
      *
+     * @param  array $map_keys 階層構造キー
      * @return array コレクションマップ
      */
     public function toMap(array $map_keys): array
@@ -882,6 +898,7 @@ trait ObjectCollectionTrait
     /**
      * コレクションを指定したキーの階層構造を持つマップに変換して返します。
      *
+     * @param  array $map_keys 階層構造キー
      * @return array コレクションマップ
      */
     public function toOneMap(array $map_keys): array
@@ -998,7 +1015,7 @@ trait ObjectCollectionTrait
         foreach ($criteria_keys as $map_key) {
             \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
 
-            $criteria[$map_key] = static::adjustKey(
+            $criteria[$map_key] = static::normalizeKey(
                 match ($keyAccessType->name) {
                     KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
                     KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
@@ -1036,7 +1053,7 @@ trait ObjectCollectionTrait
 
             \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
 
-            $in_nest_list[] = static::adjustKey(
+            $in_nest_list[] = static::normalizeKey(
                 match ($keyAccessType->name) {
                     KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
                     KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],

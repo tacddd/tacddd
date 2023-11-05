@@ -36,7 +36,7 @@ abstract class AbstractCollectionDummy implements ObjectCollectionInterface
         return $value->getId();
     }
 
-    public static function adjustKey(mixed $key, ?string $access_key = null): string|int
+    public static function normalizeKey(mixed $key, ?string $access_key = null): string|int
     {
         $allowed_class  = static::getAllowedClass();
 

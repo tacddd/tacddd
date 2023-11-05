@@ -37,7 +37,7 @@ final class EntityCollectionArrayAccessDummy implements ObjectCollectionInterfac
         return $value->getId()->value;
     }
 
-    public static function adjustKey(mixed $key, ?string $access_key = null): string|int
+    public static function normalizeKey(mixed $key, ?string $access_key = null): string|int
     {
         return \is_object($key) ? $key->value : $key;
     }

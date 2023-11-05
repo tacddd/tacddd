@@ -19,7 +19,7 @@ declare(strict_types=1);
 
 namespace tacddd\collections\objects;
 
-use tacddd\collections\interfaces\AdjustKeyFactoryInterface;
+use tacddd\collections\interfaces\NormalizeKeyFactoryInterface;
 use tacddd\collections\interfaces\UniqueIdFactoryInterface;
 use tacddd\collections\objects\traits\magical_accesser\ObjectCollectionMagicalAccessorInterface;
 use tacddd\collections\objects\traits\magical_accesser\ObjectCollectionMagicalAccessorTrait;
@@ -34,23 +34,23 @@ final class ObjectCollectionFactory
     /**
      * オブジェクトコレクションを生成して返します。
      *
-     * @param  string|object|array                     $class          受け入れ可能なクラス
-     * @param  UniqueIdFactoryInterface|\Closure       $createUniqueId ユニークID生成機
-     * @param  iterable                                $objects        初期状態で投入したいオブジェクト群
-     * @param  null|AdjustKeyFactoryInterface|\Closure $adjustKey      キーアジャスタ
-     * @param  array                                   $options        オプション
-     * @return ObjectCollectionInterface               オブジェクトコレクション
+     * @param  string|object|array                        $class          受け入れ可能なクラス
+     * @param  UniqueIdFactoryInterface|\Closure          $createUniqueId ユニークID生成機
+     * @param  iterable                                   $objects        初期状態で投入したいオブジェクト群
+     * @param  null|NormalizeKeyFactoryInterface|\Closure $normalizeKey   キーアジャスタ
+     * @param  array                                      $options        オプション
+     * @return ObjectCollectionInterface                  オブジェクトコレクション
      */
     public static function create(
         string|object|array $class,
         UniqueIdFactoryInterface|\Closure $createUniqueId,
         iterable $objects = [],
-        null|AdjustKeyFactoryInterface|\Closure $adjustKey = null,
+        null|NormalizeKeyFactoryInterface|\Closure $normalizeKey = null,
         array $options = [],
     ): ObjectCollectionInterface {
-        $options['allowed_classes']     = \is_object($class) ? $class::class : $class;
-        $options['create_unique_key']   = $createUniqueId;
-        $options['adjust_key']          = $adjustKey;
+        $options['allowed_classes']        = \is_object($class) ? $class::class : $class;
+        $options['create_unique_key']      = $createUniqueId;
+        $options['normalize_key']          = $normalizeKey;
 
         return new class($objects, $options) implements ObjectCollectionInterface, ObjectCollectionMagicalAccessorInterface {
             use ObjectCollectionTrait;
@@ -67,9 +67,9 @@ final class ObjectCollectionFactory
             private static UniqueIdFactoryInterface|\Closure $createUniqueId;
 
             /**
-             * @var null|AdjustKeyFactoryInterface|\Closure キーアジャスタ
+             * @var null|NormalizeKeyFactoryInterface|\Closure キーアジャスタ
              */
-            private static null|AdjustKeyFactoryInterface|\Closure $adjustKey;
+            private static null|NormalizeKeyFactoryInterface|\Closure $normalizeKey;
 
             /**
              * constructor
@@ -84,8 +84,8 @@ final class ObjectCollectionFactory
                 $createUniqueId        = $options['create_unique_key'];
                 self::$createUniqueId  = $createUniqueId instanceof UniqueIdFactoryInterface ? $createUniqueId::createUniqueId(...) : $createUniqueId;
 
-                $adjustKey              = $options['adjust_key'];
-                self::$adjustKey        = $adjustKey;
+                $normalizeKey              = $options['normalize_key'];
+                self::$normalizeKey        = $normalizeKey;
 
                 $this->options  = $options;
 
@@ -124,15 +124,15 @@ final class ObjectCollectionFactory
              * @param  null|string $access_key アクセスキー
              * @return string|int  調整済みキー
              */
-            public static function adjustKey(mixed $key, ?string $access_key = null): string|int
+            public static function normalizeKey(mixed $key, ?string $access_key = null): string|int
             {
-                if (self::$adjustKey === null) {
+                if (self::$normalizeKey === null) {
                     return $key;
                 }
 
-                $adjustKey    = self::$adjustKey;
+                $normalizeKey    = self::$normalizeKey;
 
-                return $adjustKey($key);
+                return $normalizeKey($key);
             }
         };
     }
