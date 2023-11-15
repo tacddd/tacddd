@@ -19,7 +19,6 @@ declare(strict_types=1);
 
 namespace tacddd\value_objects\bools;
 
-
 /**
  * 真偽値特性インターフェース
  */

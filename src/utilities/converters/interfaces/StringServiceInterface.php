@@ -259,7 +259,7 @@ interface StringServiceInterface
      * @param  mixed  $var JavaScript表現にしたい変数
      * @return string JavaScript表現にした変数
      */
-    public function toJsExpression($var): string;
+    public function toJsExpression(mixed $var): string;
 
     /**
      * フォーマットの文字列を値配列が持つ値に置き換えて返します。
