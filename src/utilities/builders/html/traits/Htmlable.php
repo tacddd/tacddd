@@ -31,7 +31,7 @@ interface Htmlable
      *
      * @return HtmlConfigInterface|static 簡易的なHTML構築ビルダ設定またはこのインスタンス
      */
-    public function htmlConfig($htmlConfig = null);
+    public function htmlConfig($htmlConfig = null): HtmlConfigInterface|static;
 
     /**
      * 現在の状態を元にHTML文字列を構築し返します。

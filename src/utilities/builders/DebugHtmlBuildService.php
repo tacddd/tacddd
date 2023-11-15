@@ -76,7 +76,7 @@ class DebugHtmlBuildService
     /**
      * @var string|array 追加で読み込むCSS URL
      */
-    protected $cssUrl;
+    protected string|array $cssUrl;
 
     /**
      * @var bool オブジェクトの詳細を出力するかどうか
@@ -109,7 +109,7 @@ class DebugHtmlBuildService
      * @param  mixed       $var デバッグ情報として表示したい変数
      * @return self|static このインスタンス
      */
-    public static function factory($var): static
+    public static function factory(mixed $var): static
     {
         if (\func_num_args() === 1) {
             $instance   = new static($var);
@@ -128,7 +128,7 @@ class DebugHtmlBuildService
      *
      * @param mixed $var デバッグ情報として表示したい変数
      */
-    public function __construct($var)
+    public function __construct(mixed $var)
     {
         $this->vars             = \func_get_args();
         $this->backTraceList    = \debug_backtrace();
@@ -140,7 +140,7 @@ class DebugHtmlBuildService
      * @param  array|string $omit_file_path_prefix ファイルパスの先頭からオミットすべき文字列
      * @return self|static  このインスタンス
      */
-    public function setOmitFilePathPrefix($omit_file_path_prefix)
+    public function setOmitFilePathPrefix(array|string $omit_file_path_prefix): self|static
     {
         $this->omitFilePathPrefix   = $omit_file_path_prefix;
 
@@ -153,7 +153,7 @@ class DebugHtmlBuildService
      * @param  HtmlElement $htmlElement 基底とするHTMLElement
      * @return self|static このインスタンス
      */
-    public function setBaseNode(HtmlElement $htmlElement)
+    public function setBaseNode(HtmlElement $htmlElement): self|static
     {
         $this->baseNode = $htmlElement;
 
@@ -166,7 +166,7 @@ class DebugHtmlBuildService
      * @param  int         $start_backtrace_depth バックトレースの開始深さ
      * @return self|static このインスタンス
      */
-    public function setStartBacktraceDepth(int $start_backtrace_depth)
+    public function setStartBacktraceDepth(int $start_backtrace_depth): self|static
     {
         $this->startBacktraceDepth  = $start_backtrace_depth;
 
@@ -178,7 +178,7 @@ class DebugHtmlBuildService
      *
      * @return self|static このインスタンス
      */
-    public function incrementStartBacktraceDepth()
+    public function incrementStartBacktraceDepth(): self|static
     {
         ++$this->startBacktraceDepth;
 
@@ -191,7 +191,7 @@ class DebugHtmlBuildService
      * @param  bool        $disalbed_default_css デフォルトCSSを使用しないかどうか
      * @return self|static このインスタンス
      */
-    public function setDisalbedDefaultCss(bool $disalbed_default_css)
+    public function setDisalbedDefaultCss(bool $disalbed_default_css): self|static
     {
         $this->disalbedDefaultCss = $disalbed_default_css;
 
@@ -204,7 +204,7 @@ class DebugHtmlBuildService
      * @param  null|string $inline_css インラインとして展開するCSS
      * @return self|static このインスタンス
      */
-    public function setInlineCss(?string $inline_css)
+    public function setInlineCss(?string $inline_css): self|static
     {
         $this->inlineCss = $inline_css;
 
@@ -217,7 +217,7 @@ class DebugHtmlBuildService
      * @param  string|array $css_url 追加で読み込むCSS URL
      * @return self|static  このインスタンス
      */
-    public function setCssUrl($css_url)
+    public function setCssUrl(string|array $css_url): self|static
     {
         $this->cssUrl   = $css_url;
 
@@ -230,7 +230,7 @@ class DebugHtmlBuildService
      * @param  bool        $object_detail オブジェクトの詳細を出力するかどうか
      * @return self|static このインスタンス
      */
-    public function setObjectDetail(bool $object_detail)
+    public function setObjectDetail(bool $object_detail): self|static
     {
         $this->objectDetail = $object_detail;
 
@@ -243,7 +243,7 @@ class DebugHtmlBuildService
      * @param  int         $depth ビルダのコールスタック深さ
      * @return self|static このインスタンス
      */
-    public function setDepth(int $depth)
+    public function setDepth(int $depth): self|static
     {
         $this->depth    = $depth;
 
@@ -256,7 +256,7 @@ class DebugHtmlBuildService
      * @param  int         $default_open_depth デフォルトで開いて表示してする階層構図の深さ
      * @return self|static このインスタンス
      */
-    public function setDefaultOpenDepth(int $default_open_depth)
+    public function setDefaultOpenDepth(int $default_open_depth): self|static
     {
         $this->defaultOpenDepth = $default_open_depth;
 
@@ -385,7 +385,7 @@ class DebugHtmlBuildService
      * @param  int         $depth スタックの深さ
      * @return HtmlElement HtmlElement
      */
-    public function buildChildNode($var, bool $odd, int $depth): HtmlElement
+    public function buildChildNode(mixed $var, bool $odd, int $depth): HtmlElement
     {
         switch (\gettype($var)) {
             case 'boolean':
@@ -646,7 +646,7 @@ class DebugHtmlBuildService
      * @param  int         $depth スタックの深さ
      * @return HtmlElement HtmlElement
      */
-    public function buildFileResourceHtml($var, bool $odd, int $depth, $resource_type): HtmlElement
+    public function buildFileResourceHtml(mixed $var, bool $odd, int $depth, $resource_type): HtmlElement
     {
         $fstat          = \fstat($var);
 
@@ -775,7 +775,7 @@ class DebugHtmlBuildService
      * @param  int         $depth スタックの深さ
      * @return HtmlElement HtmlElement
      */
-    public function buildCurlResourceHtml($var, bool $odd, int $depth, $resource_type): HtmlElement
+    public function buildCurlResourceHtml(mixed $var, bool $odd, int $depth, $resource_type): HtmlElement
     {
         if (\is_resource($var)) {
             $resource_type  = Html::span(\sprintf('%s %s', $resource_type, $var))->cssClass(['label', 'resource']);

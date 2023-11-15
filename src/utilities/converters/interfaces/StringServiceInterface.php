@@ -39,7 +39,7 @@ interface StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            スネークケースに変換された文字列
      */
-    public function toSnakeCase(string $subject, bool $trim = true, $separator = [' ', '-']): string;
+    public function toSnakeCase(string $subject, bool $trim = true, string|array|null $separator = [' ', '-']): string;
 
     /**
      * 文字列をアッパースネークケースに変換します。
@@ -49,7 +49,7 @@ interface StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            アッパースネークケースに変換された文字列
      */
-    public function toUpperSnakeCase(string $subject, bool $trim = true, $separator = [' ', '-']): string;
+    public function toUpperSnakeCase(string $subject, bool $trim = true, string|array|null $separator = [' ', '-']): string;
 
     /**
      * 文字列をロウアースネークケースに変換します。
@@ -59,7 +59,7 @@ interface StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            ロウアースネークケースに変換された文字列
      */
-    public function toLowerSnakeCase(string $subject, bool $trim = true, $separator = [' ', '-']): string;
+    public function toLowerSnakeCase(string $subject, bool $trim = true, string|array|null $separator = [' ', '-']): string;
 
     /**
      * 文字列をチェインケースに変換します。
@@ -69,7 +69,7 @@ interface StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            チェインケースに変換された文字列
      */
-    public function toChainCase(string $subject, bool $trim = true, $separator = [' ', '_']): string;
+    public function toChainCase(string $subject, bool $trim = true, string|array|null $separator = [' ', '_']): string;
 
     /**
      * 文字列をアッパーチェインケースに変換します。
@@ -79,7 +79,7 @@ interface StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            アッパーチェインケースに変換された文字列
      */
-    public function toUpperChainCase(string $subject, bool $trim = true, $separator = [' ', '_']): string;
+    public function toUpperChainCase(string $subject, bool $trim = true, string|array|null $separator = [' ', '_']): string;
 
     /**
      * 文字列をロウアーチェインケースに変換します。
@@ -89,7 +89,7 @@ interface StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            ロウアーチェインケースに変換された文字列
      */
-    public function toLowerChainCase(string $subject, bool $trim = true, $separator = [' ', '_']): string;
+    public function toLowerChainCase(string $subject, bool $trim = true, string|array|null $separator = [' ', '_']): string;
 
     /**
      * 文字列をキャメルケースに変換します。
@@ -98,7 +98,7 @@ interface StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            キャメルケースに変換された文字列
      */
-    public function toCamelCase(string $subject, $separator = [' ', '-']): string;
+    public function toCamelCase(string $subject, string|array|null $separator = [' ', '-']): string;
 
     /**
      * 文字列をスネークケースからアッパーキャメルケースに変換します。
@@ -107,7 +107,7 @@ interface StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            アッパーキャメルケースに変換された文字列
      */
-    public function toUpperCamelCase(string $subject, $separator = [' ', '-']): string;
+    public function toUpperCamelCase(string $subject, string|array|null $separator = [' ', '-']): string;
 
     /**
      * 文字列をスネークケースからロウアーキャメルケースに変換します。
@@ -116,7 +116,7 @@ interface StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            ロウアーキャメルケースに変換された文字列
      */
-    public function toLowerCamelCase(string $subject, $separator = [' ', '-']): string;
+    public function toLowerCamelCase(string $subject, string|array|null $separator = [' ', '-']): string;
 
     // ----------------------------------------------
     // escape
@@ -183,7 +183,7 @@ interface StringServiceInterface
      * @param  int    $depth 最大の深さを設定します。正の数でなければいけません。
      * @return string JSON化された値
      */
-    public function toJson($value, int $depth = 512): string;
+    public function toJson(mixed $value, int $depth = 512): string;
 
     // ----------------------------------------------
     // shell
@@ -233,7 +233,7 @@ interface StringServiceInterface
      *                                  ]
      * @return string          変数に関する情報
      */
-    public function toDebugString($var, int $depth = 0, $options = []): string;
+    public function toDebugString(mixed $var, int $depth = 0, array|bool|null $options = []): string;
 
     /**
      * 変数に関する情報をHTML出力用のビルダーとして返します。
@@ -241,7 +241,7 @@ interface StringServiceInterface
      * @param  mixed                 $var 変数に関する情報を文字列にしたい変数
      * @return DebugHtmlBuildService HTML出力用のビルダー
      */
-    public function toDebugHtml($var): DebugHtmlBuildService;
+    public function toDebugHtml(mixed $var): DebugHtmlBuildService;
 
     /**
      * バイトサイズを単位付きのバイトサイズに変換します。
@@ -251,7 +251,7 @@ interface StringServiceInterface
      * @param  array      $suffixes  サフィックスマップ
      * @return string     単位付きのバイトサイズ
      */
-    public function toUnitByteSize($size, int $precision = 2, array $suffixes = []): string;
+    public function toUnitByteSize(string|int $size, int $precision = 2, array $suffixes = []): string;
 
     /**
      * 変数をJavaScript表現として返します。
@@ -260,4 +260,20 @@ interface StringServiceInterface
      * @return string JavaScript表現にした変数
      */
     public function toJsExpression($var): string;
+
+    /**
+     * フォーマットの文字列を値配列が持つ値に置き換えて返します。
+     *
+     * @param  string $format        文字列フォーマット
+     * @param  array  $values        値
+     * @param  array  $modifiers     修飾子
+     * @param  array  $replacemented 変換済み変数キャッシュ
+     * @return string 置き換え済みの文字列
+     */
+    public function buildMessage(
+        string $format,
+        array $values,
+        array $modifiers = [],
+        array $replacemented = [],
+    ): string;
 }

@@ -42,7 +42,7 @@ class HtmlTextNode implements Htmlable
      * @param  HtmlConfigInterface $htmlConfig コンフィグ
      * @return self|static         このインスタンス
      */
-    public static function factory(string $value, ?HtmlConfigInterface $htmlConfig = null)
+    public static function factory(string $value, ?HtmlConfigInterface $htmlConfig = null): self|static
     {
         return new static($value, $htmlConfig);
     }

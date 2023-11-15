@@ -46,15 +46,16 @@ trait ContainerAdapterTrait
     /**
      * オブジェクトを設定します。
      *
-     * @param  string        $id         ID
-     * @param  string|object $object     オブジェクト
-     * @param  bool          $shared     共有するかどうか
-     * @param  null|array    $parameters コンストラクト時引数
+     * @param  string        $id          ID
+     * @param  string|object $object      オブジェクト
+     * @param  bool          $shared      共有するかどうか
+     * @param  bool          $only_create 逐次生成に限定するかどうか
+     * @param  null|array    $parameters  コンストラクト時引数
      * @return static        このインスタンス
      */
-    public function set(string $id, string|object $object, bool $shared = false, array $parameters = []): static
+    public function set(string $id, string|object $object, bool $shared = false, bool $only_create = false, array $parameters = []): static
     {
-        $this->containerAccessor->set($this->container, $id, $object, $shared, $parameters);
+        $this->containerAccessor->set($this->container, $id, $object, $shared, $only_create, $parameters);
 
         return $this;
     }
@@ -79,5 +80,17 @@ trait ContainerAdapterTrait
     public function get(string $id): object
     {
         return $this->containerAccessor->get($this->container, $id);
+    }
+
+    /**
+     * オブジェクトを構築し返します。
+     *
+     * @param  string $id            ID
+     * @param  mixed  ...$parameters 構築時引数
+     * @return object オブジェクト
+     */
+    public function create(string $id, mixed ...$parameters): object
+    {
+        return $this->containerAccessor->create($this->container, $id, ...$parameters);
     }
 }

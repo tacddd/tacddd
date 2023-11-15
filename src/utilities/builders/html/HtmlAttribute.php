@@ -87,7 +87,7 @@ class HtmlAttribute implements Htmlable
      * @param  null|mixed        $value 属性値
      * @return null|mixed|static 属性値またはこのインスタンス
      */
-    public function value($value = null)
+    public function value(mixed $value = null): mixed|static|null
     {
         if ($value === null && \func_num_args() === 0) {
             return $this->value;

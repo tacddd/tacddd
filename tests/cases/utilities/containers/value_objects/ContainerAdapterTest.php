@@ -22,9 +22,9 @@ namespace tacddd\tests\cases\utilities\containers\value_objects;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use tacddd\tests\utilities\AbstractTestCase;
-use tacddd\tests\utilities\resources\dummy\value_objects\traits\bools\BoolTraitDummay;
+use tacddd\tests\utilities\resources\dummy\value_objects\bools\traits\BoolTraitDummay;
 use tacddd\utilities\containers\ContainerService;
-use tacddd\utilities\containers\models\Container;
+use tacddd\utilities\containers\services\Container;
 use tacddd\utilities\containers\value_objects\ContainerAccessor;
 use tacddd\utilities\containers\value_objects\ContainerAdapter;
 use tacddd\utilities\containers\value_objects\traits\adapters\ContainerAdapterInterface;
@@ -46,7 +46,7 @@ final class ContainerAdapterTest extends AbstractTestCase
         );
 
         // ==============================================
-        $actual = $containerAdapter->set(BoolTraitDummay::class, BoolTraitDummay::class, true, [true]);
+        $actual = $containerAdapter->set(BoolTraitDummay::class, BoolTraitDummay::class, true, false, [true]);
         $this->assertInstanceOf(ContainerAdapterInterface::class, $actual);
         $this->assertInstanceOf(ContainerAdapter::class, $actual);
 
@@ -76,7 +76,7 @@ final class ContainerAdapterTest extends AbstractTestCase
         // ==============================================
         $actual = $containerAdapter->set(BoolTraitDummay::class, function(): string {
             return BoolTraitDummay::class;
-        }, true, [true]);
+        }, true, false, [true]);
         $this->assertInstanceOf(ContainerAdapterInterface::class, $actual);
         $this->assertInstanceOf(ContainerAdapter::class, $actual);
 

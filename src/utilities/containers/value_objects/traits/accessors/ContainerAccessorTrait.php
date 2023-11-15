@@ -20,7 +20,7 @@ declare(strict_types=1);
 namespace tacddd\utilities\containers\value_objects\traits\accessors;
 
 use Psr\Container\ContainerInterface as PsrContainerInterface;
-use tacddd\utilities\containers\models\traits\ContainerInterface;
+use tacddd\utilities\containers\services\traits\ContainerInterface;
 
 /**
  * コンテナアクセサ特性
@@ -30,17 +30,18 @@ trait ContainerAccessorTrait
     /**
      * オブジェクトを設定します。
      *
-     * @param  object        $container  コンテナ実体
-     * @param  string        $id         ID
-     * @param  string|object $object     オブジェクト
-     * @param  bool          $shared     共有するかどうか
-     * @param  null|array    $parameters コンストラクト時引数
+     * @param  object        $container   コンテナ実体
+     * @param  string        $id          ID
+     * @param  string|object $object      オブジェクト
+     * @param  bool          $shared      共有するかどうか
+     * @param  bool          $only_create 逐次生成に限定するかどうか
+     * @param  null|array    $parameters  コンストラクト時引数
      * @return static        このインスタンス
      */
-    public function set(object $container, string $id, string|object $object, bool $shared = false, array $parameters = []): static
+    public function set(object $container, string $id, string|object $object, bool $shared = false, bool $only_create = false, array $parameters = []): static
     {
         /** @var ContainerInterface|PsrContainerInterface $container */
-        $container->set($id, $object, $shared, $parameters);
+        $container->set($id, $object, $shared, $only_create, $parameters);
 
         return $this;
     }
@@ -67,5 +68,19 @@ trait ContainerAccessorTrait
     {
         /** @var ContainerInterface|PsrContainerInterface $container */
         return $container->get($id);
+    }
+
+    /**
+     * オブジェクトを構築し返します。
+     *
+     * @param  object $container     コンテナ実体
+     * @param  string $id            ID
+     * @param  mixed  ...$parameters 構築時引数
+     * @return object オブジェクト
+     */
+    public function create(object $container, string $id, mixed ...$parameters): object
+    {
+        /** @var ContainerInterface|PsrContainerInterface $container */
+        return $container->create($id, ...$parameters);
     }
 }

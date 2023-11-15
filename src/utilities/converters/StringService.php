@@ -160,7 +160,7 @@ final class StringService implements StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            スネークケースに変換された文字列
      */
-    public function toSnakeCase(string $subject, bool $trim = true, $separator = [' ', '-']): string
+    public function toSnakeCase(string $subject, bool $trim = true, string|array|null $separator = [' ', '-']): string
     {
         if ($separator !== null) {
             $subject    = \str_replace($separator, '_', $subject);
@@ -179,7 +179,7 @@ final class StringService implements StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            アッパースネークケースに変換された文字列
      */
-    public function toUpperSnakeCase(string $subject, bool $trim = true, $separator = [' ', '-']): string
+    public function toUpperSnakeCase(string $subject, bool $trim = true, string|array|null $separator = [' ', '-']): string
     {
         if ($separator !== null) {
             $subject    = \str_replace($separator, '_', $subject);
@@ -198,7 +198,7 @@ final class StringService implements StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            ロウアースネークケースに変換された文字列
      */
-    public function toLowerSnakeCase(string $subject, bool $trim = true, $separator = [' ', '-']): string
+    public function toLowerSnakeCase(string $subject, bool $trim = true, string|array|null $separator = [' ', '-']): string
     {
         if ($separator !== null) {
             $subject    = \str_replace($separator, '_', $subject);
@@ -217,7 +217,7 @@ final class StringService implements StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            チェインケースに変換された文字列
      */
-    public function toChainCase(string $subject, bool $trim = true, $separator = [' ', '_']): string
+    public function toChainCase(string $subject, bool $trim = true, string|array|null $separator = [' ', '_']): string
     {
         if ($separator !== null) {
             $subject    = \str_replace($separator, '-', $subject);
@@ -236,7 +236,7 @@ final class StringService implements StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            アッパーチェインケースに変換された文字列
      */
-    public function toUpperChainCase(string $subject, bool $trim = true, $separator = [' ', '_']): string
+    public function toUpperChainCase(string $subject, bool $trim = true, string|array|null $separator = [' ', '_']): string
     {
         if ($separator !== null) {
             $subject    = \str_replace($separator, '-', $subject);
@@ -255,7 +255,7 @@ final class StringService implements StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            ロウアーチェインケースに変換された文字列
      */
-    public function toLowerChainCase(string $subject, bool $trim = true, $separator = [' ', '_']): string
+    public function toLowerChainCase(string $subject, bool $trim = true, string|array|null $separator = [' ', '_']): string
     {
         if ($separator !== null) {
             $subject    = \str_replace($separator, '-', $subject);
@@ -273,7 +273,7 @@ final class StringService implements StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            キャメルケースに変換された文字列
      */
-    public function toCamelCase(string $subject, $separator = [' ', '-']): string
+    public function toCamelCase(string $subject, string|array|null $separator = [' ', '-']): string
     {
         if ($separator !== null) {
             $subject    = \str_replace($separator, '_', $subject);
@@ -291,7 +291,7 @@ final class StringService implements StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            アッパーキャメルケースに変換された文字列
      */
-    public function toUpperCamelCase(string $subject, $separator = [' ', '-']): string
+    public function toUpperCamelCase(string $subject, string|array|null $separator = [' ', '-']): string
     {
         if ($separator !== null) {
             $subject    = \str_replace($separator, '_', $subject);
@@ -307,7 +307,7 @@ final class StringService implements StringServiceInterface
      * @param  null|string|array $separator 単語の閾に用いる文字
      * @return string            ロウアーキャメルケースに変換された文字列
      */
-    public function toLowerCamelCase(string $subject, $separator = [' ', '-']): string
+    public function toLowerCamelCase(string $subject, string|array|null $separator = [' ', '-']): string
     {
         if ($separator !== null) {
             $subject    = \str_replace($separator, '_', $subject);
@@ -463,7 +463,7 @@ final class StringService implements StringServiceInterface
      * @param  int    $depth 最大の深さを設定します。正の数でなければいけません。
      * @return string JSON化された値
      */
-    public function toJson($value, int $depth = 512): string
+    public function toJson(mixed $value, int $depth = 512): string
     {
         return \json_encode($value, self::JSON_ENCODE_OPTIONS_DEFAULT, $depth);
     }
@@ -683,7 +683,7 @@ final class StringService implements StringServiceInterface
      *                                  ]
      * @return string          変数に関する情報
      */
-    public function toDebugString($var, int $depth = 0, $options = []): string
+    public function toDebugString(mixed $var, int $depth = 0, array|bool|null $options = []): string
     {
         if (\is_array($options)) {
             if (!isset($options['prettify'])) {
@@ -871,7 +871,7 @@ final class StringService implements StringServiceInterface
      * @param  mixed                 $var 変数に関する情報を文字列にしたい変数
      * @return DebugHtmlBuildService HTML出力用のビルダー
      */
-    public function toDebugHtml($var): DebugHtmlBuildService
+    public function toDebugHtml(mixed $var): DebugHtmlBuildService
     {
         if (\func_num_args() === 1) {
             $instance   = DebugHtmlBuildService::factory($var)->setStartBacktraceDepth(2);
@@ -890,7 +890,7 @@ final class StringService implements StringServiceInterface
      * @param  array      $suffixes  サフィックスマップ
      * @return string     単位付きのバイトサイズ
      */
-    public function toUnitByteSize($size, int $precision = 2, array $suffixes = []): string
+    public function toUnitByteSize(string|int $size, int $precision = 2, array $suffixes = []): string
     {
         $base           = \log($size) / \log(1024);
         $suffixes       = \array_merge(['B', 'KB', 'MB', 'GB', 'TB'], $suffixes);
@@ -907,7 +907,7 @@ final class StringService implements StringServiceInterface
      * @param  mixed  $var JavaScript表現にしたい変数
      * @return string JavaScript表現にした変数
      */
-    public function toJsExpression($var): string
+    public function toJsExpression(mixed $var): string
     {
         $type = \gettype($var);
 
@@ -937,6 +937,76 @@ final class StringService implements StringServiceInterface
             default:
                 return \sprintf('\'%s\'', $this->jsEscape('unknown type'));
         }
+    }
+
+    /**
+     * フォーマットの文字列を値配列が持つ値に置き換えて返します。
+     *
+     * @param  string $format        文字列フォーマット
+     * @param  array  $values        値
+     * @param  array  $modifiers     修飾子
+     * @param  array  $replacemented 変換済み変数キャッシュ
+     * @return string 置き換え済みの文字列
+     */
+    public function buildMessage(
+        string $format,
+        array $values,
+        array $modifiers = [],
+        array $replacemented = [],
+    ): string {
+        if (!\str_contains($format, '${') || !\str_contains($format, '}')) {
+            return $format;
+        }
+
+        $message    = \preg_replace_callback("/\\$\{([^\\$\{\}:]+)(?::([^\\$\{\}:]+))?(?:\|([^\\$\{\}\|]+))*\}/u", function($matches) use ($format, $values, $modifiers, $replacemented): string {
+            $key    = $matches[1];
+
+            if (\array_key_exists($key, $values)) {
+                $replacement    = $values[$key];
+
+                if ($replacement instanceof \Closure) {
+                    $replacement    = $replacement(
+                        $format,
+                        $values,
+                        $modifiers,
+                        $replacemented,
+                        $key,
+                        $matches,
+                        $replacement,
+                    );
+                }
+
+                if (\str_contains($replacement, '${') && \str_contains($replacement, '}')) {
+                    $replacement    = $this->buildMessage($replacement, $values, $replacemented);
+                }
+            } else {
+                $replacement = $matches[2] ?? $matches[0];
+            }
+
+            if (\array_key_exists($modifier = $matches[2] ?? '', $modifiers)) {
+                $modifier   = $modifiers[$modifier];
+
+                $replacement    = $modifier($replacement);
+            }
+
+            return $replacement;
+        }, $format);
+
+        if ($format === $message) {
+            return $message;
+        }
+
+        if (\str_contains($message, '${') && \str_contains($message, '}')) {
+            $message    = $this->buildMessage($message, $values, $replacemented);
+
+            if (\in_array($message, $replacemented, true)) {
+                return $message;
+            }
+
+            $replacemented[]    = $message;
+        }
+
+        return $message;
     }
 
     /**

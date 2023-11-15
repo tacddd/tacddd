@@ -24,7 +24,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
 use tacddd\tests\utilities\AbstractTestCase;
-use tacddd\tests\utilities\resources\dummy\value_objects\traits\bools\BoolTraitDummay;
+use tacddd\tests\utilities\resources\dummy\value_objects\bools\traits\BoolTraitDummay;
 
 /**
  * bool特性

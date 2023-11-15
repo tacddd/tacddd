@@ -30,10 +30,10 @@ final class StatusFactoryService
     /**
      * `結果`を返します。
      *
-     * @param  self|string|int|float|bool $value 値
-     * @return Outcome                    結果
+     * @param  self|string|int|float|bool|Outcome $value 値
+     * @return Outcome                            結果
      */
-    public static function createOutcome(self|string|int|float|bool $value): Outcome
+    public static function createOutcome(string|int|float|bool|Outcome $value): Outcome
     {
         return ContainerService::getValueObjectCacheService()->cacheableFromString(Outcome::class, Outcome::normalize($value) ? 'true' : 'false');
     }

@@ -170,7 +170,7 @@ function d(...$args): void
  *                                  ]
  * @return string          変数に関する情報
  */
-function to_debug_string($var, int $depth = 0, $options = []): string
+function to_debug_string(mixed $var, int $depth = 0, array|bool|null $options = []): string
 {
     if (\is_array($options)) {
         if (!isset($options['prettify'])) {
