@@ -19,11 +19,11 @@ declare(strict_types=1);
 
 namespace tacddd\utilities\status\value_objects;
 
-use tacddd\value_objects\traits\bools\BoolFactoryMethodTrait;
-use tacddd\value_objects\traits\bools\BoolFromStringTrait;
-use tacddd\value_objects\traits\bools\BoolNormalizationTrait;
-use tacddd\value_objects\traits\bools\BoolVerificationFromStringTrait;
-use tacddd\value_objects\traits\bools\BoolVerificationTrait;
+use tacddd\value_objects\bools\traits\BoolFactoryMethodTrait;
+use tacddd\value_objects\bools\traits\BoolFromStringTrait;
+use tacddd\value_objects\bools\traits\BoolNormalizationTrait;
+use tacddd\value_objects\bools\traits\BoolVerificationFromStringTrait;
+use tacddd\value_objects\bools\traits\BoolVerificationTrait;
 use tacddd\value_objects\ValueObjectInterface;
 
 /**
@@ -55,5 +55,15 @@ final class Outcome implements ValueObjectInterface
     public function __construct(
         public readonly bool $value,
     ) {
+    }
+
+    /**
+     * '結果'を返します。
+     *
+     * @return bool '結果'
+     */
+    public function isSuccess(): bool
+    {
+        return $this->value;
     }
 }

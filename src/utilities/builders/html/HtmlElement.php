@@ -39,7 +39,7 @@ class HtmlElement implements HtmlElementInterface
      * @param  array       $children     子要素
      * @return self|static このインスタンス
      */
-    public static function factory(string $element_name, array $children = [], array $attributes = [], $htmlConfig = null)
+    public static function factory(string $element_name, array $children = [], array $attributes = [], $htmlConfig = null): self|static
     {
         return new static($element_name, $children, $attributes, $htmlConfig);
     }
@@ -169,7 +169,7 @@ class HtmlElement implements HtmlElementInterface
      * @param  array       $args         引数
      * @return self|static このインスタンス
      */
-    public static function __callStatic(string $element_name, array $args)
+    public static function __callStatic(string $element_name, array $args): self|static
     {
         $children   = $args[0] ?? [];
         $attributes = $args[1] ?? [];

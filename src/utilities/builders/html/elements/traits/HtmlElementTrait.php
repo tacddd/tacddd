@@ -65,7 +65,7 @@ trait HtmlElementTrait
      * @param  null|string|array        $value          属性値
      * @return null|string|array|static 属性値またはこのインスタンス
      */
-    public function attr(string $attribute_name, $value = null)
+    public function attr(string $attribute_name, string|array|null $value = null): string|array|static|null
     {
         if ($value === null && !\is_array($attribute_name) && \func_num_args() === 1) {
             if ($attribute_name instanceof HtmlAttribute) {
@@ -97,7 +97,7 @@ trait HtmlElementTrait
      * @param  null|string|array        $value          属性値
      * @return null|string|array|static 属性値またはこのインスタンス
      */
-    public function attribute(string $attribute_name, $value = null)
+    public function attribute(string $attribute_name, string|array|null $value = null): string|array|static|null
     {
         if ($value === null && \func_num_args() === 1) {
             return $this->attr($attribute_name);
@@ -114,7 +114,7 @@ trait HtmlElementTrait
      * @param  string|array             $class CSS Class
      * @return null|string|array|static 属性値またはこのインスタンス
      */
-    public function cssClass($class = [])
+    public function cssClass(string|array $class = []): string|array|static|null
     {
         if ($class === [] && \func_num_args() === 1) {
             return $this->attr('class');
@@ -135,7 +135,7 @@ trait HtmlElementTrait
      * @param  string|array $class 追加するCSSクラス
      * @return self|static  このインスタンス
      */
-    public function appendClass($class)
+    public function appendClass(string|array $class): self|static
     {
         if ($this->hasAttr('class')) {
             $beforeClass    = $this->attr('class');
@@ -172,7 +172,7 @@ trait HtmlElementTrait
      * @param  string|array             $style CSS Style
      * @return null|string|array|static 属性値またはこのインスタンス
      */
-    public function style($style = [])
+    public function style(string|array $style = []): string|array|static|null
     {
         if ($style === [] && \func_num_args() === 1) {
             return $this->attr('style');
@@ -193,7 +193,7 @@ trait HtmlElementTrait
      * @param  string|array $style 追加するCSS Style
      * @return self|static  このインスタンス
      */
-    public function appendStyle($style)
+    public function appendStyle(string|array $style): self|static
     {
         if ($this->hasAttr('style')) {
             $beforeStyle    = $this->attr('style');
@@ -244,7 +244,7 @@ trait HtmlElementTrait
      * @param  null|string|array        $value     属性値
      * @return null|string|array|static 属性値またはこのインスタンス
      */
-    public function data(string $data_name, $value = null)
+    public function data(string $data_name, string|array|null $value = null): string|array|static|null
     {
         $data_name  = \sprintf('data-%s', $data_name);
 
@@ -265,7 +265,7 @@ trait HtmlElementTrait
      * @param  string       $context コンテキスト
      * @return array|static コンテキストまたはこのインスタンス
      */
-    public function context(?string $context = null)
+    public function context(?string $context = null): array|static
     {
         if ($context === null && \func_num_args() === 0) {
             return $this->children;
@@ -286,7 +286,7 @@ trait HtmlElementTrait
      * @param  array       $children 子要素
      * @return self|static このインスタンス
      */
-    public function children(?array $children = null)
+    public function children(?array $children = null): self|static
     {
         $func_num_args  = \func_num_args();
 
@@ -312,7 +312,7 @@ trait HtmlElementTrait
      * @param  Htmlable    $child_node 子要素
      * @return self|static このインスタンス
      */
-    public function appendChildNode(Htmlable $child_node)
+    public function appendChildNode(Htmlable $child_node): self|static
     {
         $child_node = \func_num_args() === 1 ? $child_node : \func_get_args();
 
@@ -333,7 +333,7 @@ trait HtmlElementTrait
      * @param  Htmlable    $child_node 子要素
      * @return self|static このインスタンス
      */
-    public function appendNode(Htmlable $child_node)
+    public function appendNode(Htmlable $child_node): self|static
     {
         return $this->appendChildNode(\func_num_args() === 1 ? $child_node : \func_get_args());
     }
@@ -344,7 +344,7 @@ trait HtmlElementTrait
      * @param  HtmlTextNode|string $context 子要素
      * @return self|static         このインスタンス
      */
-    public function appendTextNode($context)
+    public function appendTextNode(HtmlTextNode|string $context): self|static
     {
         return $this->appendChildNode(\func_num_args() === 1 ? $context : \func_get_args());
     }
@@ -355,7 +355,7 @@ trait HtmlElementTrait
      * @param  HtmlTextNode|string $context 子要素
      * @return self|static         このインスタンス
      */
-    public function appendContext($context)
+    public function appendContext(HtmlTextNode|string $context): self|static
     {
         return $this->appendChildNode(\func_num_args() === 1 ? $context : \func_get_args());
     }
@@ -367,7 +367,7 @@ trait HtmlElementTrait
      * @param  mixed       $value          属性値
      * @return self|static このインスタンス
      */
-    public function __call(string $attribute_name, $value = null)
+    public function __call(string $attribute_name, mixed $value = null): self|static
     {
         if ($value === null && \func_num_args() === 1) {
             $this->attr($attribute_name);

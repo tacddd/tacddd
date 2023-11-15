@@ -19,20 +19,37 @@ declare(strict_types=1);
 
 namespace tacddd\utilities\containers;
 
+use tacddd\collections\traits\results\result_details\ResultDetailsCollectionInterface;
 use tacddd\utilities\caching\interfaces\ValueObjectCacheServiceInterface;
 use tacddd\utilities\caching\ValueObjectCacheService;
-use tacddd\utilities\containers\models\Container;
+use tacddd\utilities\containers\services\Container;
 use tacddd\utilities\containers\value_objects\ContainerAccessor;
 use tacddd\utilities\containers\value_objects\ContainerAdapter;
 use tacddd\utilities\containers\value_objects\traits\adapters\ContainerAdapterInterface;
 use tacddd\utilities\converters\interfaces\StringServiceInterface;
 use tacddd\utilities\converters\StringService;
+use tacddd\utilities\results\collections\ResultDetailsCollection;
+use tacddd\utilities\results\value_objects\Result;
+use tacddd\utilities\results\value_objects\ResultDetails;
+use tacddd\value_objects\results\result\traits\ResultInterface;
+use tacddd\value_objects\results\result_details\traits\ResultDetailsInterface;
 
 /**
  * 簡易コンテナサービス
  */
 final class ContainerService
 {
+    /**
+     * @var array インターフェースマップ
+     */
+    public const INTERFACE_MAP  = [
+        ['id' => ValueObjectCacheServiceInterface::class,   'object' => ValueObjectCacheService::class, 'shared' => true],
+        ['id' => ResultInterface::class,                    'object' => Result::class,                  'only_create' => true],
+        ['id' => ResultDetailsInterface::class,             'object' => ResultDetails::class,           'only_create' => true],
+        ['id' => ResultDetailsCollectionInterface::class,   'object' => ResultDetailsCollection::class, 'only_create' => true],
+        ['id' => StringServiceInterface::class,             'object' => StringService::class,           'shared' => true],
+    ];
+
     /**
      * @var ContainerAdapterInterface コンテナアダプタ
      */
@@ -45,9 +62,7 @@ final class ContainerService
      */
     public static function getDefaultSettings(): iterable
     {
-        yield ['id' => ValueObjectCacheServiceInterface::class, 'object' => ValueObjectCacheService::class, 'shared' => true];
-
-        yield ['id' => StringServiceInterface::class, 'object' => StringService::class, 'shared' => true];
+        return self::INTERFACE_MAP;
     }
 
     /**
@@ -68,7 +83,7 @@ final class ContainerService
      *
      * @return self このインスタンス
      */
-    public static function create(): self
+    public static function factory(): self
     {
         return new self();
     }
@@ -80,7 +95,7 @@ final class ContainerService
      */
     public static function getStringService(): StringServiceInterface
     {
-        return self::create()->get(StringServiceInterface::class);
+        return self::factory()->get(StringServiceInterface::class);
     }
 
     /**
@@ -90,7 +105,7 @@ final class ContainerService
      */
     public static function getValueObjectCacheService(): ValueObjectCacheServiceInterface
     {
-        return self::create()->get(ValueObjectCacheServiceInterface::class);
+        return self::factory()->get(ValueObjectCacheServiceInterface::class);
     }
 
     /**
@@ -118,15 +133,16 @@ final class ContainerService
     /**
      * オブジェクトを設定します。
      *
-     * @param  string        $id         ID
-     * @param  string|object $object     オブジェクト
-     * @param  bool          $shared     共有するかどうか
-     * @param  null|array    $parameters コンストラクト時引数
+     * @param  string        $id          ID
+     * @param  string|object $object      オブジェクト
+     * @param  bool          $shared      共有するかどうか
+     * @param  bool          $only_create 逐次生成に限定するかどうか
+     * @param  null|array    $parameters  コンストラクト時引数
      * @return self          このインスタンス
      */
-    public function set(string $id, string|object $object, bool $shared = false, array $parameters = []): self
+    public function set(string $id, string|object $object, bool $shared = false, bool $only_create = false, array $parameters = []): self
     {
-        self::$ADAPTER->set($id, $object, $shared, $parameters);
+        self::$ADAPTER->set($id, $object, $shared, $only_create, $parameters);
 
         return $this;
     }
@@ -151,5 +167,17 @@ final class ContainerService
     public function get(string $id): object
     {
         return self::$ADAPTER->get($id);
+    }
+
+    /**
+     * オブジェクトを構築し返します。
+     *
+     * @param  string $id            ID
+     * @param  mixed  ...$parameters 構築時引数
+     * @return object オブジェクト
+     */
+    public function create(string $id, mixed ...$parameters): object
+    {
+        return self::$ADAPTER->create($id, ...$parameters);
     }
 }

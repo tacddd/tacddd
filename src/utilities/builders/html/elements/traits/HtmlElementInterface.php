@@ -34,7 +34,7 @@ interface HtmlElementInterface extends Htmlable
      * @param  null|string|array        $value          属性値
      * @return null|string|array|static 属性値またはこのインスタンス
      */
-    public function attr(string $attribute_name, $value = null);
+    public function attr(string $attribute_name, string|array|null $value = null): string|array|static|null;
 
     /**
      * コンテキストを設定します。
@@ -44,7 +44,7 @@ interface HtmlElementInterface extends Htmlable
      * @param  string      $context コンテキスト
      * @return self|static このインスタンス
      */
-    public function context(string $context);
+    public function context(string $context): self|static;
 
     /**
      * コンテキストを追加します。
@@ -52,7 +52,7 @@ interface HtmlElementInterface extends Htmlable
      * @param  HtmlTextNode|string $context 子要素
      * @return self|static         このインスタンス
      */
-    public function appendContext($context);
+    public function appendContext(HtmlTextNode|string $context): self|static;
 
     /**
      * 子要素を追加します。
@@ -60,7 +60,7 @@ interface HtmlElementInterface extends Htmlable
      * @param  Htmlable    $child_node 子要素
      * @return self|static このインスタンス
      */
-    public function appendChildNode(Htmlable $child_node);
+    public function appendChildNode(Htmlable $child_node): self|static;
 
     /**
      * 子要素を設定・取得します。
@@ -68,5 +68,5 @@ interface HtmlElementInterface extends Htmlable
      * @param  array       $children 子要素
      * @return self|static このインスタンス
      */
-    public function children(?array $children = null);
+    public function children(?array $children = null): self|static;
 }

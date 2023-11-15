@@ -22,7 +22,7 @@ namespace tacddd\tests\cases\utilities\containers;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use tacddd\tests\utilities\AbstractTestCase;
-use tacddd\tests\utilities\resources\dummy\value_objects\traits\bools\BoolTraitDummay;
+use tacddd\tests\utilities\resources\dummy\value_objects\bools\traits\BoolTraitDummay;
 use tacddd\utilities\caching\interfaces\ValueObjectCacheServiceInterface;
 use tacddd\utilities\containers\ContainerService;
 use tacddd\utilities\converters\interfaces\StringServiceInterface;
@@ -36,12 +36,12 @@ class ContainerServiceTest extends AbstractTestCase
     #[Test]
     public function containerService(): void
     {
-        $containerService   = ContainerService::create();
+        $containerService   = ContainerService::factory();
 
         $this->assertInstanceOf(ContainerService::class, $containerService);
 
         // ==============================================
-        $actual = $containerService->set(BoolTraitDummay::class, BoolTraitDummay::class, true, [true]);
+        $actual = $containerService->set(BoolTraitDummay::class, BoolTraitDummay::class, true, false, [true]);
         $this->assertInstanceOf(ContainerService::class, $actual);
 
         $this->assertTrue($containerService->has(BoolTraitDummay::class));
@@ -56,7 +56,7 @@ class ContainerServiceTest extends AbstractTestCase
     #[Test]
     public function defaultService(): void
     {
-        $containerService   = ContainerService::create();
+        $containerService   = ContainerService::factory();
 
         $this->assertInstanceOf(StringServiceInterface::class, $containerService->get(StringServiceInterface::class));
         $this->assertInstanceOf(StringServiceInterface::class, $containerService->getStringService());

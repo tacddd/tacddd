@@ -22,7 +22,7 @@ namespace tacddd\tests\cases\utilities\caching;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use tacddd\tests\utilities\AbstractTestCase;
-use tacddd\tests\utilities\resources\dummy\value_objects\traits\bools\BoolTraitDummay;
+use tacddd\tests\utilities\resources\dummy\value_objects\bools\traits\BoolTraitDummay;
 use tacddd\utilities\caching\ValueObjectCacheService;
 
 /**

@@ -56,7 +56,7 @@ final class Html
      * @param  HtmlConfigInterface $htmlConfig     コンフィグ
      * @return HtmlAttribute       属性
      */
-    public static function attribute(string $attribute_name, $value = null, ?HtmlConfigInterface $htmlConfig = null): HtmlAttribute
+    public static function attribute(string $attribute_name, mixed $value = null, ?HtmlConfigInterface $htmlConfig = null): HtmlAttribute
     {
         return HtmlAttribute::factory($attribute_name, $value, $htmlConfig ?? self::htmlConfig());
     }
@@ -69,7 +69,7 @@ final class Html
      * @param  HtmlConfigInterface $htmlConfig コンフィグ
      * @return HtmlAttribute       属性
      */
-    public static function data(string $data_name, $value = null, ?HtmlConfigInterface $htmlConfig = null): HtmlAttribute
+    public static function data(string $data_name, mixed $value = null, ?HtmlConfigInterface $htmlConfig = null): HtmlAttribute
     {
         return HtmlAttribute::factory(\sprintf('data-%s', $data_name), $value, $htmlConfig ?? self::htmlConfig());
     }
@@ -91,7 +91,7 @@ final class Html
      *
      * @return HtmlConfigInterface|string 簡易的なHTML構築ビルダ設定またはこのクラスパス
      */
-    public static function htmlConfig($htmlConfig = null)
+    public static function htmlConfig($htmlConfig = null): HtmlConfigInterface|string
     {
         if ($htmlConfig === null && \func_num_args() === 0) {
             if (self::$htmlConfig === null) {
@@ -118,7 +118,7 @@ final class Html
      * @param  null|string                $encoding    エンコーディング
      * @return string                     エスケープ済みの値
      */
-    public static function escape($value, $escape_type = null, ?string $encoding = null): string
+    public static function escape(mixed $value, string|HtmlConfigInterface|null $escape_type = null, ?string $encoding = null): string
     {
         if ($value instanceof Htmlable) {
             return $value->toHtml();

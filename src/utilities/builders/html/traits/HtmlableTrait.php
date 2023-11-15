@@ -36,7 +36,7 @@ trait HtmlableTrait
      *
      * @return HtmlConfigInterface|static 簡易的なHTML構築ビルダ設定またはこのインスタンス
      */
-    public function htmlConfig($htmlConfig = null)
+    public function htmlConfig($htmlConfig = null): HtmlConfigInterface|static
     {
         if ($htmlConfig === null && \func_num_args() === 0) {
             return $this->htmlConfig;

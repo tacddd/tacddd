@@ -27,13 +27,14 @@ interface ContainerAdapterInterface
     /**
      * オブジェクトを設定します。
      *
-     * @param  string        $id         ID
-     * @param  string|object $object     オブジェクト
-     * @param  bool          $shared     共有するかどうか
-     * @param  null|array    $parameters コンストラクト時引数
+     * @param  string        $id          ID
+     * @param  string|object $object      オブジェクト
+     * @param  bool          $shared      共有するかどうか
+     * @param  bool          $only_create 逐次生成に限定するかどうか
+     * @param  null|array    $parameters  コンストラクト時引数
      * @return static        このインスタンス
      */
-    public function set(string $id, string|object $object, bool $shared = false, array $parameters = []): static;
+    public function set(string $id, string|object $object, bool $shared = false, bool $only_create = false, array $parameters = []): static;
 
     /**
      * IDに紐づくオブジェクトがあるかどうかを返します
@@ -50,4 +51,13 @@ interface ContainerAdapterInterface
      * @return object オブジェクト
      */
     public function get(string $id): object;
+
+    /**
+     * オブジェクトを構築し返します。
+     *
+     * @param  string $id            ID
+     * @param  mixed  ...$parameters 構築時引数
+     * @return object オブジェクト
+     */
+    public function create(string $id, mixed ...$parameters): object;
 }

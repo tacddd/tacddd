@@ -219,7 +219,7 @@ final class ArrayTabulatorService
      * @param  null|string $encoding     エンコーディング
      * @return self|static このインスタンス
      */
-    public static function create(?int $tab_width = null, ?int $indent_level = null, ?string $encoding = null)
+    public static function create(?int $tab_width = null, ?int $indent_level = null, ?string $encoding = null): self|static
     {
         return new self($tab_width, $indent_level, $encoding);
     }
@@ -233,7 +233,7 @@ final class ArrayTabulatorService
      * @param  null|array   $default_settings デフォルトの設定
      * @return string|array このクラスパスまたはデフォルトの設定
      */
-    public static function defaultSettings(?array $default_settings = null)
+    public static function defaultSettings(?array $default_settings = null): string|array
     {
         if (!\is_array($default_settings)) {
             return [
@@ -279,7 +279,7 @@ final class ArrayTabulatorService
      * @param  null|array|\Closure   $header クラスデフォルトのヘッダ
      * @return string|array|\Closure このクラスパスまたはクラスデフォルトのヘッダ
      */
-    public static function defaultHeader($header = null)
+    public static function defaultHeader(array|\Closure|null $header = null): string|array|\Closure
     {
         if ($header === null) {
             return self::$defaultHeader;
@@ -300,7 +300,7 @@ final class ArrayTabulatorService
      * @param  null|array|\Closure   $rows クラスデフォルトの行
      * @return string|array|\Closure このクラスパスまたはクラスデフォルトの行
      */
-    public static function defaultRows($rows = null)
+    public static function defaultRows(array|\Closure|null $rows = null): string|array|\Closure
     {
         if ($rows === null) {
             return self::$defaultRows;
@@ -321,7 +321,7 @@ final class ArrayTabulatorService
      * @param  null|int|string $tab_width クラスデフォルトのタブ幅
      * @return string|int      このクラスパスまたはクラスデフォルトのタブ幅
      */
-    public static function defaultTabWidth($tab_width = null)
+    public static function defaultTabWidth(int|string|null $tab_width = null): string|int
     {
         if ($tab_width === null) {
             return self::$defaultTabWidth;
@@ -341,7 +341,7 @@ final class ArrayTabulatorService
      *
      * @return string|int このクラスパスまたはクラスデフォルトのインデントレベル
      */
-    public static function defaultindentLevel($indent_level = null)
+    public static function defaultindentLevel($indent_level = null): string|int
     {
         if ($indent_level === null) {
             return self::$defaultIndentLevel;
@@ -438,7 +438,7 @@ final class ArrayTabulatorService
      * @param  null|array   $settings 設定
      * @return static|array このインスタンスまたは設定
      */
-    public function settings(?array $settings = null)
+    public function settings(?array $settings = null): static|array
     {
         if (!\is_array($settings)) {
             return [
@@ -484,7 +484,7 @@ final class ArrayTabulatorService
      * @param  array       $row 行
      * @return self|static このインスタンス
      */
-    public function addRow(array $row)
+    public function addRow(array $row): self|static
     {
         $this->initPreBuilding();
 
@@ -499,7 +499,7 @@ final class ArrayTabulatorService
      * @param  array       $rows 複数行
      * @return self|static このインスタンス
      */
-    public function addRows(array $rows)
+    public function addRows(array $rows): self|static
     {
         $this->initPreBuilding();
 
@@ -520,7 +520,7 @@ final class ArrayTabulatorService
      * @param  null|array|\Closure   $header ヘッダ
      * @return static|array|\Closure このインスタンスまたはヘッダ
      */
-    public function header($header = null)
+    public function header(array|\Closure|null $header = null): static|array|\Closure
     {
         if ($header === null) {
             return $this->header;
@@ -543,7 +543,7 @@ final class ArrayTabulatorService
      * @param  null|array|\Closure   $rows 行
      * @return static|array|\Closure このインスタンスまたは行
      */
-    public function rows($rows = null)
+    public function rows(array|\Closure|null $rows = null): static|array|\Closure
     {
         if ($rows === null) {
             return $this->rows;
@@ -596,7 +596,7 @@ final class ArrayTabulatorService
      * @param  null|int|string   $tab_width タブ幅
      * @return static|int|string このインスタンスまたはタブ幅
      */
-    public function tabWidth($tab_width = null)
+    public function tabWidth(int|string|null $tab_width = null): static|int|string
     {
         if ($tab_width === null) {
             return $this->tabWidth;
@@ -618,7 +618,7 @@ final class ArrayTabulatorService
      *
      * @return static|int|string このインスタンスまたはインデントレベル
      */
-    public function indentLevel($indent_level = null)
+    public function indentLevel($indent_level = null): static|int|string
     {
         if ($indent_level === null) {
             return $this->indentLevel;
@@ -641,7 +641,7 @@ final class ArrayTabulatorService
      * @param  null|string        $character_encoding エンコーディング
      * @return null|static|string このインスタンスまたはエンコーディング
      */
-    public function characterEncoding(?string $character_encoding = null)
+    public function characterEncoding(?string $character_encoding = null): static|string|null
     {
         if ($character_encoding === null && \func_num_args() === 0) {
             return $this->characterEncoding;
@@ -670,7 +670,7 @@ final class ArrayTabulatorService
      * @param  null|bool        $trim_eol_space 行末スペーストリムを行うかどうか
      * @return null|static|bool このクラスパスまたは行末スペーストリムを行うかどうか
      */
-    public function trimEolSpace(?bool $trim_eol_space = false)
+    public function trimEolSpace(?bool $trim_eol_space = false): static|bool|null
     {
         if ($trim_eol_space === false && \func_num_args() === 0) {
             return $this->trimEolSpace;
@@ -691,7 +691,7 @@ final class ArrayTabulatorService
      * @param  bool        $null_column_skip 列の全てがnullだった場合に列をスキップするかどうか
      * @return static|bool このインスタンスまたは列の全てがnullだった場合に列をスキップするかどうか
      */
-    public function nullColumnSkip(bool $null_column_skip = false)
+    public function nullColumnSkip(bool $null_column_skip = false): static|bool
     {
         if ($null_column_skip === false && \func_num_args() === 0) {
             return $this->nullColumnSkip;

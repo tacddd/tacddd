@@ -52,7 +52,7 @@ class HtmlConfig implements HtmlConfigInterface
      * @param  array       $options オプション
      * @return self|static このインスタンス
      */
-    public static function factory(array $options = [])
+    public static function factory(array $options = []): self|static
     {
         return new static($options);
     }
@@ -80,7 +80,7 @@ class HtmlConfig implements HtmlConfigInterface
      * @param  null|string   $escape_type エスケープタイプ
      * @return string|static エンコーディングまたはこのインスタンス
      */
-    public function escapeType(?string $escape_type = null)
+    public function escapeType(?string $escape_type = null): string|static
     {
         if ($escape_type === null && \func_num_args() === 0) {
             return $this->escapeType;
@@ -101,7 +101,7 @@ class HtmlConfig implements HtmlConfigInterface
      * @param  null|string   $encoding エンコーディング
      * @return string|static エンコーディングまたはこのインスタンス
      */
-    public function encoding(?string $encoding = null)
+    public function encoding(?string $encoding = null): string|static
     {
         static $mb_list_encodings;
 

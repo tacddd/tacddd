@@ -67,7 +67,7 @@ interface HtmlConfigInterface
      * @param  array       $options オプション
      * @return self|static このインスタンス
      */
-    public static function factory(array $options = []);
+    public static function factory(array $options = []): self|static;
 
     /**
      * エスケープタイプを取得・設定します。
