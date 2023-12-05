@@ -205,4 +205,67 @@ class ObjectCollectionTest extends AbstractTestCase
 
         $this->assertSame('value2', $collection->findValueOneBy(['group' => 'zxcv'], 'name'));
     }
+
+    #[Test]
+    public function addAll(): void
+    {
+        $expected   = new CollectionDummy([
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'zxcv', 'value3'),
+        ]);
+
+        $this->assertEquals(
+            $expected,
+            (new CollectionDummy())->addAll(
+                $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+                $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+                $qwer   = new CollectionEntityDummy(3, 'zxcv', 'value3'),
+            ),
+        );
+
+        $this->assertEquals(
+            $expected,
+            (new CollectionDummy())->addAll(
+                [
+                    $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+                ],
+                $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+                $qwer   = new CollectionEntityDummy(3, 'zxcv', 'value3'),
+            ),
+        );
+
+        $this->assertEquals(
+            $expected,
+            (new CollectionDummy())->addAll(
+                $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+                [$zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2')],
+                $qwer   = new CollectionEntityDummy(3, 'zxcv', 'value3'),
+            ),
+        );
+    }
+
+    #[Test]
+    public function extractUniqueIdException(): void
+    {
+        $this->expectException(\Error::class);
+        $this->expectExceptionCode(0);
+        $this->expectExceptionMessage(
+            'tacddd\tests\utilities\resources\dummy\objects\CollectionDummyに受け入れ可能外のクラスを指定されました。class:DateTimeImmutable, allowed_class:tacddd\tests\utilities\resources\dummy\objects\CollectionEntityDummy',
+        );
+
+        CollectionDummy::extractUniqueId(new \DateTimeImmutable());
+    }
+
+    #[Test]
+    public function addException(): void
+    {
+        $this->expectException(\Error::class);
+        $this->expectExceptionCode(0);
+        $this->expectExceptionMessage(
+            'tacddd\tests\utilities\resources\dummy\objects\CollectionDummyに受け入れ可能外のクラスを指定されました。class:DateTimeImmutable, allowed_class:tacddd\tests\utilities\resources\dummy\objects\CollectionEntityDummy',
+        );
+
+        (new CollectionDummy())->add(new \DateTimeImmutable());
+    }
 }

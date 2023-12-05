@@ -19,6 +19,8 @@ declare(strict_types=1);
 
 namespace tacddd\value_objects\results\result_details\traits;
 
+use tacddd\collections\traits\results\result_details\ResultDetailsCollectionInterface;
+
 /**
  * 結果詳細インターフェース
  */
@@ -27,9 +29,9 @@ interface ResultDetailsInterface
     /**
      * メッセージを返します。
      *
-     * @return null|string メッセージ
+     * @return string メッセージ
      */
-    public function getMessage(): ?string;
+    public function getMessage(): string;
 
     /**
      * 結果詳細を返します。
@@ -37,4 +39,18 @@ interface ResultDetailsInterface
      * @return mixed 結果詳細
      */
     public function getDetails(): mixed;
+
+    /**
+     * 処理結果詳細コレクションを返します。
+     *
+     * @return null|ResultDetailsCollectionInterface 処理結果詳細コレクション
+     */
+    public function getDetailsCollection(): ?ResultDetailsCollectionInterface;
+
+    /**
+     * 結果状態を返します。
+     *
+     * @return bool 結果状態
+     */
+    public function getOutcome(): ?bool;
 }

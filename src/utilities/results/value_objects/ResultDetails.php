@@ -19,8 +19,8 @@ declare(strict_types=1);
 
 namespace tacddd\utilities\results\value_objects;
 
-use tacddd\value_objects\traits\results\result_details\ResultDetailsInterface;
-use tacddd\value_objects\traits\results\result_details\ResultDetailsTrait;
+use tacddd\value_objects\results\result_details\traits\ResultDetailsInterface;
+use tacddd\value_objects\results\result_details\traits\ResultDetailsTrait;
 
 /**
  * 結果詳細

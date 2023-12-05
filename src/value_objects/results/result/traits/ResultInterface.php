@@ -43,14 +43,21 @@ interface ResultInterface
     /**
      * メッセージを返します。
      *
-     * @return null|string メッセージ
+     * @return string メッセージ
      */
-    public function getMessage(): ?string;
+    public function getMessage(): string;
 
     /**
-     * 処理結果詳細を返します。
+     * 処理結果詳細コレクションを返します。
      *
-     * @return null|ResultDetailsCollectionInterface 処理結果詳細
+     * @return null|ResultDetailsCollectionInterface 処理結果詳細コレクション
      */
-    public function getDetails(): ?ResultDetailsCollectionInterface;
+    public function getDetailsCollection(): ?ResultDetailsCollectionInterface;
+
+    /**
+     * 処理結果詳細の中に一つでも失敗があるかどうかを返します。
+     *
+     * @return bool 処理結果詳細の中に一つでも失敗があるかどうか
+     */
+    public function hasAnyDetailsFailure(): bool;
 }

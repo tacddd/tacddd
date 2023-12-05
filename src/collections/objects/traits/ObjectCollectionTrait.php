@@ -80,7 +80,7 @@ trait ObjectCollectionTrait
     public static function extractUniqueId(object $object): string|int
     {
         if (!static::isAllowedClass($object)) {
-            throw new \TypeError(\sprintf('受け入れ可能外のクラスを指定されました。class:%s, allowed_class:%s', $object::class, static::getAllowedClass()));
+            throw new \TypeError(\sprintf('%sに受け入れ可能外のクラスを指定されました。class:%s, allowed_class:%s', static::class, $object::class, static::getAllowedClass()));
         }
 
         $unique_id = static::createUniqueId($object);
@@ -166,7 +166,7 @@ trait ObjectCollectionTrait
     public function add(object $object): static
     {
         if (!static::isAllowedClass($object)) {
-            throw new \TypeError(\sprintf('受け入れ可能外のクラスを指定されました。class:%s, allowed_class:%s', $object::class, static::getAllowedClass()));
+            throw new \TypeError(\sprintf('%sに受け入れ可能外のクラスを指定されました。class:%s, allowed_class:%s', static::class, $object::class, static::getAllowedClass()));
         }
 
         $unique_id = static::extractUniqueId($object);
@@ -183,13 +183,29 @@ trait ObjectCollectionTrait
     /**
      * オブジェクトを纏めて追加します。
      *
-     * @param  iterable $objects オブジェクト
-     * @return static   このインスタンス
+     * @param  iterable|object $objects オブジェクト
+     * @return static          このインスタンス
      */
-    public function addAll(iterable $objects): static
+    public function addAll(iterable|object $objects, iterable|object ...$args): static
     {
-        foreach ($objects as $object) {
-            $this->add($object);
+        if (\is_iterable($objects)) {
+            foreach ($objects as $object) {
+                $this->add($object);
+            }
+        } else {
+            $this->add($objects);
+        }
+
+        if (!empty($args)) {
+            foreach ($args as $objects) {
+                if (\is_iterable($objects)) {
+                    foreach ($objects as $object) {
+                        $this->add($object);
+                    }
+                } else {
+                    $this->add($objects);
+                }
+            }
         }
 
         return $this;

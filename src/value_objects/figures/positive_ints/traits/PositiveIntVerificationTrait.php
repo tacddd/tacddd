@@ -20,10 +20,10 @@ declare(strict_types=1);
 namespace tacddd\value_objects\figures\positive_ints\traits;
 
 use tacddd\utilities\containers\ContainerService;
-use tacddd\value_objects\utilities\validation\traits\ValidationResultInterface;
+use tacddd\utilities\results\ResultFactoryService;
+use tacddd\value_objects\results\result\traits\ResultInterface;
 use tacddd\value_objects\utilities\validation\ValidationResult;
 use tacddd\value_objects\utilities\validation\ValidationResultFailure;
-use tacddd\value_objects\utilities\validation\ValidationResultSuccess;
 
 /**
  * 検証特性：正の整数
@@ -59,34 +59,62 @@ trait PositiveIntVerificationTrait
      * @param  self|int         $value 値
      * @return ValidationResult 検証結果
      */
-    public static function validate(self|int $value): ValidationResultInterface
+    public static function validate(self|int $value): ResultInterface
     {
         if ($value instanceof self) {
             $value = $value->value;
         }
 
+        $error_list     = [];
+
         if ($value < static::getMin()) {
-            $values = [
-                'value' => $value,
-                'min'   => static::getMin(),
+            $error_list[]   = [
+                'format'    => '{:label}には{:min}以上を入力してください。',
+                'values'    => [
+                    'label' => static::getName(),
+                    'value' => $value,
+                    'min'   => static::getMin(),
+                ],
             ];
 
-            return ValidationResultFailure::of(
-                label   : static::getName(),
-                message : ContainerService::getStringService()->buildMessage(
-                    format  : '{:label}には{:message}',
-                    message : '{:min}以上を入力してください。',
-                    values  : $values,
-                ),
-                values  : $values,
-            );
+            goto failure;
         }
 
         if ($value > static::getMax()) {
-            $valid  = false;
+            $error_list[]   = [
+                'format'    => '{:label}には{:max}以下を入力してください。',
+                'values'    => [
+                    'label' => static::getName(),
+                    'value' => $value,
+                    'max'   => static::getMax(),
+                ],
+            ];
+
+            goto failure;
         }
 
-        return new ValidationResultSuccess();
+        if (empty($error_list)) {
+            return ResultFactoryService::createSuccess();
+        }
+
+        failure:
+
+        $resultDetailsCollection    = ResultFactoryService::createResultDetailsCollection();
+
+        foreach ($error_list as $error) {
+            $resultDetailsCollection->addNewFailure(
+                ContainerService::getStringService()->buildMessage(
+                    format  : $error['format'],
+                    values  : $error['values'],
+                ),
+            );
+        }
+
+        return ResultFactoryService::createFailure(
+            \sprintf('%sでエラーが発生しました。', self::getName()),
+            $error_list,
+            $resultDetailsCollection,
+        );
     }
 
     /**
