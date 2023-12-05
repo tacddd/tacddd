@@ -22,9 +22,11 @@ namespace tacddd\tests\cases\utilities\results;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use tacddd\collections\traits\results\result_details\ResultDetailsCollectionInterface;
 use tacddd\tests\utilities\AbstractTestCase;
 use tacddd\utilities\results\ResultFactoryService;
 use tacddd\value_objects\results\result\traits\ResultInterface;
+use tacddd\value_objects\results\result_details\traits\ResultDetailsInterface;
 
 /**
  * @internal
@@ -45,7 +47,7 @@ class ResultFactoryServiceTest extends AbstractTestCase
 
     public static function successResultDataProvider(): iterable
     {
-        yield [true, null, null, null];
+        yield [true, null, '', null];
 
         yield [true, [], 'message', null];
 
@@ -54,49 +56,49 @@ class ResultFactoryServiceTest extends AbstractTestCase
 
     public static function failureResultDataProvider(): iterable
     {
-        yield [false, null, null, null];
+        yield [false, null, '', null];
 
-        yield [false, [], null, null];
+        yield [false, [], '', null];
 
         yield [false, null, 'message', null];
     }
 
     #[Test]
     #[DataProvider('resultDataProvider')]
-    public function resultFactory(bool $is_success, mixed $result, ?string $message, null|array|ResultDetailsInterface|ResultDetailsCollectionInterface $details): void
+    public function resultFactory(bool $is_success, mixed $result, string $message, null|array|ResultDetailsInterface|ResultDetailsCollectionInterface $details): void
     {
-        $actual = ResultFactoryService::create($is_success, $result, $message, $details);
+        $actual = ResultFactoryService::create($is_success, $message, $result, $details);
 
         $this->assertInstanceOf(ResultInterface::class, $actual);
         $this->assertSame($is_success, $actual->isSuccess());
         $this->assertSame($result, $actual->getResult());
         $this->assertSame($message, $actual->getMessage());
-        $this->assertSame($details, $actual->getDetails());
+        $this->assertSame($details, $actual->getDetailsCollection());
     }
 
     #[Test]
     #[DataProvider('successResultDataProvider')]
-    public function createSuccess(bool $is_success, mixed $result, ?string $message, null|array|ResultDetailsInterface|ResultDetailsCollectionInterface $details): void
+    public function createSuccess(bool $is_success, mixed $result, string $message, null|array|ResultDetailsInterface|ResultDetailsCollectionInterface $details): void
     {
-        $actual = ResultFactoryService::createSuccess($result, $message, $details);
+        $actual = ResultFactoryService::createSuccess($message, $result, $details);
 
         $this->assertInstanceOf(ResultInterface::class, $actual);
         $this->assertTrue($actual->isSuccess());
         $this->assertSame($result, $actual->getResult());
         $this->assertSame($message, $actual->getMessage());
-        $this->assertSame($details, $actual->getDetails());
+        $this->assertSame($details, $actual->getDetailsCollection());
     }
 
     #[Test]
     #[DataProvider('failureResultDataProvider')]
-    public function createFailure(bool $is_success, mixed $result, ?string $message, null|array|ResultDetailsInterface|ResultDetailsCollectionInterface $details): void
+    public function createFailure(bool $is_success, mixed $result, string $message, null|array|ResultDetailsInterface|ResultDetailsCollectionInterface $details): void
     {
-        $actual = ResultFactoryService::createFailure($result, $message, $details);
+        $actual = ResultFactoryService::createFailure($message, $result, $details);
 
         $this->assertInstanceOf(ResultInterface::class, $actual);
         $this->assertFalse($actual->isSuccess());
         $this->assertSame($result, $actual->getResult());
         $this->assertSame($message, $actual->getMessage());
-        $this->assertSame($details, $actual->getDetails());
+        $this->assertSame($details, $actual->getDetailsCollection());
     }
 }

@@ -29,12 +29,12 @@ trait ResultTrait
     /**
      * @var bool 結果が成功しているかどうか
      */
-    public readonly bool $isSuccess;
+    public readonly bool $outcome;
 
     /**
-     * @var null|string メッセージ
+     * @var string メッセージ
      */
-    public readonly ?string $message;
+    public readonly string $message;
 
     /**
      * @var mixed 処理結果
@@ -42,28 +42,28 @@ trait ResultTrait
     public readonly mixed $result;
 
     /**
-     * @var null|ResultDetailsCollectionInterface 詳細情報
+     * @var nnull|ResultDetailsCollectionInterface 処理結果詳細コレクション
      */
-    public readonly ?ResultDetailsCollectionInterface $details;
+    public readonly ?ResultDetailsCollectionInterface $detailsCollection;
 
     /**
      * construct
      *
-     * @param bool                                  $is_success 結果が成功しているかどうか
-     * @param mixed                                 $result     処理結果
-     * @param null|string                           $message    メッセージ
-     * @param null|ResultDetailsCollectionInterface $details    詳細情報
+     * @param bool                                  $outcome           結果が成功しているかどうか
+     * @param string                                $message           メッセージ
+     * @param mixed                                 $result            処理結果
+     * @param null|ResultDetailsCollectionInterface $detailsCollection 処理結果詳細コレクション
      */
     public function __construct(
-        bool $is_success,
+        bool $outcome,
+        string $message = '',
         mixed $result = null,
-        ?string $message = null,
-        ?ResultDetailsCollectionInterface $details = null,
+        ?ResultDetailsCollectionInterface $detailsCollection = null,
     ) {
-        $this->isSuccess    = $is_success;
-        $this->result       = $result;
-        $this->message      = $message;
-        $this->details      = $details;
+        $this->outcome              = $outcome;
+        $this->message              = $message;
+        $this->result               = $result;
+        $this->detailsCollection    = $detailsCollection;
     }
 
     /**
@@ -73,7 +73,7 @@ trait ResultTrait
      */
     public function isSuccess(): bool
     {
-        return $this->isSuccess;
+        return $this->outcome;
     }
 
     /**
@@ -89,20 +89,30 @@ trait ResultTrait
     /**
      * メッセージを返します。
      *
-     * @return null|string メッセージ
+     * @return string メッセージ
      */
-    public function getMessage(): ?string
+    public function getMessage(): string
     {
         return $this->message;
     }
 
     /**
-     * 処理結果詳細を返します。
+     * 処理結果詳細コレクションを返します。
      *
-     * @return null|ResultDetailsCollectionInterface 処理結果詳細
+     * @return null|ResultDetailsCollectionInterface 処理結果詳細コレクション
      */
-    public function getDetails(): ?ResultDetailsCollectionInterface
+    public function getDetailsCollection(): ?ResultDetailsCollectionInterface
     {
-        return $this->details;
+        return $this->detailsCollection;
+    }
+
+    /**
+     * 処理結果詳細の中に一つでも失敗があるかどうかを返します。
+     *
+     * @return bool 処理結果詳細の中に一つでも失敗があるかどうか
+     */
+    public function hasAnyDetailsFailure(): bool
+    {
+        return $this->detailsCollection->hasAnyFailure();
     }
 }

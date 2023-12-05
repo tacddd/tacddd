@@ -68,10 +68,10 @@ interface ObjectCollectionInterface extends CollectionInterface
     /**
      * オブジェクトを纏めて追加します。
      *
-     * @param  iterable $objects オブジェクト
-     * @return static   このインスタンス
+     * @param  iterable|object $objects オブジェクト
+     * @return static          このインスタンス
      */
-    public function addAll(iterable $objects): static;
+    public function addAll(iterable|object $objects, iterable|object ...$args): static;
 
     /**
      * オブジェクトがコレクションに含まれているかどうかを返します。

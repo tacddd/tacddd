@@ -26,6 +26,8 @@ trait PositiveIntSpecTrait
 {
     /**
      * 受け付ける最小値を返します。
+     *
+     * @return int 受け付ける最小値
      */
     public static function getMin(): int
     {

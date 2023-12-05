@@ -26,7 +26,7 @@ use tacddd\collections\objects\traits\ObjectCollectionTrait;
 use tacddd\collections\traits\results\result_details\ResultDetailsCollectionInterface;
 use tacddd\collections\traits\results\result_details\ResultDetailsCollectionTrait;
 use tacddd\utilities\containers\ContainerService;
-use tacddd\value_objects\traits\results\result_details\ResultDetailsInterface;
+use tacddd\value_objects\results\result_details\traits\ResultDetailsInterface;
 
 /**
  * 結果詳細コレクション
