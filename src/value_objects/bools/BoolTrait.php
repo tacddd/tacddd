@@ -19,11 +19,11 @@ declare(strict_types=1);
 
 namespace tacddd\value_objects\bools;
 
-use tacddd\value_objects\bools\traits\BoolFromStringTrait;
-use tacddd\value_objects\bools\traits\BoolVerificationTrait;
 use tacddd\value_objects\bools\traits\BoolFactoryMethodTrait;
+use tacddd\value_objects\bools\traits\BoolFromStringTrait;
 use tacddd\value_objects\bools\traits\BoolNormalizationTrait;
 use tacddd\value_objects\bools\traits\BoolVerificationFromStringTrait;
+use tacddd\value_objects\bools\traits\BoolVerificationTrait;
 
 /**
  * 真偽値特性
