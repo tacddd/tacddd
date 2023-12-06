@@ -66,23 +66,47 @@ trait ResultDetailsCollectionTrait
     }
 
     /**
+     * 子要素を含めて処理結果詳細の中に一つでも失敗があるかどうかを返します。
+     *
+     * @return bool 子要素を含めて処理結果詳細の中に一つでも失敗があるかどうか
+     */
+    public function hasRecursiveAnyFailure(): bool
+    {
+        foreach ($this->collection as $entity) {
+            /** @var ResultDetailsInterface $entity */
+            if (!$entity->getOutcome()) {
+                return true;
+            }
+
+            if ($entity->getDetailsCollection()?->hasRecursiveAnyFailure() ?? false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * 結果詳細を構築し追加します。
      *
-     * @param  string $message メッセージ
-     * @param  mixed  $details 結果詳細
-     * @param  ?bool  $outcome 結果状態
-     * @return static 結果詳細
+     * @param  string                                $message           メッセージ
+     * @param  mixed                                 $details           結果詳細
+     * @param  null|ResultDetailsCollectionInterface $detailsCollection 処理結果詳細コレクション
+     * @param  ?bool                                 $outcome           結果状態
+     * @return static                                結果詳細
      */
     public function addNew(
         string $message = '',
-        mixed $details = null,
-        ?bool $outcome = null,
+        mixed $details  = null,
+        ?ResultDetailsCollectionInterface $detailsCollection = null,
+        ?bool $outcome  = null,
     ): static {
         return $this->add(
             ContainerService::factory()->create(
                 ResultDetailsInterface::class,
                 $message,
                 $details,
+                $detailsCollection,
                 $outcome,
             ),
         );
@@ -91,20 +115,22 @@ trait ResultDetailsCollectionTrait
     /**
      * 成功時の結果詳細を構築し追加します。
      *
-     * @param  string $message メッセージ
-     * @param  mixed  $details 結果詳細
-     * @return static 結果詳細
+     * @param  string                                $message           メッセージ
+     * @param  mixed                                 $details           結果詳細
+     * @param  null|ResultDetailsCollectionInterface $detailsCollection 処理結果詳細コレクション
+     * @return static                                結果詳細
      */
     public function addNewSuccess(
         string $message = '',
-        mixed $details = null,
-        ?bool $outcome = null,
+        mixed $details  = null,
+        ?ResultDetailsCollectionInterface $detailsCollection = null,
     ): static {
         return $this->add(
             ContainerService::factory()->create(
                 ResultDetailsInterface::class,
                 $message,
                 $details,
+                $detailsCollection,
                 true,
             ),
         );
@@ -113,19 +139,22 @@ trait ResultDetailsCollectionTrait
     /**
      * 失敗時の結果詳細を構築し追加します。
      *
-     * @param  string $message メッセージ
-     * @param  mixed  $details 結果詳細
-     * @return static 結果詳細
+     * @param  string                                $message           メッセージ
+     * @param  mixed                                 $details           結果詳細
+     * @param  null|ResultDetailsCollectionInterface $detailsCollection 処理結果詳細コレクション
+     * @return static                                結果詳細
      */
     public function addNewFailure(
         string $message = '',
-        mixed $details = null,
+        mixed $details  = null,
+        ?ResultDetailsCollectionInterface $detailsCollection = null,
     ): static {
         return $this->add(
             ContainerService::factory()->create(
                 ResultDetailsInterface::class,
                 $message,
                 $details,
+                $detailsCollection,
                 false,
             ),
         );
