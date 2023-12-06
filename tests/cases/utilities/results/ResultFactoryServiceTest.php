@@ -101,4 +101,49 @@ class ResultFactoryServiceTest extends AbstractTestCase
         $this->assertSame($message, $actual->getMessage());
         $this->assertSame($details, $actual->getDetailsCollection());
     }
+
+    #[Test]
+    public function createResultDetails(): void
+    {
+        $message            = '';
+        $details            = null;
+        $detailsCollection  = null;
+        $outcome            = null;
+
+        $actual     = ResultFactoryService::createResultDetails($message, $details, $detailsCollection, $outcome);
+
+        $this->assertInstanceOf(ResultDetailsInterface::class, $actual);
+        $this->assertSame($message, $actual->getMessage());
+        $this->assertSame($details, $actual->getDetails());
+        $this->assertSame($detailsCollection, $actual->getDetailsCollection());
+        $this->assertNull($actual->getOutcome());
+
+        // ==============================================
+        $message            = 'a';
+        $details            = 1;
+        $detailsCollection  = ResultFactoryService::createResultDetailsCollection();
+        $outcome            = true;
+
+        $actual     = ResultFactoryService::createResultDetails($message, $details, $detailsCollection, $outcome);
+
+        $this->assertInstanceOf(ResultDetailsInterface::class, $actual);
+        $this->assertSame($message, $actual->getMessage());
+        $this->assertSame($details, $actual->getDetails());
+        $this->assertSame($detailsCollection, $actual->getDetailsCollection());
+        $this->assertTrue($actual->getOutcome());
+
+        // ==============================================
+        $message            = 'b';
+        $details            = true;
+        $detailsCollection  = ResultFactoryService::createResultDetailsCollection();
+        $outcome            = false;
+
+        $actual     = ResultFactoryService::createResultDetails($message, $details, $detailsCollection, $outcome);
+
+        $this->assertInstanceOf(ResultDetailsInterface::class, $actual);
+        $this->assertSame($message, $actual->getMessage());
+        $this->assertSame($details, $actual->getDetails());
+        $this->assertSame($detailsCollection, $actual->getDetailsCollection());
+        $this->assertFalse($actual->getOutcome());
+    }
 }

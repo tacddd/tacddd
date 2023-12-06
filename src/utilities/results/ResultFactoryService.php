@@ -188,20 +188,23 @@ final class ResultFactoryService implements ResultFactoryServiceInterface
     /**
      * 結果詳細を構築し返します。
      *
-     * @param  string                 $message メッセージ
-     * @param  mixed                  $details 結果詳細
-     * @param  ?bool                  $outcome 結果状態
-     * @return ResultDetailsInterface 結果詳細
+     * @param  string                                $message           メッセージ
+     * @param  mixed                                 $details           結果詳細
+     * @param  null|ResultDetailsCollectionInterface $detailsCollection 処理結果詳細コレクション
+     * @param  ?bool                                 $outcome           結果状態
+     * @return ResultDetailsInterface                結果詳細
      */
     public static function createResultDetails(
         string $message = '',
-        mixed $details = null,
-        ?bool $outcome = null,
+        mixed $details  = null,
+        ?ResultDetailsCollectionInterface $detailsCollection = null,
+        ?bool $outcome  = null,
     ): ResultDetailsInterface {
         return ContainerService::factory()->create(
             ResultDetailsInterface::class,
             $message,
             $details,
+            $detailsCollection,
             $outcome,
         );
     }
