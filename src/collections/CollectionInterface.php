@@ -123,6 +123,39 @@ interface CollectionInterface extends
     public function toMap(array $map_keys): array;
 
     /**
+     * コレクションを指定したキーの階層構造を持ち、単一のオブジェクトを持つマップに変換して返します。
+     *
+     * @param  array $map_keys 階層構造キー
+     * @return array コレクションマップ
+     */
+    public function toOneMap(array $map_keys): array;
+
+    /**
+     * 指定したキーの値を持つ配列マップを返します。
+     *
+     * @param  array $map_keys 階層構造キー
+     * @return array 指定したキーの値を持つ配列マップ
+     */
+    public function toArrayMap(array $map_keys): array;
+
+    /**
+     * 指定したキーの単一の値を持つ配列マップを返します。
+     *
+     * @param  array $map_keys 階層構造キー
+     * @return array 指定したキーの値を持つ配列マップ
+     */
+    public function toArrayOneMap(array $map_keys): array;
+
+    /**
+     * 指定したキーの値を持つ配列マップを返します。
+     *
+     * @param  array                    $map_keys 階層構造キー
+     * @param  null|int|string|callable $target   取得対象 省略時は 階層構造キーの第一要素を使用する
+     * @return array                    指定したキーの値を持つ配列マップ
+     */
+    public function getArrayMap(array $map_keys, null|int|string|callable $target = null): array;
+
+    /**
      * イテレータを返します。
      *
      * @return \Traversable イテレータ

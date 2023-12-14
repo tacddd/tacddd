@@ -28,7 +28,10 @@ interface ObjectCollectionMagicalAccessorInterface
      * @var array アクション設定
      */
     public const ACTION_SPEC_MAP = [
+        'toArrayOneMapOf'   => ['length' => 15, 'use_args' => false, 'separator' => 'And'],
         'findOneToMapBy'    => ['length' => 14, 'use_args' => true,  'separator' => 'In'],
+        'getArrayMapOf'     => ['length' => 13, 'use_args' => false, 'separator' => 'And', 'default_args' => [null]],
+        'toArrayMapOf'      => ['length' => 12, 'use_args' => false, 'separator' => 'And'],
         'findToMapBy'       => ['length' => 11, 'use_args' => true,  'separator' => 'In'],
         'toOneMapIn'        => ['length' => 10, 'use_args' => false, 'separator' => 'In'],
         'findOneBy'         => ['length' => 9,  'use_args' => true,  'separator' => 'And'],

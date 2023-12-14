@@ -42,7 +42,7 @@ function dd(...$args): void
 }
 
 /**
- * 指定された変数をダンプし終了します。
+ * 指定された変数をダンプします。
  *
  * @param mixed ...$args dump対象の引数
  */
@@ -129,19 +129,6 @@ function d(...$args): void
 
     $caller = \implode('', $caller_stack);
 
-    $debug = function($arg): \Generator {
-        yield match (\gettype($arg)) {
-            'boolean'   => $arg ? 'true' : 'false',
-            'integer'   => (string) $arg,
-            'double'    => false === \mb_strpos((string) $arg, '.') ? \sprintf('%s.0', $arg) : (string) $arg,
-            'string'    => $arg,
-            'array'     => \print_r($arg, true),
-            'object'    => \print_r($arg, true),
-            'resource'  => \sprintf('resource #%s', $arg),
-            'NULL'      => 'null',
-        };
-    };
-
     echo '//==============================================', \PHP_EOL,
     \sprintf('%s(%s): %s', $file, $base_line, $caller), \PHP_EOL,
     '//==============================================', \PHP_EOL;
@@ -150,7 +137,7 @@ function d(...$args): void
         $var_name   = $var_names[$idx];
 
         echo \sprintf('args #%d parameter: %s', $idx, $var_name), \PHP_EOL,
-        \sprintf('value: %s', to_debug_string($arg, 2)), \PHP_EOL,
+        \sprintf('value: %s', to_debug_string($arg, 4)), \PHP_EOL,
         '//----------------------------------------------', \PHP_EOL;
     }
 }
