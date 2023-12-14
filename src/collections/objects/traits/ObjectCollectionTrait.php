@@ -912,7 +912,7 @@ trait ObjectCollectionTrait
     }
 
     /**
-     * コレクションを指定したキーの階層構造を持つマップに変換して返します。
+     * コレクションを指定したキーの階層構造を持ち、単一のオブジェクトを持つマップに変換して返します。
      *
      * @param  array $map_keys 階層構造キー
      * @return array コレクションマップ
@@ -939,6 +939,149 @@ trait ObjectCollectionTrait
         }
 
         unset($tmp);
+
+        return $cache_map;
+    }
+
+    /**
+     * 指定したキーの値を持つ配列マップを返します。
+     *
+     * @param  array $map_keys 階層構造キー
+     * @return array 指定したキーの値を持つ配列マップ
+     */
+    public function toArrayMap(array $map_keys): array
+    {
+        $cache_map = $this->loadCacheMap(\array_flip($map_keys));
+
+        $keyAccessType    = $this->getKeyAccessType();
+
+        $tmp_map_keys   = $map_keys;
+
+        foreach ($cache_map as &$tmp) {
+            foreach ($tmp_map_keys as $tmp_map_key) {
+                $key = \key($tmp);
+                $tmp = &$tmp[$key];
+            }
+
+            $map    = [];
+
+            foreach ($map_keys as $map_key) {
+                $access_key     = $this->accessKeyCache[$map_key];
+
+                $map[$map_key]  = match ($keyAccessType->name) {
+                    KeyAccessTypeEnum::Property->name     => $this->collection[$tmp]->{$access_key},
+                    KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$tmp][$access_key],
+                    default                               => $this->collection[$tmp]->{$access_key}(),
+                };
+            }
+
+            $tmp    = $map;
+
+            unset($map, $tmp);
+        }
+
+        return $cache_map;
+    }
+
+    /**
+     * 指定したキーの単一の値を持つ配列マップを返します。
+     *
+     * @param  array $map_keys 階層構造キー
+     * @return array 指定したキーの値を持つ配列マップ
+     */
+    public function toArrayOneMap(array $map_keys): array
+    {
+        $cache_map = $this->loadCacheMap(\array_flip($map_keys));
+
+        $keyAccessType    = $this->getKeyAccessType();
+
+        $tmp_map_keys   = $map_keys;
+
+        unset($tmp_map_keys[\array_key_last($tmp_map_keys)]);
+
+        foreach ($cache_map as &$tmp) {
+            foreach ($tmp_map_keys as $tmp_map_key) {
+                $key = \key($tmp);
+                $tmp = &$tmp[$key];
+            }
+
+            $map    = [];
+
+            foreach ($map_keys as $map_key) {
+                $target         = $tmp[\array_key_first($tmp)];
+
+                $access_key     = $this->accessKeyCache[$map_key];
+
+                $map[$map_key]  = match ($keyAccessType->name) {
+                    KeyAccessTypeEnum::Property->name     => $this->collection[$target]->{$access_key},
+                    KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$target][$access_key],
+                    default                               => $this->collection[$target]->{$access_key}(),
+                };
+            }
+
+            $tmp    = $map;
+
+            unset($map, $tmp);
+        }
+
+        return $cache_map;
+    }
+
+    /**
+     * 指定したキーの値を持つ配列マップを返します。
+     *
+     * @param  array                    $map_keys 階層構造キー
+     * @param  null|int|string|callable $target   取得対象 省略時は 階層構造キーの第一要素を使用する
+     * @return array                    指定したキーの値を持つ配列マップ
+     */
+    public function getArrayMap(array $map_keys, null|int|string|callable $target = null): array
+    {
+        $cache_map = $this->loadCacheMap(\array_flip($map_keys));
+
+        $target ??= $map_keys[\array_key_first($map_keys)];
+
+        $keyAccessType    = $this->getKeyAccessType();
+
+        $tmp_map_keys   = $map_keys;
+
+        unset($tmp_map_keys[\array_key_last($tmp_map_keys)]);
+
+        if (\is_callable($target)) {
+            foreach ($cache_map as &$tmp) {
+                foreach ($tmp_map_keys as $tmp_map_key) {
+                    $tmp_key = \key($tmp);
+                    $tmp     = &$tmp[$tmp_key];
+                }
+
+                $collection_idx = $tmp[\array_key_first($tmp)];
+
+                $tmp    = $target(
+                    $this->collection[$collection_idx],
+                    $this->accessKeyCache,
+                );
+
+                unset($tmp);
+            }
+        } else {
+            foreach ($cache_map as &$tmp) {
+                foreach ($tmp_map_keys as $tmp_map_key) {
+                    $tmp_key = \key($tmp);
+                    $tmp     = &$tmp[$tmp_key];
+                }
+
+                $collection_idx = $tmp[\array_key_first($tmp)];
+
+                $access_key = $this->accessKeyCache[$target];
+
+                $tmp    = match ($keyAccessType->name) {
+                    KeyAccessTypeEnum::Property->name     => $this->collection[$collection_idx]->{$access_key},
+                    KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$collection_idx][$access_key],
+                    default                               => $this->collection[$collection_idx]->{$access_key}(),
+                };
+
+                unset($tmp);
+            }
+        }
 
         return $cache_map;
     }

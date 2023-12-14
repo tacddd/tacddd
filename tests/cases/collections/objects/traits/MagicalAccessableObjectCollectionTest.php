@@ -145,4 +145,127 @@ class MagicalAccessableObjectCollectionTest extends AbstractTestCase
         $this->assertSame(['qwer' => [3 => [$qwer], 4 => [$hjkl]]], $collection->findToMapByGroup('qwer', ['group', 'id']));
         $this->assertSame(['qwer' => [3 => $qwer, 4 => $hjkl]], $collection->findOneToMapByGroup('qwer', ['group', 'id']));
     }
+
+    #[Test]
+    public function toArrayMapOf(): void
+    {
+        $actual     = new CollectionMagicalDummy([
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'qwer', 'value3'),
+        ]);
+
+        $expected   = [
+            1   => [
+                'value1'    => [
+                    [
+                        'id'   => 1,
+                        'name' => 'value1',
+                    ],
+                ],
+            ],
+            2   => [
+                'value2'    => [
+                    [
+                        'id'   => 2,
+                        'name' => 'value2',
+                    ],
+                ],
+            ],
+            3   => [
+                'value3'    => [
+                    [
+                        'id'   => 3,
+                        'name' => 'value3',
+                    ],
+                ],
+            ],
+        ];
+        $this->assertSame($expected, $actual->toArrayMapOfIdAndName());
+
+        $expected   = [
+            1   => [
+                [
+                    'id' => 1,
+                ],
+            ],
+            2   => [
+                [
+                    'id' => 2,
+                ],
+            ],
+            3   => [
+                [
+                    'id' => 3,
+                ],
+            ],
+        ];
+        $this->assertSame($expected, $actual->toArrayMapOfId());
+
+        $expected   = [
+            1   => [
+                'value1'    => [
+                    'id'   => 1,
+                    'name' => 'value1',
+
+                ],
+            ],
+            2   => [
+                'value2'    => [
+                    'id'   => 2,
+                    'name' => 'value2',
+                ],
+            ],
+            3   => [
+                'value3'    => [
+                    'id'   => 3,
+                    'name' => 'value3',
+                ],
+            ],
+        ];
+        $this->assertSame($expected, $actual->toArrayOneMapOfIdAndName());
+
+        $expected   = [
+            1   => [
+                'id' => 1,
+            ],
+            2   => [
+                'id' => 2,
+            ],
+            3   => [
+                'id' => 3,
+            ],
+        ];
+        $this->assertSame($expected, $actual->toArrayOneMapOfId());
+    }
+
+    #[Test]
+    public function getArrayMapOf(): void
+    {
+        $actual     = new CollectionMagicalDummy([
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'qwer', 'value3'),
+        ]);
+
+        $expected   = [
+            1   => [
+                'value1'    => 1,
+            ],
+            2   => [
+                'value2'    => 2,
+            ],
+            3   => [
+                'value3'    => 3,
+            ],
+        ];
+        $this->assertSame($expected, $actual->getArrayMapOfIdAndName());
+
+        $expected   = [
+            1   => 1,
+            2   => 2,
+            3   => 3,
+        ];
+        $this->assertSame($expected, $actual->getArrayMapOfId());
+    }
 }

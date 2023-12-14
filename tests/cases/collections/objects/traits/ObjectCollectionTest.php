@@ -22,6 +22,8 @@ namespace tacddd\tests\cases\collections\objects\traits;
 use PHPUnit\Framework\Attributes\Test;
 use tacddd\tests\utilities\AbstractTestCase;
 use tacddd\tests\utilities\resources\dummy\collections\EntityCollectionPropertyAccessDummy;
+use tacddd\tests\utilities\resources\dummy\objects\CollectionDateDummy;
+use tacddd\tests\utilities\resources\dummy\objects\CollectionDateEntityDummy;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionDummy;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionEntityDummy;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionEntityPropertyAccessDummy;
@@ -267,5 +269,155 @@ class ObjectCollectionTest extends AbstractTestCase
         );
 
         (new CollectionDummy())->add(new \DateTimeImmutable());
+    }
+
+    #[Test]
+    public function toArrayMap(): void
+    {
+        $actual   = new CollectionDummy([
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'zxcv', 'value3'),
+        ]);
+
+        $expected   = [
+            1   => [
+                'value1'    => [
+                    [
+                        'id'   => 1,
+                        'name' => 'value1',
+                    ],
+                ],
+            ],
+            2   => [
+                'value2'    => [
+                    [
+                        'id'   => 2,
+                        'name' => 'value2',
+                    ],
+                ],
+            ],
+            3   => [
+                'value3'    => [
+                    [
+                        'id'   => 3,
+                        'name' => 'value3',
+                    ],
+                ],
+            ],
+        ];
+        $this->assertSame($expected, $actual->toArrayMap(['id', 'name']));
+
+        $expected   = [
+            1   => [
+                [
+                    'id' => 1,
+                ],
+            ],
+            2   => [
+                [
+                    'id' => 2,
+                ],
+            ],
+            3   => [
+                [
+                    'id' => 3,
+                ],
+            ],
+        ];
+        $this->assertSame($expected, $actual->toArrayMap(['id']));
+
+        $expected   = [
+            1   => [
+                'value1'    => [
+                    'id'   => 1,
+                    'name' => 'value1',
+
+                ],
+            ],
+            2   => [
+                'value2'    => [
+                    'id'   => 2,
+                    'name' => 'value2',
+                ],
+            ],
+            3   => [
+                'value3'    => [
+                    'id'   => 3,
+                    'name' => 'value3',
+                ],
+            ],
+        ];
+        $this->assertSame($expected, $actual->toArrayOneMap(['id', 'name']));
+
+        $expected   = [
+            1   => [
+                'id' => 1,
+            ],
+            2   => [
+                'id' => 2,
+            ],
+            3   => [
+                'id' => 3,
+            ],
+        ];
+        $this->assertSame($expected, $actual->toArrayOneMap(['id']));
+    }
+
+    #[Test]
+    public function getArrayMap(): void
+    {
+        $actual   = new CollectionDummy([
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'zxcv', 'value3'),
+        ]);
+
+        $expected   = [
+            1   => [
+                'value1'    => 1,
+            ],
+            2   => [
+                'value2'    => 2,
+            ],
+            3   => [
+                'value3'    => 3,
+            ],
+        ];
+        $this->assertSame($expected, $actual->getArrayMap(['id', 'name']));
+
+        $expected   = [
+            1   => 1,
+            2   => 2,
+            3   => 3,
+        ];
+        $this->assertSame($expected, $actual->getArrayMap(['id']));
+
+        // ==============================================
+        $actual   = new CollectionDateDummy([
+            $asdf   = new CollectionDateEntityDummy(1, new \DateTimeImmutable('2023-01-01')),
+            $zxcv   = new CollectionDateEntityDummy(2, new \DateTimeImmutable('2023-01-02')),
+        ]);
+
+        $expected   = [
+            1   => [
+                '2023/01/01'    => 1,
+            ],
+            2   => [
+                '2023/01/02'    => 2,
+            ],
+        ];
+        $this->assertSame($expected, $actual->getArrayMap(['id', 'date_time']));
+
+        $expected   = [
+            '2023/01/01'    => '2023/01/01',
+            '2023/01/02'    => '2023/01/02',
+        ];
+        $this->assertSame($expected, $actual->getArrayMap(['date_time'], function(
+            CollectionDateEntityDummy $entity,
+            array $access_key_cache,
+        ): string {
+            return $entity->getDateTime()->format('Y/m/d');
+        }));
     }
 }
