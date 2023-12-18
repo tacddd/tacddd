@@ -887,7 +887,7 @@ trait ObjectCollectionTrait
     {
         $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
 
-        \array_walk_recursive($cache_map, function (&$data) {
+        \array_walk_recursive($cache_map, function(&$data): void {
             $data = $this->collection[$data];
         });
 
@@ -909,7 +909,6 @@ trait ObjectCollectionTrait
         return $cache_map;
     }
 
-
     /**
      * 指定したキーの値を持つ配列マップを返します。
      *
@@ -922,7 +921,7 @@ trait ObjectCollectionTrait
 
         $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
 
-        \array_walk_recursive($cache_map, function (&$data) use ($map_keys, $keyAccessType) {
+        \array_walk_recursive($cache_map, function(&$data) use ($map_keys, $keyAccessType): void {
             $map = [];
 
             foreach ($map_keys as $map_key) {
@@ -941,7 +940,6 @@ trait ObjectCollectionTrait
         return $cache_map;
     }
 
-
     /**
      * 指定したキーの単一の値を持つ配列マップを返します。
      *
@@ -955,7 +953,7 @@ trait ObjectCollectionTrait
         $this->replaceCahceMapToArrayOne(
             $cache_map,
             $map_keys,
-            $this->getKeyAccessType()
+            $this->getKeyAccessType(),
         );
 
         return $cache_map;
@@ -1190,10 +1188,11 @@ trait ObjectCollectionTrait
     /**
      * キャッシュマップの末端配列を末端配列第一マップキーに紐づくオブジェクトに置き換えます。
      *
-     * @param array $cache_map キャッシュマップ
+     * @param  array           $cache_map キャッシュマップ
      * @return int|string|bool 末端の値
      */
-    protected function replaceCahceMapToOne(array &$cache_map): int|string|bool {
+    protected function replaceCahceMapToOne(array &$cache_map): int|string|bool
+    {
         foreach ($cache_map as $key => &$value) {
             if (\is_array($value)) {
                 if (!\is_bool($key = $this->replaceCahceMapToOne($value))) {
@@ -1210,15 +1209,15 @@ trait ObjectCollectionTrait
     /**
      * キャッシュマップの末端配列を末端配列第一マップキーに配列に置き換えます。
      *
-     * @param array $cache_map キャッシュマップ
-     * @param array $map_keys マップキー
-     * @param KeyAccessTypeEnum $keyAccessType オブジェクトの値の取得の仕方
-     * @return int|string|bool 末端の値
+     * @param  array             $cache_map     キャッシュマップ
+     * @param  array             $map_keys      マップキー
+     * @param  KeyAccessTypeEnum $keyAccessType オブジェクトの値の取得の仕方
+     * @return int|string|bool   末端の値
      */
     protected function replaceCahceMapToArrayOne(
         array &$cache_map,
         array $map_keys,
-        KeyAccessTypeEnum $keyAccessType
+        KeyAccessTypeEnum $keyAccessType,
     ): int|string|bool {
         foreach ($cache_map as $key => &$value) {
             if (\is_array($value)) {
@@ -1248,20 +1247,19 @@ trait ObjectCollectionTrait
     /**
      * キャッシュマップの末端配列を末端配列第一マップキーに配列に置き換えます。
      *
-     * @param array $cache_map キャッシュマップ
-     * @param int|string|callable $map_keys マップキー
-     * @param KeyAccessTypeEnum $keyAccessType オブジェクトの値の取得の仕方
-     * @return int|string|bool 末端の値
+     * @param  array             $cache_map     キャッシュマップ
+     * @param  KeyAccessTypeEnum $keyAccessType オブジェクトの値の取得の仕方
+     * @return int|string|bool   末端の値
      */
     protected function replaceCahceMapGetArrayOne(
         array &$cache_map,
         int|string|callable $target,
-        KeyAccessTypeEnum $keyAccessType
+        KeyAccessTypeEnum $keyAccessType,
     ): int|string|bool {
         foreach ($cache_map as &$value) {
             if (\is_array($value)) {
                 if (!\is_bool($key = $this->replaceCahceMapGetArrayOne($value, $target, $keyAccessType))) {
-                    if (is_callable($target)) {
+                    if (\is_callable($target)) {
                         $value  = $target(
                             $this->collection[$key],
                             $this->accessKeyCache,
