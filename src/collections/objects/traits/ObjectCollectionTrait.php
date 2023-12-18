@@ -887,33 +887,9 @@ trait ObjectCollectionTrait
     {
         $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
 
-        foreach ($cache_map as &$value) {
-            $stack = [];
-
-            foreach ($value as &$stack_value) {
-                $stack[] = &$stack_value;
-            }
-
-            for (;0 < \count($stack);) {
-                $last_key   = \array_key_last($stack);
-                $current    = &$stack[$last_key];
-                unset($stack[$last_key]);
-
-                if (\is_array($current)) {
-                    foreach ($current as &$stack_value) {
-                        $stack[] = &$stack_value;
-                    }
-                } else {
-                    $current = $this->collection[$current];
-                }
-
-                unset($current, $map);
-            }
-
-            unset($value);
-        }
-
-        unset($value);
+        \array_walk_recursive($cache_map, function (&$data) {
+            $data = $this->collection[$data];
+        });
 
         return $cache_map;
     }
@@ -926,51 +902,13 @@ trait ObjectCollectionTrait
      */
     public function toOneMap(array $map_keys): array
     {
-        $keyAccessType    = $this->getKeyAccessType();
-
         $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
 
-        foreach ($cache_map as &$value) {
-            $stack = [];
-
-            foreach ($value as &$stack_value) {
-                if (!\is_array($stack_value)) {
-                    $value  = $this->collection[$stack_value];
-
-                    break;
-                }
-
-                $stack[]    = [&$value, &$stack_value];
-
-                unset($stack_value);
-            }
-
-            unset($value);
-
-            for (;0 < \count($stack);) {
-                $last_key   = \array_key_last($stack);
-                $parent     = &$stack[$last_key][0];
-                $current    = &$stack[$last_key][1];
-
-                unset($stack[$last_key]);
-
-                if (\is_array($current)) {
-                    foreach ($current as &$current_child) {
-                        $stack[]    = [&$current, &$current_child];
-                    }
-                    continue;
-                }
-
-                $parent = $this->collection[$current];
-
-                unset($parent, $current);
-            }
-
-            unset($value);
-        }
+        $this->replaceCahceMapToOne($cache_map);
 
         return $cache_map;
     }
+
 
     /**
      * 指定したキーの値を持つ配列マップを返します。
@@ -984,48 +922,25 @@ trait ObjectCollectionTrait
 
         $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
 
-        foreach ($cache_map as &$value) {
-            $stack = [];
+        \array_walk_recursive($cache_map, function (&$data) use ($map_keys, $keyAccessType) {
+            $map = [];
 
-            foreach ($value as &$stack_value) {
-                $stack[] = &$stack_value;
+            foreach ($map_keys as $map_key) {
+                $access_key     = $this->accessKeyCache[$map_key];
+
+                $map[$map_key]  = match ($keyAccessType->name) {
+                    KeyAccessTypeEnum::Property->name     => $this->collection[$data]->{$access_key},
+                    KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$data][$access_key],
+                    default                               => $this->collection[$data]->{$access_key}(),
+                };
             }
 
-            for (;0 < \count($stack);) {
-                $last_key   = \array_key_last($stack);
-                $current    = &$stack[$last_key];
-                unset($stack[$last_key]);
-
-                if (\is_array($current)) {
-                    foreach ($current as &$stack_value) {
-                        $stack[] = &$stack_value;
-                    }
-                } else {
-                    $map = [];
-
-                    foreach ($map_keys as $map_key) {
-                        $access_key     = $this->accessKeyCache[$map_key];
-
-                        $map[$map_key]  = match ($keyAccessType->name) {
-                            KeyAccessTypeEnum::Property->name     => $this->collection[$current]->{$access_key},
-                            KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$current][$access_key],
-                            default                               => $this->collection[$current]->{$access_key}(),
-                        };
-                    }
-
-                    $current = $map;
-                }
-
-                unset($current, $map);
-            }
-
-            unset($value);
-        }
-
-        unset($value);
+            $data = $map;
+        });
 
         return $cache_map;
     }
+
 
     /**
      * 指定したキーの単一の値を持つ配列マップを返します。
@@ -1035,72 +950,13 @@ trait ObjectCollectionTrait
      */
     public function toArrayOneMap(array $map_keys): array
     {
-        $keyAccessType    = $this->getKeyAccessType();
-
         $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
 
-        foreach ($cache_map as &$value) {
-            $stack = [];
-
-            foreach ($value as &$stack_value) {
-                if (!\is_array($stack_value)) {
-                    $map    = [];
-
-                    foreach ($map_keys as $map_key) {
-                        $access_key     = $this->accessKeyCache[$map_key];
-
-                        $map[$map_key]  = match ($keyAccessType->name) {
-                            KeyAccessTypeEnum::Property->name     => $this->collection[$stack_value]->{$access_key},
-                            KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$stack_value][$access_key],
-                            default                               => $this->collection[$stack_value]->{$access_key}(),
-                        };
-                    }
-
-                    $value  = $map;
-
-                    break;
-                }
-
-                $stack[]    = [&$value, &$stack_value];
-
-                unset($stack_value);
-            }
-
-            unset($value);
-
-            for (;0 < \count($stack);) {
-                $last_key   = \array_key_last($stack);
-                $parent     = &$stack[$last_key][0];
-                $current    = &$stack[$last_key][1];
-
-                unset($stack[$last_key]);
-
-                if (\is_array($current)) {
-                    foreach ($current as &$current_child) {
-                        $stack[]    = [&$current, &$current_child];
-                    }
-                    continue;
-                }
-
-                $map    = [];
-
-                foreach ($map_keys as $map_key) {
-                    $access_key     = $this->accessKeyCache[$map_key];
-
-                    $map[$map_key]  = match ($keyAccessType->name) {
-                        KeyAccessTypeEnum::Property->name     => $this->collection[$current]->{$access_key},
-                        KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$current][$access_key],
-                        default                               => $this->collection[$current]->{$access_key}(),
-                    };
-                }
-
-                $parent = $map;
-
-                unset($parent, $current, $map);
-            }
-
-            unset($value);
-        }
+        $this->replaceCahceMapToArrayOne(
+            $cache_map,
+            $map_keys,
+            $this->getKeyAccessType()
+        );
 
         return $cache_map;
     }
@@ -1114,109 +970,13 @@ trait ObjectCollectionTrait
      */
     public function getArrayMap(array $map_keys, null|int|string|callable $target = null): array
     {
-        $target ??= $map_keys[\array_key_first($map_keys)];
-
-        $keyAccessType    = $this->getKeyAccessType();
-
         $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
 
-        if (\is_callable($target)) {
-            foreach ($cache_map as &$value) {
-                $stack = [];
-
-                foreach ($value as &$stack_value) {
-                    if (!\is_array($stack_value)) {
-                        $value = $target(
-                            $this->collection[$stack_value],
-                            $this->accessKeyCache,
-                        );
-
-                        break;
-                    }
-
-                    $stack[]    = [&$value, &$stack_value];
-
-                    unset($stack_value);
-                }
-
-                unset($value);
-
-                for (;0 < \count($stack);) {
-                    $last_key   = \array_key_last($stack);
-                    $parent     = &$stack[$last_key][0];
-                    $current    = &$stack[$last_key][1];
-
-                    unset($stack[$last_key]);
-
-                    if (\is_array($current)) {
-                        foreach ($current as &$current_child) {
-                            $stack[]    = [&$current, &$current_child];
-                        }
-                        continue;
-                    }
-
-                    $parent = $target(
-                        $this->collection[$current],
-                        $this->accessKeyCache,
-                    );
-
-                    unset($parent, $current, $map);
-                }
-
-                unset($value);
-            }
-        } else {
-            foreach ($cache_map as &$value) {
-                $stack = [];
-
-                foreach ($value as &$stack_value) {
-                    if (!\is_array($stack_value)) {
-                        $access_key = $this->accessKeyCache[$target];
-
-                        $value  = match ($keyAccessType->name) {
-                            KeyAccessTypeEnum::Property->name     => $this->collection[$stack_value]->{$access_key},
-                            KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$stack_value][$access_key],
-                            default                               => $this->collection[$stack_value]->{$access_key}(),
-                        };
-
-                        break;
-                    }
-
-                    $stack[]    = [&$value, &$stack_value];
-
-                    unset($stack_value);
-                }
-
-                unset($value);
-
-                for (;0 < \count($stack);) {
-                    $last_key   = \array_key_last($stack);
-                    $parent     = &$stack[$last_key][0];
-                    $current    = &$stack[$last_key][1];
-
-                    unset($stack[$last_key]);
-
-                    if (\is_array($current)) {
-                        foreach ($current as &$current_child) {
-                            $stack[]    = [&$current, &$current_child];
-                        }
-                        continue;
-                    }
-
-                    $access_key = $this->accessKeyCache[$target];
-
-                    $parent = match ($keyAccessType->name) {
-                        KeyAccessTypeEnum::Property->name     => $this->collection[$current]->{$access_key},
-                        KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$current][$access_key],
-                        default                               => $this->collection[$current]->{$access_key}(),
-                    };
-
-                    unset($parent, $current);
-                }
-
-                unset($value);
-            }
-        }
+        $this->replaceCahceMapGetArrayOne(
+            $cache_map,
+            $target ?? $map_keys[\array_key_first($map_keys)],
+            $this->getKeyAccessType(),
+        );
 
         return $cache_map;
     }
@@ -1425,5 +1185,102 @@ trait ObjectCollectionTrait
         };
 
         return $this;
+    }
+
+    /**
+     * キャッシュマップの末端配列を末端配列第一マップキーに紐づくオブジェクトに置き換えます。
+     *
+     * @param array $cache_map キャッシュマップ
+     * @return int|string|bool 末端の値
+     */
+    protected function replaceCahceMapToOne(array &$cache_map): int|string|bool {
+        foreach ($cache_map as $key => &$value) {
+            if (\is_array($value)) {
+                if (!\is_bool($key = $this->replaceCahceMapToOne($value))) {
+                    $value = $this->collection[$key];
+                }
+            } else {
+                return $value;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * キャッシュマップの末端配列を末端配列第一マップキーに配列に置き換えます。
+     *
+     * @param array $cache_map キャッシュマップ
+     * @param array $map_keys マップキー
+     * @param KeyAccessTypeEnum $keyAccessType オブジェクトの値の取得の仕方
+     * @return int|string|bool 末端の値
+     */
+    protected function replaceCahceMapToArrayOne(
+        array &$cache_map,
+        array $map_keys,
+        KeyAccessTypeEnum $keyAccessType
+    ): int|string|bool {
+        foreach ($cache_map as $key => &$value) {
+            if (\is_array($value)) {
+                if (!\is_bool($key = $this->replaceCahceMapToArrayOne($value, $map_keys, $keyAccessType))) {
+                    $map    = [];
+
+                    foreach ($map_keys as $map_key) {
+                        $access_key     = $this->accessKeyCache[$map_key];
+
+                        $map[$map_key]  = match ($keyAccessType->name) {
+                            KeyAccessTypeEnum::Property->name     => $this->collection[$key]->{$access_key},
+                            KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$key][$access_key],
+                            default                               => $this->collection[$key]->{$access_key}(),
+                        };
+                    }
+
+                    $value  = $map;
+                }
+            } else {
+                return $value;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * キャッシュマップの末端配列を末端配列第一マップキーに配列に置き換えます。
+     *
+     * @param array $cache_map キャッシュマップ
+     * @param int|string|callable $map_keys マップキー
+     * @param KeyAccessTypeEnum $keyAccessType オブジェクトの値の取得の仕方
+     * @return int|string|bool 末端の値
+     */
+    protected function replaceCahceMapGetArrayOne(
+        array &$cache_map,
+        int|string|callable $target,
+        KeyAccessTypeEnum $keyAccessType
+    ): int|string|bool {
+        foreach ($cache_map as &$value) {
+            if (\is_array($value)) {
+                if (!\is_bool($key = $this->replaceCahceMapGetArrayOne($value, $target, $keyAccessType))) {
+                    if (is_callable($target)) {
+                        $value  = $target(
+                            $this->collection[$key],
+                            $this->accessKeyCache,
+                        );
+                    } else {
+                        $access_key = $this->accessKeyCache[$target];
+
+                        $value  = match ($keyAccessType->name) {
+                            KeyAccessTypeEnum::Property->name     => $this->collection[$key]->{$access_key},
+                            KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$key][$access_key],
+                            default                               => $this->collection[$key]->{$access_key}(),
+                        };
+                    }
+                }
+            } else {
+                return $value;
+            }
+        }
+
+        return false;
     }
 }
