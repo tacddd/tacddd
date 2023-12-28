@@ -27,6 +27,16 @@ use tacddd\collections\objects\enums\KeyAccessTypeEnum;
 trait ObjectCollectionTrait
 {
     /**
+     * @var null|\Closure JSONシリアライザ
+     */
+    protected readonly ?\Closure $jsonSerializer;
+
+    /**
+     * @var bool JSONシリアライザが有効かどうか
+     */
+    protected readonly bool $enabledJsonSerializer;
+
+    /**
      * @var object[] コレクション
      */
     protected array $collection = [];
@@ -147,8 +157,18 @@ trait ObjectCollectionTrait
      */
     public function __construct(iterable $objects = [], array $options = [])
     {
+        // ==============================================
+        // options
+        // ==============================================
         $this->options  = $options;
 
+        // jsonSerializer
+        $this->enabledJsonSerializer    = \array_key_exists(static::OPTION_JSON_SERIALIZER, $this->options) && $this->options[static::OPTION_JSON_SERIALIZER] instanceof \Closure;
+        $this->jsonSerializer           = $this->enabledJsonSerializer ? $this->options[static::OPTION_JSON_SERIALIZER] : null;
+
+        // ==============================================
+        // objects add
+        // ==============================================
         $this->addAll($objects);
     }
 
@@ -996,6 +1016,21 @@ trait ObjectCollectionTrait
      */
     public function toArray(): array
     {
+        return $this->collection;
+    }
+
+    /**
+     * コレクションのJSONにシリアライズするための表現を返します。
+     *
+     * @return mixed コレクションのJSONにシリアライズするための表現
+     * @see https://www.php.net/manual/ja/class.jsonserializable.php
+     */
+    public function jsonSerialize(): mixed
+    {
+        if ($this->enabledJsonSerializer) {
+            return ($this->jsonSerializer)($this);
+        }
+
         return $this->collection;
     }
 
