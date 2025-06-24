@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace tacddd\collections\objects\traits;
 
 use tacddd\collections\objects\enums\KeyAccessTypeEnum;
+use tacddd\collections\objects\traits\ObjectCollectionInterface;
 
 /**
  * オブジェクトコレクション特性
@@ -170,11 +171,6 @@ trait ObjectCollectionTrait
         // objects add
         // ==============================================
         $this->addAll($objects);
-    }
-
-    public function test()
-    {
-        return $this->collection;
     }
 
     /**
@@ -431,6 +427,48 @@ trait ObjectCollectionTrait
     }
 
     /**
+     * 指定したキーのオブジェクトのみのコレクションを返します。
+     *
+     * @param  array    $criteria 検索条件
+     * @param  array    $orderBy  ソート設定
+     * @return static   検索結果
+     */
+    public function filterBy(array $criteria, array $orderBy = []): static
+    {
+        $cache_map  = $this->loadCacheMap($criteria);
+
+        $not_found  = false;
+
+        foreach ($criteria as $key => $value) {
+            if (\is_object($value)) {
+                $value  = $this->normalizeKey($value, $key);
+            }
+
+            if (\array_key_exists($value, $cache_map)) {
+                $cache_map = $cache_map[$value];
+            } else {
+                $not_found  = true;
+
+                break;
+            }
+        }
+
+        if ($not_found) {
+            new static();
+        }
+
+        $result         = [];
+
+        foreach ($cache_map as $unique_id) {
+            if (($object = $this->collection[$unique_id] ?? null) !== null) {
+                $result[]   = $object;
+            }
+        }
+
+        return new static($result);
+    }
+
+    /**
      * 指定したキーのオブジェクトの値を探して返します。
      *
      * @param  array    $criteria 検索条件
@@ -481,6 +519,65 @@ trait ObjectCollectionTrait
         return $result;
     }
 
+    /**
+     * 指定したキーのオブジェクトの値をコレクションに詰めて返します。
+     *
+     * @param  array                            $criteria 検索条件
+     * @param  string                           $map_key  マップキー
+     * @param  string|ObjectCollectionInterface $collection コレクション
+     * @param  array                            $orderBy  ソート設定
+     * @return ObjectCollectionInterface        検索結果
+     */
+    public function filterValueBy(array $criteria, string $map_key, string|ObjectCollectionInterface $collection, array $orderBy = []): ObjectCollectionInterface
+    {
+        $cache_map  = $this->loadCacheMap($criteria);
+
+        $not_found  = false;
+
+        if (\is_string($collection)) {
+            if (!\is_subclass_of($collection, ObjectCollectionInterface::class, false)) {
+                throw new \RuntimeException(\sprintf('%sは%sを実装している必要があります。', $collection, ObjectCollectionInterface::class));
+            }
+
+            $collection = new $collection();
+        }
+
+        foreach ($criteria as $key => $value) {
+            if (\is_object($value)) {
+                $value  = $this->normalizeKey($value, $key);
+            }
+
+            if (\array_key_exists($value, $cache_map)) {
+                $cache_map = $cache_map[$value];
+            } else {
+                $not_found  = true;
+
+                break;
+            }
+        }
+
+        if ($not_found) {
+            return $collection;
+        }
+
+        $result = [];
+
+        $keyAccessType  = $this->getKeyAccessType();
+
+        foreach ($cache_map as $unique_id) {
+            if (($object = $this->collection[$unique_id] ?? null) !== null) {
+                \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
+
+                $result[]   = match ($keyAccessType->name) {
+                    KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
+                    KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
+                    default                               => $object->{$this->accessKeyCache[$map_key]}(),
+                };
+            }
+        }
+
+        return $collection->addAll($result);
+    }
     /**
      * 指定したキーのオブジェクトを探して返します。
      *
@@ -750,7 +847,7 @@ trait ObjectCollectionTrait
 
         $keyAccessType    = $this->getKeyAccessType();
 
-        foreach ($this->reverseCacheMap[$unique_id] as $cache_key => $criteria_keys) {
+        foreach ($this->reverseCacheMap[$unique_id] ?? [] as $cache_key => $criteria_keys) {
             $in_nest_list   = [];
 
             foreach ($criteria_keys as $map_key) {
@@ -825,9 +922,9 @@ trait ObjectCollectionTrait
 
                 unset($tmp);
             }
-
-            unset($this->collection[$unique_id]);
         }
+
+        unset($this->collection[$unique_id]);
 
         return $this;
     }
