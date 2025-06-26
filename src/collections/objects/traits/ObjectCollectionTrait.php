@@ -1075,11 +1075,11 @@ trait ObjectCollectionTrait
      */
     public function getIteratorReversed(): \Traversable
     {
-        return function (): \Generator {
+        return (function (): \Generator {
             foreach (\array_reverse(\array_keys($this->collection)) as $key) {
                 yield $this->collection[$key];
             }
-        };
+        })();
     }
 
     /**
