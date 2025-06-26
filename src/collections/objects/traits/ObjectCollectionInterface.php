@@ -65,6 +65,14 @@ interface ObjectCollectionInterface extends
     public function __construct(iterable $objects = [], array $options = []);
 
     /**
+     * このコレクションを元に新しいコレクションを作成して返します。
+     *
+     * @param iterable $objects 初期状態として受け入れるオブジェクトの配列
+     * @return static 新しいコレクション
+     */
+    public function with(iterable $objects = []): static;
+
+    /**
      * コレクションのJSONにシリアライズするための表現を返します。
      *
      * @return mixed コレクションのJSONにシリアライズするための表現
