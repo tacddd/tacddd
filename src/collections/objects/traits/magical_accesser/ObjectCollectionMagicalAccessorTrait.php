@@ -63,7 +63,13 @@ trait ObjectCollectionMagicalAccessorTrait
     {
         foreach (static::ACTION_SPEC_MAP as $action => $spec) {
             if (\str_starts_with($method_name, $action)) {
+                $as_array       = \str_ends_with($method_name, 'AsArray');
+
                 $find_key       = \mb_substr($method_name, $spec['length']);
+                if ($as_array) {
+                    $find_key   = \mb_substr($find_key, 0, -7);
+                }
+
                 $action         = \mb_substr($action, 0, $spec['length']);
                 $use_key_adjust = \str_ends_with($action, 'Of');
 
@@ -101,7 +107,14 @@ trait ObjectCollectionMagicalAccessorTrait
                     $parameters     = [$find_keys, ...$arguments];
                 }
 
+                if ($as_array) {
+                    $action .= 'AsArray';
+                }
+
                 return match ($action) {
+                    'findValueByAsArray'=> $this->findValueByAsArray(...$parameters),
+                    'filterByAsArray'   => $this->filterByAsArray(...$parameters),
+                    'findByAsArray'     => $this->findByAsArray(...$parameters),
                     'toArrayOneMapOf'   => $this->toArrayOneMap(...$parameters),
                     'findOneToMapBy'    => $this->findOneToMapBy(...$parameters),
                     'getArrayMapOf'     => $this->getArrayMap(...$parameters),

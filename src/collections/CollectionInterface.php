@@ -52,20 +52,40 @@ interface CollectionInterface extends
     public function hasBy(array $criteria): bool;
 
     /**
-     * コレクションの全オブジェクトを返します。
-     *
-     * @return array コレクションの全オブジェクト
-     */
-    public function findAll(): array;
-
-    /**
      * 指定したキーのオブジェクトを探して返します。
      *
      * @param  array    $criteria 検索条件
      * @param  array    $order_by ソート設定
+     * @return static   検索結果
+     */
+    public function findBy(array $criteria, array $order_by = []): static;
+
+    /**
+     * 指定したキーのオブジェクトを探して配列として返します。
+     *
+     * @param  array    $criteria 検索条件
+     * @param  array    $options  オプション
      * @return object[] 検索結果
      */
-    public function findBy(array $criteria, array $order_by = []): array;
+    public function findByAsArray(array $criteria, array $options = []): array;
+
+    /**
+     * コレクションをフィルタして返します。
+     *
+     * @param  \Closure $criteria   フィルタ条件
+     * @param  array    $options    オプション
+     * @return static   検索結果
+     */
+    public function filterBy(\Closure $criteria, array $options = []): static;
+
+    /**
+     * コレクションをフィルタして配列として返します。
+     *
+     * @param  \Closure $criteria   フィルタ条件
+     * @param  array    $options    オプション
+     * @return static   検索結果
+     */
+    public function filterByAsArray(\Closure $criteria, array $options = []): array;
 
     /**
      * 指定したキーのオブジェクトを探して返します。
@@ -161,6 +181,20 @@ interface CollectionInterface extends
      * @return \Traversable イテレータ
      */
     public function getIterator(): \Traversable;
+
+    /**
+     * 逆順で返すイテレータを返します。
+     *
+     * @return \Traversable イテレータ
+     */
+    public function getIteratorReversed(): \Traversable;
+
+    /**
+     * ユニークキーでソートしたイテレータを返します。
+     *
+     * @return \Traversable イテレータ
+     */
+    public function getIteratorSortedByUniqueKey(bool $descending = false): \Traversable;
 
     /**
      * コレクションの配列表現を返します。

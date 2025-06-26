@@ -174,6 +174,17 @@ trait ObjectCollectionTrait
     }
 
     /**
+     * このコレクションを元に新しいコレクションを作成して返します。
+     *
+     * @param iterable $objects 初期状態として受け入れるオブジェクトの配列
+     * @return static 新しいコレクション
+     */
+    public function with(iterable $objects = []): static
+    {
+        return new static($objects, $this->options);
+    }
+
+    /**
      * オブジェクトを追加します。
      *
      * @param  object $object オブジェクト
@@ -350,16 +361,6 @@ trait ObjectCollectionTrait
     }
 
     /**
-     * コレクションの全オブジェクトを返します。
-     *
-     * @return array コレクションの全オブジェクト
-     */
-    public function findAll(): array
-    {
-        return $this->collection;
-    }
-
-    /**
      * コレクションの全オブジェクトの指定された値を返します。
      *
      * @param  string $map_key マップキー
@@ -387,11 +388,23 @@ trait ObjectCollectionTrait
     /**
      * 指定したキーのオブジェクトを探して返します。
      *
+     * @param  array  $criteria 検索条件
+     * @param  array  $options  オプション
+     * @return static 検索結果
+     */
+    public function findBy(array $criteria, array $options = []): static
+    {
+        return new static($this->findByAsArray($criteria, $options), $this->options);
+    }
+
+    /**
+     * 指定したキーのオブジェクトを探して配列として返します。
+     *
      * @param  array    $criteria 検索条件
-     * @param  array    $orderBy  ソート設定
+     * @param  array    $options  オプション
      * @return object[] 検索結果
      */
-    public function findBy(array $criteria, array $orderBy = []): array
+    public function findByAsArray(array $criteria, array $options = []): array
     {
         $cache_map  = $this->loadCacheMap($criteria);
 
@@ -427,45 +440,53 @@ trait ObjectCollectionTrait
     }
 
     /**
-     * 指定したキーのオブジェクトのみのコレクションを返します。
+     * コレクションをフィルタして返します。
      *
-     * @param  array    $criteria 検索条件
-     * @param  array    $orderBy  ソート設定
+     * @param  \Closure $criteria   フィルタ条件
+     * @param  array    $options    オプション
      * @return static   検索結果
      */
-    public function filterBy(array $criteria, array $orderBy = []): static
+    public function filterBy(\Closure $criteria, array $options = []): static
     {
-        $cache_map  = $this->loadCacheMap($criteria);
+        return new static($this->filterByAsArray($criteria, $options), $this->options);
+    }
 
-        $not_found  = false;
+    /**
+     * コレクションをフィルタして配列として返します。
+     *
+     * @param  \Closure $criteria   フィルタ条件
+     * @param  array    $options    オプション
+     * @return static   検索結果
+     */
+    public function filterByAsArray(\Closure $criteria, array $options = []): array
+    {
+        $result = [];
 
-        foreach ($criteria as $key => $value) {
-            if (\is_object($value)) {
-                $value  = $this->normalizeKey($value, $key);
-            }
-
-            if (\array_key_exists($value, $cache_map)) {
-                $cache_map = $cache_map[$value];
-            } else {
-                $not_found  = true;
-
-                break;
-            }
-        }
-
-        if ($not_found) {
-            new static();
-        }
-
-        $result         = [];
-
-        foreach ($cache_map as $unique_id) {
-            if (($object = $this->collection[$unique_id] ?? null) !== null) {
+        foreach ($this->collection as $unique_kue => $object) {
+            if ($criteria($object, $unique_kue, $options)) {
                 $result[]   = $object;
             }
         }
 
-        return new static($result);
+        return $result;
+    }
+
+    /**
+     * 指定したキーのオブジェクトの値を探して返します。
+     *
+     * @param  array    $criteria 検索条件
+     * @param  array    $map_key  マップキー
+     * @param  string   $collection_class コレクションクラスパス
+     * @param  array    $options  オプション
+     * @return object[] 検索結果
+     */
+    public function findValueBy(array $criteria, string $map_key, string $collection_class, array $options = []): ObjectCollectionInterface
+    {
+        if (!\is_subclass_of($collection_class, ObjectCollectionInterface::class, true)) {
+            throw new \RuntimeException(\sprintf('%sは%sを実装している必要があります。', $collection_class, ObjectCollectionInterface::class));
+        }
+
+        return new $collection_class($this->findValueByAsArray($criteria, $map_key));
     }
 
     /**
@@ -473,10 +494,10 @@ trait ObjectCollectionTrait
      *
      * @param  array    $criteria 検索条件
      * @param  string   $map_key  マップキー
-     * @param  array    $orderBy  ソート設定
+     * @param  array    $options  オプション
      * @return object[] 検索結果
      */
-    public function findValueBy(array $criteria, string $map_key, array $orderBy = []): array
+    public function findValueByAsArray(array $criteria, string $map_key, array $options = []): array
     {
         $cache_map  = $this->loadCacheMap($criteria);
 
@@ -520,72 +541,13 @@ trait ObjectCollectionTrait
     }
 
     /**
-     * 指定したキーのオブジェクトの値をコレクションに詰めて返します。
-     *
-     * @param  array                            $criteria 検索条件
-     * @param  string                           $map_key  マップキー
-     * @param  string|ObjectCollectionInterface $collection コレクション
-     * @param  array                            $orderBy  ソート設定
-     * @return ObjectCollectionInterface        検索結果
-     */
-    public function filterValueBy(array $criteria, string $map_key, string|ObjectCollectionInterface $collection, array $orderBy = []): ObjectCollectionInterface
-    {
-        $cache_map  = $this->loadCacheMap($criteria);
-
-        $not_found  = false;
-
-        if (\is_string($collection)) {
-            if (!\is_subclass_of($collection, ObjectCollectionInterface::class, false)) {
-                throw new \RuntimeException(\sprintf('%sは%sを実装している必要があります。', $collection, ObjectCollectionInterface::class));
-            }
-
-            $collection = new $collection();
-        }
-
-        foreach ($criteria as $key => $value) {
-            if (\is_object($value)) {
-                $value  = $this->normalizeKey($value, $key);
-            }
-
-            if (\array_key_exists($value, $cache_map)) {
-                $cache_map = $cache_map[$value];
-            } else {
-                $not_found  = true;
-
-                break;
-            }
-        }
-
-        if ($not_found) {
-            return $collection;
-        }
-
-        $result = [];
-
-        $keyAccessType  = $this->getKeyAccessType();
-
-        foreach ($cache_map as $unique_id) {
-            if (($object = $this->collection[$unique_id] ?? null) !== null) {
-                \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
-
-                $result[]   = match ($keyAccessType->name) {
-                    KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
-                    KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
-                    default                               => $object->{$this->accessKeyCache[$map_key]}(),
-                };
-            }
-        }
-
-        return $collection->addAll($result);
-    }
-    /**
      * 指定したキーのオブジェクトを探して返します。
      *
      * @param  array  $criteria 検索条件
-     * @param  array  $orderBy  ソート設定
+     * @param  array  $options  オプション
      * @return object 検索結果
      */
-    public function findOneBy(array $criteria, array $orderBy = []): ?object
+    public function findOneBy(array $criteria, array $options = []): ?object
     {
         $unique_id  = $this->loadCacheMap($criteria);
 
@@ -619,10 +581,10 @@ trait ObjectCollectionTrait
      *
      * @param  array  $criteria 検索条件
      * @param  string $map_key  マップキー
-     * @param  array  $orderBy  ソート設定
+     * @param  array  $options  オプション
      * @return mixed  検索結果
      */
-    public function findValueOneBy(array $criteria, string $map_key, array $orderBy = []): mixed
+    public function findValueOneBy(array $criteria, string $map_key, array $options = []): mixed
     {
         $unique_id  = $this->loadCacheMap($criteria);
 
@@ -668,7 +630,7 @@ trait ObjectCollectionTrait
      *
      * @param  array $criteria 検索条件
      * @param  array $map_keys マップキー
-     * @param  array $order_by ソート設定
+     * @param  array $order_by オプション
      * @return array オブジェクト
      */
     public function findToMapBy(array $criteria, array $map_keys = [], array $order_by = []): array
@@ -754,7 +716,7 @@ trait ObjectCollectionTrait
      *
      * @param  array $criteria 検索条件
      * @param  array $map_keys マップキー
-     * @param  array $order_by ソート設定
+     * @param  array $order_by オプション
      * @return array オブジェクト
      */
     public function findOneToMapBy(array $criteria, array $map_keys = [], array $order_by = []): array
@@ -1104,6 +1066,34 @@ trait ObjectCollectionTrait
     public function getIterator(): \Traversable
     {
         return new \ArrayIterator($this->collection);
+    }
+
+    /**
+     * 逆順で返すイテレータを返します。
+     *
+     * @return \Traversable イテレータ
+     */
+    public function getIteratorReversed(): \Traversable
+    {
+        return function (): \Generator {
+            foreach (\array_reverse(\array_keys($this->collection)) as $key) {
+                yield $this->collection[$key];
+            }
+        };
+    }
+
+    /**
+     * ユニークキーでソートしたイテレータを返します。
+     *
+     * @return \Traversable イテレータ
+     */
+    public function getIteratorSortedByUniqueKey(bool $descending = false): \Traversable
+    {
+        $collection = $this->collection;
+
+        $descending ? \krsort($collection) : \ksort($collection);
+
+        return new \ArrayIterator($collection);
     }
 
     /**
