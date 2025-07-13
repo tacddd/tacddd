@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 namespace tacddd\tests\cases\collections\objects;
 
+use Closure;
 use PHPUnit\Framework\Attributes\Test;
 use tacddd\tests\utilities\AbstractTestCase;
 use tacddd\collections\objects\ObjectCollectionFactory;
@@ -108,5 +109,45 @@ class ObjectCollectionFactoryTest extends AbstractTestCase
             new NameCollection([$name1]),
             $collection->findValueBy(['id' => 1], 'name', NameCollection::class)
         );
+    }
+
+    #[Test]
+    public function closure(): void
+    {
+        $expected = new FindValueByCollectionEntityDummyCollection([
+            $asdf = new FindValueByCollectionEntityDummy(new Id(1), $name1 = new Name('asdf')),
+            $zxcv = new FindValueByCollectionEntityDummy(new Id(2), new Name('zxcv')),
+            $qwer = new FindValueByCollectionEntityDummy(new Id(3), new Name('qwer')),
+        ]);
+
+        //==============================================
+        $actual = new FindValueByCollectionEntityDummyCollection(function () use ($asdf, $zxcv, $qwer) {
+            return [
+                $asdf,
+                $zxcv,
+                $qwer,
+            ];
+        });
+
+        $this->assertEquals($expected, $actual);
+
+        //==============================================
+        $actual = new FindValueByCollectionEntityDummyCollection(function () use ($asdf, $zxcv, $qwer): \Generator {
+            yield $asdf;
+            yield $zxcv;
+            yield $qwer;
+        });
+
+        $this->assertEquals($expected, $actual);
+
+        //==============================================
+        $actual = new FindValueByCollectionEntityDummyCollection(function () use ($asdf) {
+            return $asdf;
+        });
+
+        $actual->addAll($zxcv);
+        $actual->addAll($qwer);
+
+        $this->assertEquals($expected, $actual);
     }
 }
