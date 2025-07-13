@@ -74,10 +74,10 @@ final class ObjectCollectionFactory
             /**
              * constructor
              *
-             * @param iterable $objects 初期状態として受け入れるオブジェクトの配列
+             * @param iterable|object $objects 初期状態として受け入れるオブジェクトの配列
              * @param array    $options オプション
              */
-            public function __construct(iterable $objects = [], array $options = [])
+            public function __construct(iterable|object $objects = [], array $options = [])
             {
                 self::$allowedClasses   = $options['allowed_classes'];
 
@@ -89,9 +89,7 @@ final class ObjectCollectionFactory
 
                 $this->options  = $options;
 
-                foreach ($objects as $object) {
-                    $this->add($object);
-                }
+                $this->addAll($objects);
             }
 
             /**

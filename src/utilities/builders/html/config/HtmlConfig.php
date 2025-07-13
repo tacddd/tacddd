@@ -27,9 +27,9 @@ use tacddd\utilities\containers\ContainerService;
 class HtmlConfig implements HtmlConfigInterface
 {
     /**
-     * @var array エスケープタイプリスト
+     * @var array エスケープタイプマップ
      */
-    public const ESCAPE_TYPE_LIST   = [
+    public const ESCAPE_TYPE_MAP    = [
         self::ESCAPE_TYPE_HTML          => self::ESCAPE_TYPE_HTML,
         self::ESCAPE_TYPE_JAVASCRIPT    => self::ESCAPE_TYPE_JAVASCRIPT,
         self::ESCAPE_TYPE_JS            => self::ESCAPE_TYPE_JS,
@@ -86,7 +86,7 @@ class HtmlConfig implements HtmlConfigInterface
             return $this->escapeType;
         }
 
-        if (!isset(static::ESCAPE_TYPE_LIST[$escape_type])) {
+        if (!isset(static::ESCAPE_TYPE_MAP[$escape_type])) {
             throw new \Exception(ContainerService::getStringService()->buildDebugMessage('利用できないエスケープタイプを指定されました。', $escape_type));
         }
 

@@ -63,9 +63,9 @@ trait ObjectCollectionTrait
     protected array $accessKeyCache = [];
 
     /**
-     * @var array オブジェクトが持つアクセスポイントリスト
+     * @var array オブジェクトが持つアクセスポイントマップ
      */
-    protected array $objectAccessPointList  = [];
+    protected array $objectAccessPointMap   = [];
 
     /**
      * 指定された値からユニークIDを返します。
@@ -153,10 +153,10 @@ trait ObjectCollectionTrait
     /**
      * constructor
      *
-     * @param iterable $objects 初期状態として受け入れるオブジェクトの配列
+     * @param iterable $objects|object 初期状態として受け入れるオブジェクト群
      * @param array    $options オプション
      */
-    public function __construct(iterable $objects = [], array $options = [])
+    public function __construct(iterable|object $objects = [], array $options = [])
     {
         // ==============================================
         // options
@@ -176,10 +176,10 @@ trait ObjectCollectionTrait
     /**
      * このコレクションを元に新しいコレクションを作成して返します。
      *
-     * @param iterable $objects 初期状態として受け入れるオブジェクトの配列
+     * @param iterable|object $objects 初期状態として受け入れるオブジェクトの群
      * @return static 新しいコレクション
      */
-    public function with(iterable $objects = []): static
+    public function with(iterable|object $objects = []): static
     {
         return new static($objects, $this->options);
     }
@@ -219,6 +219,12 @@ trait ObjectCollectionTrait
             foreach ($objects as $object) {
                 $this->add($object);
             }
+        } elseif ($objects instanceof \Closure) {
+            if (\Closure::class === static::getAllowedClass()) {
+                $this->add($objects);
+            } else {
+                $this->addAll($objects());
+            }
         } else {
             $this->add($objects);
         }
@@ -228,6 +234,12 @@ trait ObjectCollectionTrait
                 if (\is_iterable($objects)) {
                     foreach ($objects as $object) {
                         $this->add($object);
+                    }
+                } elseif ($objects instanceof \Closure) {
+                    if (\Closure::class === static::getAllowedClass()) {
+                        $this->add($objects);
+                    } else {
+                        $this->addAll($objects());
                     }
                 } else {
                     $this->add($objects);
@@ -1122,14 +1134,14 @@ trait ObjectCollectionTrait
     }
 
     /**
-     * 受け入れるクラスが持つパブリックメソッドのリストを返します。
+     * 受け入れるクラスが持つパブリックメソッドのマップを返します。
      *
-     * @return array 受け入れるクラスが持つパブリックメソッドのリスト
+     * @return array 受け入れるクラスが持つパブリックメソッドのマップ
      */
-    protected function getObjectMethodList(): array
+    protected function getObjectMethodMap(): array
     {
-        if (empty($this->objectAccessPointList)) {
-            $object_method_list    = [];
+        if (empty($this->objectAccessPointMap)) {
+            $object_method_map    = [];
 
             foreach ((new \ReflectionClass(static::getAllowedClass(9)))->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
                 $method_name    = $method->getName();
@@ -1138,20 +1150,20 @@ trait ObjectCollectionTrait
                     continue;
                 }
 
-                $object_method_list[$method->getName()]    = [
+                $object_method_map[$method->getName()]  = [
                     'map_key'   => $map_key = \mb_substr($method_name, 4),
                     'length'    => \mb_strlen($map_key),
                 ];
             }
 
-            \uksort($object_method_list, function($a, $b): int {
+            \uksort($object_method_map, function($a, $b): int {
                 return \strlen($b) <=> \strlen($a) ?: \strnatcmp($b, $a);
             });
 
-            $this->objectAccessPointList    = $object_method_list;
+            $this->objectAccessPointMap = $object_method_map;
         }
 
-        return $this->objectAccessPointList;
+        return $this->objectAccessPointMap;
     }
 
     /**
