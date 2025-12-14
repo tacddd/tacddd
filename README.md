@@ -152,6 +152,146 @@ $entityCollection->toOneMap(['group', 'name', 'id']); // 次の形式の配列�
 */
 ```
 
+値だけの配列としてグルーピングした結果を取得したい場合は、`toArrayMap`メソッドを利用してください。
+
+```php
+$entityCollection->toArrayMap(['group', 'name', 'id']); // 次の形式の配列を取得できる
+/*
+[
+    'alpha' => [
+        'いろは'    => [
+            1   => [
+                [
+                    'group' => 'alpha',
+                    'name'  => 'いろは',
+                    'id'    => 1,
+                ],
+            ],
+        ]
+    ],
+    'bravo' => [
+        'にほへ'    => [
+            2   => [
+                [
+                    'group' => 'bravo',
+                    'name'  => 'にほへ',
+                    'id'    => 2,
+                ],
+            ],
+        ],
+        'とちり'    => [
+            3   => [
+                [
+                    'group' => 'bravo',
+                    'name'  => 'とちり',
+                    'id'    => 3,
+                ],
+            ],
+        ],
+    ],
+]
+*/
+```
+
+値だけの配列として第一要素だけをグルーピングした結果を取得したい場合は、`toArrayOneMap`メソッドを利用してください。
+
+```php
+$entityCollection->toArrayOneMap(['group', 'name', 'id']); // 次の形式の配列を取得できる
+/*
+[
+    'alpha' => [
+        'いろは'    => [
+            1   => [
+                'group' => 'alpha',
+                'name'  => 'いろは',
+                'id'    => 1,
+            ],
+        ]
+    ],
+    'bravo' => [
+        'にほへ'    => [
+            2   => [
+                'group' => 'bravo',
+                'name'  => 'にほへ',
+                'id'    => 2,
+            ],
+        ],
+        'とちり'    => [
+            3   => [
+                'group' => 'bravo',
+                'name'  => 'とちり',
+                'id'    => 3,
+            ],
+        ],
+    ],
+]
+*/
+```
+
+値だけのマップとしてグルーピングした結果を取得したい場合は、`getArrayMap`メソッドを利用してください。
+
+```php
+$entityCollection->getArrayMap(['id']); // 次の形式の配列を取得できる
+/*
+[
+    1   => 1,
+    2   => 2,
+    3   => 3,
+]
+*/
+```
+
+第二引数を利用することで値を変更することもできます。
+
+```php
+$entityCollection->getArrayMap(['group', 'name', 'id'], 'name'); // 次の形式の配列を取得できる
+/*
+[
+    'alpha' => [
+        'いろは'    => [
+            1   => 'いろは',
+        ]
+    ],
+    'bravo' => [
+        'にほへ'    => [
+            2   => 'にほへ',
+        ],
+        'とちり'    => [
+            3   => 'とちり',
+        ],
+    ],
+]
+*/
+```
+
+第二引数にコールバックを指定することで様々な変更も実施できます。
+
+```php
+$entityCollection->getArrayMap(['group', 'name', 'id'], function (
+    Entity $entity,
+    array $access_key_cache,
+): int|string {
+    return $entity->getName();
+}); // 次の形式の配列を取得できる
+/*
+[
+    'alpha' => [
+        'いろは'    => [
+            1   => 'いろは',
+        ]
+    ],
+    'bravo' => [
+        'にほへ'    => [
+            2   => 'にほへ',
+        ],
+        'とちり'    => [
+            3   => 'とちり',
+        ],
+    ],
+]
+*/
+```
+
 ## magical access entity collection
 
 次の特性を追加する事により、メソッドとして自明的なアクセスも可能になります。
@@ -244,6 +384,40 @@ $entityCollection->toOneMapInGroupInNameInId(); // 次の形式の配列を取�
     ],
 ]
 */
+```
+
+その他、前述のメソッドは次の形で代替できます。
+
+```php
+// 次の二つは等価
+$entityCollection->toArrayMap(['group', 'name', 'id']);
+$entityCollection->toArrayMapOfGroupAndNameAndId();
+
+// 次の二つは等価
+$entityCollection->toArrayOneMap(['group', 'name', 'id']);
+$entityCollection->toArrayOneMapOfGroupAndNameAndId();
+
+// 次の二つは等価
+$entityCollection->getArrayMap(['id']);
+$entityCollection->getArrayMapOfId();
+
+// 次の二つは等価
+$entityCollection->getArrayMap(['group', 'name', 'id'], 'name');
+$entityCollection->getArrayMapOfGroupAndNameAndId('name');
+
+// 次の二つは等価
+$entityCollection->getArrayMap(['group', 'name', 'id'], function (
+    Entity $entity,
+    array $access_key_cache,
+): int|string {
+    return $entity->getName();
+});
+$entityCollection->getArrayMapOfGroupAndNameAndId(function (
+    Entity $entity,
+    array $access_key_cache,
+): int|string {
+    return $entity->getName();
+});
 ```
 
 ## collection factory

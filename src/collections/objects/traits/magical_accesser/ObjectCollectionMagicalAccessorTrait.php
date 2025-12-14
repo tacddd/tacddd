@@ -12,7 +12,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -27,17 +27,29 @@ trait ObjectCollectionMagicalAccessorTrait
     /**
      * マップキーをパースして返します。
      *
-     * @param  string $find_key  マップキー
-     * @param  string $separator セパレータ
+     * @param  string $find_key       マップキー
+     * @param  string $separator      セパレータ
+     * @param  bool   $use_key_adjust キーを調整して返すかどうか
      * @return array  キー配列
      */
-    public static function parseFindKey(string $find_key, string $separator): array
+    public static function parseFindKey(string $find_key, string $separator, bool $use_key_adjust = false): array
     {
         if (!\str_contains($find_key, $separator)) {
-            return [$find_key];
+            $map_keys   = [$find_key];
+        } else {
+            $map_keys   = \explode($separator, $find_key);
         }
 
-        return \explode($separator, $find_key);
+        if ($use_key_adjust) {
+            foreach ($map_keys as $idx => $map_key) {
+                $map_keys[$idx] = \strtolower(\ltrim(
+                    \preg_replace(\mb_internal_encoding() === 'UTF-8' ? '/_*([A-Z])/u' : '/_*([A-Z])/', '_${1}', $map_key),
+                    '_',
+                ));
+            }
+        }
+
+        return $map_keys;
     }
 
     /**
@@ -51,14 +63,28 @@ trait ObjectCollectionMagicalAccessorTrait
     {
         foreach (static::ACTION_SPEC_MAP as $action => $spec) {
             if (\str_starts_with($method_name, $action)) {
-                $find_key   = \mb_substr($method_name, $spec['length']);
-                $action     = \mb_substr($action, 0, $spec['length']);
-                $use_args   = $spec['use_args'];
-                $separator  = $spec['separator'];
+                $as_array       = \str_ends_with($method_name, 'AsArray');
+
+                $find_key       = \mb_substr($method_name, $spec['length']);
+
+                if ($as_array) {
+                    $find_key   = \mb_substr($find_key, 0, -7);
+                }
+
+                $action         = \mb_substr($action, 0, $spec['length']);
+                $use_key_adjust = \str_ends_with($action, 'Of');
+
+                $default_args   = $spec['default_args'] ?? [];
+                $use_args       = $spec['use_args'];
+                $separator      = $spec['separator'];
+
+                foreach ($default_args as $idx => $default_arg) {
+                    $arguments[$idx] ??= $default_arg;
+                }
 
                 $criteria   = [];
 
-                $find_keys  = $this->parseFindKey($find_key, $separator);
+                $find_keys  = $this->parseFindKey($find_key, $separator, $use_key_adjust);
 
                 if ($use_args) {
                     foreach ($find_keys as $idx => $cache_key) {
@@ -79,19 +105,32 @@ trait ObjectCollectionMagicalAccessorTrait
                         $parameters[]   = $arguments[$idx];
                     }
                 } else {
-                    $parameters     = [$find_keys];
+                    $parameters     = [$find_keys, ...$arguments];
+                }
+
+                if ($as_array) {
+                    $action .= 'AsArray';
                 }
 
                 return match ($action) {
-                    'findOneToMapBy'    => $this->findOneToMapBy(...$parameters),
-                    'findToMapBy'       => $this->findToMapBy(...$parameters),
-                    'toOneMapIn'        => $this->toOneMap(...$parameters),
-                    'findOneBy'         => $this->findOneBy(...$parameters),
-                    'removeBy'          => $this->removeBy(...$parameters),
-                    'toMapIn'           => $this->toMap(...$parameters),
-                    'findBy'            => $this->findBy(...$parameters),
-                    'hasBy'             => $this->hasBy(...$parameters),
-                    default             => throw new \Error(\sprintf('Call to undefined method %s::%s()', static::class, $method_name)),
+                    'findValueByAsArray' => $this->findValueByAsArray(...$parameters),
+                    'filterByAsArray'    => $this->filterByAsArray(...$parameters),
+                    'findByAsArray'      => $this->findByAsArray(...$parameters),
+                    'toArrayOneMapOf'    => $this->toArrayOneMap(...$parameters),
+                    'findOneToMapBy'     => $this->findOneToMapBy(...$parameters),
+                    'getArrayMapOf'      => $this->getArrayMap(...$parameters),
+                    'filterValueBy'      => $this->filterValueBy(...$parameters),
+                    'toArrayMapOf'       => $this->toArrayMap(...$parameters),
+                    'findToMapBy'        => $this->findToMapBy(...$parameters),
+                    'findValueBy'        => $this->findValueBy(...$parameters),
+                    'toOneMapIn'         => $this->toOneMap(...$parameters),
+                    'findOneBy'          => $this->findOneBy(...$parameters),
+                    'filterBy'           => $this->filterBy(...$parameters),
+                    'removeBy'           => $this->removeBy(...$parameters),
+                    'toMapIn'            => $this->toMap(...$parameters),
+                    'findBy'             => $this->findBy(...$parameters),
+                    'hasBy'              => $this->hasBy(...$parameters),
+                    default              => throw new \Error(\sprintf('Call to undefined method %s::%s()', static::class, $method_name)),
                 };
             }
         }

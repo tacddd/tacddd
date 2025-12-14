@@ -12,7 +12,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -32,6 +32,7 @@ interface ResultDetailsCollectionInterface
     public function hasAnyFailure(): bool;
 
     /**
+<<<<<<< HEAD
      * 結果詳細を構築し追加します。
      *
      * @param  string $message メッセージ
@@ -43,11 +44,34 @@ interface ResultDetailsCollectionInterface
         string $message = '',
         mixed $details = null,
         ?bool $outcome = null,
+=======
+     * 子要素を含めて処理結果詳細の中に一つでも失敗があるかどうかを返します。
+     *
+     * @return bool 子要素を含めて処理結果詳細の中に一つでも失敗があるかどうか
+     */
+    public function hasRecursiveAnyFailure(): bool;
+
+    /**
+     * 結果詳細を構築し追加します。
+     *
+     * @param  string                                $message           メッセージ
+     * @param  mixed                                 $details           結果詳細
+     * @param  null|ResultDetailsCollectionInterface $detailsCollection 処理結果詳細コレクション
+     * @param  ?bool                                 $outcome           結果状態
+     * @return static                                結果詳細
+     */
+    public function addNew(
+        string $message = '',
+        mixed $details  = null,
+        ?ResultDetailsCollectionInterface $detailsCollection = null,
+        ?bool $outcome  = null,
+>>>>>>> master
     ): static;
 
     /**
      * 成功時の結果詳細を構築し追加します。
      *
+<<<<<<< HEAD
      * @param  string $message メッセージ
      * @param  mixed  $details 結果詳細
      * @return static 結果詳細
@@ -56,11 +80,23 @@ interface ResultDetailsCollectionInterface
         string $message = '',
         mixed $details = null,
         ?bool $outcome = null,
+=======
+     * @param  string                                $message           メッセージ
+     * @param  mixed                                 $details           結果詳細
+     * @param  null|ResultDetailsCollectionInterface $detailsCollection 処理結果詳細コレクション
+     * @return static                                結果詳細
+     */
+    public function addNewSuccess(
+        string $message = '',
+        mixed $details  = null,
+        ?ResultDetailsCollectionInterface $detailsCollection = null,
+>>>>>>> master
     ): static;
 
     /**
      * 失敗時の結果詳細を構築し追加します。
      *
+<<<<<<< HEAD
      * @param  string $message メッセージ
      * @param  mixed  $details 結果詳細
      * @return static 結果詳細
@@ -68,5 +104,16 @@ interface ResultDetailsCollectionInterface
     public function addNewFailure(
         string $message = '',
         mixed $details = null,
+=======
+     * @param  string                                $message           メッセージ
+     * @param  mixed                                 $details           結果詳細
+     * @param  null|ResultDetailsCollectionInterface $detailsCollection 処理結果詳細コレクション
+     * @return static                                結果詳細
+     */
+    public function addNewFailure(
+        string $message = '',
+        mixed $details  = null,
+        ?ResultDetailsCollectionInterface $detailsCollection = null,
+>>>>>>> master
     ): static;
 }

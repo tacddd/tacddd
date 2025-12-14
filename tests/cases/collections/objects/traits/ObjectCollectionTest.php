@@ -12,7 +12,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -22,6 +22,8 @@ namespace tacddd\tests\cases\collections\objects\traits;
 use PHPUnit\Framework\Attributes\Test;
 use tacddd\tests\utilities\AbstractTestCase;
 use tacddd\tests\utilities\resources\dummy\collections\EntityCollectionPropertyAccessDummy;
+use tacddd\tests\utilities\resources\dummy\objects\CollectionDateDummy;
+use tacddd\tests\utilities\resources\dummy\objects\CollectionDateEntityDummy;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionDummy;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionEntityDummy;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionEntityPropertyAccessDummy;
@@ -107,36 +109,14 @@ class ObjectCollectionTest extends AbstractTestCase
         $this->assertSame($asdf, $collection->first());
         $this->assertSame($hjkl, $collection->last());
 
-        $this->assertSame(null, $collection->find(2));
+        $this->assertNull($collection->find(2));
 
         $this->assertSame([], $collection->findBy(['id' => 2]));
-        $this->assertSame(null, $collection->findOneBy(['id' => 2]));
+        $this->assertNull($collection->findOneBy(['id' => 2]));
         $this->assertSame([], $collection->findToMapBy(['id' => 2], ['group', 'id']));
 
         $this->assertSame(['qwer' => [3 => [$qwer], 4 => [$hjkl]]], $collection->findToMapBy(['group' => 'qwer'], ['group', 'id']));
         $this->assertSame(['qwer' => [3 => $qwer, 4 => $hjkl]], $collection->findOneToMapBy(['group' => 'qwer'], ['group', 'id']));
-    }
-
-    #[Test]
-    public function toMap(): void
-    {
-        $collection     = new CollectionDummy([
-            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
-            $zxcv   = new CollectionEntityDummy(2, 'qwer', 'value2'),
-            $qwer   = new CollectionEntityDummy(3, 'qwer', 'value3'),
-            $obj1   = new CollectionEntityDummy(4, '1111', 'value3'),
-            $obj2   = new CollectionEntityDummy(5, '1111', 'value3'),
-            $obj3   = new CollectionEntityDummy(6, '1111', 'value3'),
-        ]);
-
-        $collection->toOneMap(['group', 'name', 'id']);
-
-        $this->assertSame(['asdf' => [$asdf], 'qwer' => [$zxcv, $qwer], '1111' => [$obj1, $obj2, $obj3]], $collection->toMap(['group']));
-
-        $collection->remove($zxcv);
-        $collection->remove($qwer);
-
-        $this->assertSame(['asdf' => [$asdf], '1111' => [$obj1, $obj2, $obj3]], $collection->toMap(['group']));
     }
 
     #[Test]
@@ -268,4 +248,297 @@ class ObjectCollectionTest extends AbstractTestCase
 
         (new CollectionDummy())->add(new \DateTimeImmutable());
     }
+<<<<<<< HEAD
+=======
+
+    #[Test]
+    public function toMap(): void
+    {
+        $collection     = new CollectionDummy([
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'qwer', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'qwer', 'value3'),
+            $obj1   = new CollectionEntityDummy(4, '1111', 'value3'),
+            $obj2   = new CollectionEntityDummy(5, '1111', 'value3'),
+            $obj3   = new CollectionEntityDummy(6, '1111', 'value3'),
+        ]);
+
+        $expected       = [
+            'asdf' => [
+                'value1'    => [
+                    1   => [
+                        $asdf,
+                    ],
+                ],
+            ],
+            'qwer' => [
+                'value2'    => [
+                    2   => [
+                        $zxcv,
+                    ],
+                ],
+                'value3'    => [
+                    3 => [
+                        $qwer,
+                    ],
+                ],
+            ],
+            '1111' => [
+                'value3'    => [
+                    4 => [
+                        $obj1,
+                    ],
+                    5 => [
+                        $obj2,
+                    ],
+                    6 => [
+                        $obj3,
+                    ],
+                ],
+            ],
+        ];
+
+        $this->assertSame($expected, $collection->toMap(['group', 'name', 'id']));
+
+        // ----------------------------------------------
+        $collection->remove($zxcv);
+        $collection->remove($qwer);
+
+        $expected       = [
+            'asdf' => [
+                'value1'    => [
+                    1   => [
+                        $asdf,
+                    ],
+                ],
+            ],
+            '1111' => [
+                'value3'    => [
+                    4 => [
+                        $obj1,
+                    ],
+                    5 => [
+                        $obj2,
+                    ],
+                    6 => [
+                        $obj3,
+                    ],
+                ],
+            ],
+        ];
+        $this->assertSame($expected, $collection->toMap(['group', 'name', 'id']));
+    }
+
+    #[Test]
+    public function toOneMap(): void
+    {
+        $collection     = new CollectionDummy([
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'qwer', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'qwer', 'value3'),
+            $obj1   = new CollectionEntityDummy(4, '1111', 'value3'),
+            $obj2   = new CollectionEntityDummy(5, '1111', 'value3'),
+            $obj3   = new CollectionEntityDummy(6, '1111', 'value3'),
+        ]);
+
+        $expected       = [
+            'asdf' => [
+                'value1'    => [
+                    1   => $asdf,
+                ],
+            ],
+            'qwer' => [
+                'value2'    => [
+                    2   => $zxcv,
+                ],
+                'value3'    => [
+                    3 => $qwer,
+                ],
+            ],
+            '1111' => [
+                'value3'    => [
+                    4 => $obj1,
+                    5 => $obj2,
+                    6 => $obj3,
+                ],
+            ],
+        ];
+        $this->assertSame($expected, $collection->toOneMap(['group', 'name', 'id']));
+
+        // ----------------------------------------------
+        $collection->remove($zxcv);
+        $collection->remove($qwer);
+
+        $expected       = [
+            'asdf' => [
+                'value1'    => [
+                    1   => $asdf,
+                ],
+            ],
+            '1111' => [
+                'value3'    => [
+                    4 => $obj1,
+                    5 => $obj2,
+                    6 => $obj3,
+                ],
+            ],
+        ];
+        $this->assertSame($expected, $collection->toOneMap(['group', 'name', 'id']));
+    }
+
+    #[Test]
+    public function toArrayMap(): void
+    {
+        $actual   = new CollectionDummy([
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'zxcv', 'value3'),
+        ]);
+
+        $expected   = [
+            1   => [
+                [
+                    'id' => 1,
+                ],
+            ],
+            2   => [
+                [
+                    'id' => 2,
+                ],
+            ],
+            3   => [
+                [
+                    'id' => 3,
+                ],
+            ],
+        ];
+        $this->assertSame($expected, $actual->toArrayMap(['id']));
+
+        $expected   = [
+            'asdf'    => [
+                1   => [
+                    [
+                        'group' => 'asdf',
+                        'id'    => 1,
+                    ],
+                ],
+            ],
+            'zxcv'    => [
+                2   => [
+                    [
+                        'group' => 'zxcv',
+                        'id'    => 2,
+                    ],
+                ],
+                3   => [
+                    [
+                        'group' => 'zxcv',
+                        'id'    => 3,
+                    ],
+                ],
+            ],
+        ];
+        $this->assertSame($expected, $actual->toArrayMap(['group', 'id']));
+    }
+
+    #[Test]
+    public function toArrayOneMap(): void
+    {
+        $actual   = new CollectionDummy([
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'zxcv', 'value3'),
+        ]);
+
+        $expected   = [
+            1   => [
+                'id' => 1,
+            ],
+            2   => [
+                'id' => 2,
+            ],
+            3   => [
+                'id' => 3,
+            ],
+        ];
+        $this->assertSame($expected, $actual->toArrayOneMap(['id']));
+
+        $expected   = [
+            'asdf'    => [
+                1   => [
+                    'group' => 'asdf',
+                    'id'    => 1,
+                ],
+            ],
+            'zxcv'    => [
+                2   => [
+                    'group' => 'zxcv',
+                    'id'    => 2,
+                ],
+                3   => [
+                    'group' => 'zxcv',
+                    'id'    => 3,
+                ],
+            ],
+        ];
+
+        $this->assertSame($expected, $actual->toArrayOneMap(['group', 'id']));
+    }
+
+    #[Test]
+    public function getArrayMap(): void
+    {
+        $actual   = new CollectionDummy([
+            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer   = new CollectionEntityDummy(3, 'zxcv', 'value3'),
+        ]);
+
+        $expected   = [
+            1   => 1,
+            2   => 2,
+            3   => 3,
+        ];
+        $this->assertSame($expected, $actual->getArrayMap(['id']));
+
+        $expected   = [
+            'asdf'    => [
+                1   => 'asdf',
+            ],
+            'zxcv'    => [
+                2   => 'zxcv',
+                3   => 'zxcv',
+            ],
+        ];
+        $this->assertSame($expected, $actual->getArrayMap(['group', 'id']));
+
+        $actual   = new CollectionDateDummy([
+            $asdf   = new CollectionDateEntityDummy(1, $asdf_date = new \DateTimeImmutable('2023-01-01')),
+            $zxcv   = new CollectionDateEntityDummy(2, $zxcv_date = new \DateTimeImmutable('2023-01-02')),
+            $qwer   = new CollectionDateEntityDummy(3, $qwer_date = new \DateTimeImmutable('2023-01-02')),
+        ]);
+
+        $expected   = [
+            '2023/01/01'    => '2023/01/01',
+            '2023/01/02'    => '2023/01/02',
+        ];
+        $this->assertSame($expected, $actual->getArrayMap(['date_time'], function(
+            CollectionDateEntityDummy $entity,
+            array $access_key_cache,
+        ): string {
+            return $entity->getDateTime()->format('Y/m/d');
+        }));
+
+        $expected   = [
+            '2023/01/01'    => [
+                1 => $asdf_date,
+            ],
+            '2023/01/02'    => [
+                2 => $zxcv_date,
+                3 => $qwer_date,
+            ],
+        ];
+        $this->assertSame($expected, $actual->getArrayMap(['date_time', 'id']));
+    }
+>>>>>>> master
 }

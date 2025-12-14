@@ -12,7 +12,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -100,5 +100,53 @@ class ResultFactoryServiceTest extends AbstractTestCase
         $this->assertSame($result, $actual->getResult());
         $this->assertSame($message, $actual->getMessage());
         $this->assertSame($details, $actual->getDetailsCollection());
+<<<<<<< HEAD
+=======
+    }
+
+    #[Test]
+    public function createResultDetails(): void
+    {
+        $message            = '';
+        $details            = null;
+        $detailsCollection  = null;
+        $outcome            = null;
+
+        $actual     = ResultFactoryService::createResultDetails($message, $details, $detailsCollection, $outcome);
+
+        $this->assertInstanceOf(ResultDetailsInterface::class, $actual);
+        $this->assertSame($message, $actual->getMessage());
+        $this->assertSame($details, $actual->getDetails());
+        $this->assertSame($detailsCollection, $actual->getDetailsCollection());
+        $this->assertNull($actual->getOutcome());
+
+        // ==============================================
+        $message            = 'a';
+        $details            = 1;
+        $detailsCollection  = ResultFactoryService::createResultDetailsCollection();
+        $outcome            = true;
+
+        $actual     = ResultFactoryService::createResultDetails($message, $details, $detailsCollection, $outcome);
+
+        $this->assertInstanceOf(ResultDetailsInterface::class, $actual);
+        $this->assertSame($message, $actual->getMessage());
+        $this->assertSame($details, $actual->getDetails());
+        $this->assertSame($detailsCollection, $actual->getDetailsCollection());
+        $this->assertTrue($actual->getOutcome());
+
+        // ==============================================
+        $message            = 'b';
+        $details            = true;
+        $detailsCollection  = ResultFactoryService::createResultDetailsCollection();
+        $outcome            = false;
+
+        $actual     = ResultFactoryService::createResultDetails($message, $details, $detailsCollection, $outcome);
+
+        $this->assertInstanceOf(ResultDetailsInterface::class, $actual);
+        $this->assertSame($message, $actual->getMessage());
+        $this->assertSame($details, $actual->getDetails());
+        $this->assertSame($detailsCollection, $actual->getDetailsCollection());
+        $this->assertFalse($actual->getOutcome());
+>>>>>>> master
     }
 }

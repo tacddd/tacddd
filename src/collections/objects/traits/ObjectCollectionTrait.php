@@ -12,7 +12,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -26,6 +26,16 @@ use tacddd\collections\objects\enums\KeyAccessTypeEnum;
  */
 trait ObjectCollectionTrait
 {
+    /**
+     * @var null|\Closure JSONシリアライザ
+     */
+    protected readonly ?\Closure $jsonSerializer;
+
+    /**
+     * @var bool JSONシリアライザが有効かどうか
+     */
+    protected readonly bool $enabledJsonSerializer;
+
     /**
      * @var object[] コレクション
      */
@@ -52,9 +62,9 @@ trait ObjectCollectionTrait
     protected array $accessKeyCache = [];
 
     /**
-     * @var array オブジェクトが持つアクセスポイントリスト
+     * @var array オブジェクトが持つアクセスポイントマップ
      */
-    protected array $objectAccessPointList  = [];
+    protected array $objectAccessPointMap   = [];
 
     /**
      * 指定された値からユニークIDを返します。
@@ -142,19 +152,35 @@ trait ObjectCollectionTrait
     /**
      * constructor
      *
-     * @param iterable $objects 初期状態として受け入れるオブジェクトの配列
-     * @param array    $options オプション
+     * @param iterable $objects|object 初期状態として受け入れるオブジェクト群
+     * @param array    $options        オプション
      */
-    public function __construct(iterable $objects = [], array $options = [])
+    public function __construct(iterable|object $objects = [], array $options = [])
     {
+        // ==============================================
+        // options
+        // ==============================================
         $this->options  = $options;
 
+        // jsonSerializer
+        $this->enabledJsonSerializer    = \array_key_exists(static::OPTION_JSON_SERIALIZER, $this->options) && $this->options[static::OPTION_JSON_SERIALIZER] instanceof \Closure;
+        $this->jsonSerializer           = $this->enabledJsonSerializer ? $this->options[static::OPTION_JSON_SERIALIZER] : null;
+
+        // ==============================================
+        // objects add
+        // ==============================================
         $this->addAll($objects);
     }
 
-    public function test()
+    /**
+     * このコレクションを元に新しいコレクションを作成して返します。
+     *
+     * @param  iterable|object $objects 初期状態として受け入れるオブジェクトの群
+     * @return static          新しいコレクション
+     */
+    public function with(iterable|object $objects = []): static
     {
-        return $this->collection;
+        return new static($objects, $this->options);
     }
 
     /**
@@ -192,6 +218,15 @@ trait ObjectCollectionTrait
             foreach ($objects as $object) {
                 $this->add($object);
             }
+<<<<<<< HEAD
+=======
+        } elseif ($objects instanceof \Closure) {
+            if (\Closure::class === static::getAllowedClass()) {
+                $this->add($objects);
+            } else {
+                $this->addAll($objects());
+            }
+>>>>>>> master
         } else {
             $this->add($objects);
         }
@@ -202,6 +237,15 @@ trait ObjectCollectionTrait
                     foreach ($objects as $object) {
                         $this->add($object);
                     }
+<<<<<<< HEAD
+=======
+                } elseif ($objects instanceof \Closure) {
+                    if (\Closure::class === static::getAllowedClass()) {
+                        $this->add($objects);
+                    } else {
+                        $this->addAll($objects());
+                    }
+>>>>>>> master
                 } else {
                     $this->add($objects);
                 }
@@ -334,16 +378,6 @@ trait ObjectCollectionTrait
     }
 
     /**
-     * コレクションの全オブジェクトを返します。
-     *
-     * @return array コレクションの全オブジェクト
-     */
-    public function findAll(): array
-    {
-        return $this->collection;
-    }
-
-    /**
      * コレクションの全オブジェクトの指定された値を返します。
      *
      * @param  string $map_key マップキー
@@ -371,11 +405,23 @@ trait ObjectCollectionTrait
     /**
      * 指定したキーのオブジェクトを探して返します。
      *
+     * @param  array  $criteria 検索条件
+     * @param  array  $options  オプション
+     * @return static 検索結果
+     */
+    public function findBy(array $criteria, array $options = []): static
+    {
+        return new static($this->findByAsArray($criteria, $options), $this->options);
+    }
+
+    /**
+     * 指定したキーのオブジェクトを探して配列として返します。
+     *
      * @param  array    $criteria 検索条件
-     * @param  array    $orderBy  ソート設定
+     * @param  array    $options  オプション
      * @return object[] 検索結果
      */
-    public function findBy(array $criteria, array $orderBy = []): array
+    public function findByAsArray(array $criteria, array $options = []): array
     {
         $cache_map  = $this->loadCacheMap($criteria);
 
@@ -411,14 +457,64 @@ trait ObjectCollectionTrait
     }
 
     /**
+     * コレクションをフィルタして返します。
+     *
+     * @param  \Closure $criteria フィルタ条件
+     * @param  array    $options  オプション
+     * @return static   検索結果
+     */
+    public function filterBy(\Closure $criteria, array $options = []): static
+    {
+        return new static($this->filterByAsArray($criteria, $options), $this->options);
+    }
+
+    /**
+     * コレクションをフィルタして配列として返します。
+     *
+     * @param  \Closure $criteria フィルタ条件
+     * @param  array    $options  オプション
+     * @return static   検索結果
+     */
+    public function filterByAsArray(\Closure $criteria, array $options = []): array
+    {
+        $result = [];
+
+        foreach ($this->collection as $unique_kue => $object) {
+            if ($criteria($object, $unique_kue, $options)) {
+                $result[]   = $object;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * 指定したキーのオブジェクトの値を探して返します。
+     *
+     * @param  array    $criteria         検索条件
+     * @param  array    $map_key          マップキー
+     * @param  string   $collection_class コレクションクラスパス
+     * @param  array    $options          オプション
+     * @return object[] 検索結果
+     */
+    public function findValueBy(array $criteria, string $map_key, string $collection_class, array $options = []): ObjectCollectionInterface
+    {
+        if (!\is_subclass_of($collection_class, ObjectCollectionInterface::class, true)) {
+            throw new \RuntimeException(\sprintf('%sは%sを実装している必要があります。', $collection_class, ObjectCollectionInterface::class));
+        }
+
+        return new $collection_class($this->findValueByAsArray($criteria, $map_key));
+    }
+
+    /**
      * 指定したキーのオブジェクトの値を探して返します。
      *
      * @param  array    $criteria 検索条件
      * @param  string   $map_key  マップキー
-     * @param  array    $orderBy  ソート設定
+     * @param  array    $options  オプション
      * @return object[] 検索結果
      */
-    public function findValueBy(array $criteria, string $map_key, array $orderBy = []): array
+    public function findValueByAsArray(array $criteria, string $map_key, array $options = []): array
     {
         $cache_map  = $this->loadCacheMap($criteria);
 
@@ -465,10 +561,10 @@ trait ObjectCollectionTrait
      * 指定したキーのオブジェクトを探して返します。
      *
      * @param  array  $criteria 検索条件
-     * @param  array  $orderBy  ソート設定
+     * @param  array  $options  オプション
      * @return object 検索結果
      */
-    public function findOneBy(array $criteria, array $orderBy = []): ?object
+    public function findOneBy(array $criteria, array $options = []): ?object
     {
         $unique_id  = $this->loadCacheMap($criteria);
 
@@ -502,10 +598,10 @@ trait ObjectCollectionTrait
      *
      * @param  array  $criteria 検索条件
      * @param  string $map_key  マップキー
-     * @param  array  $orderBy  ソート設定
+     * @param  array  $options  オプション
      * @return mixed  検索結果
      */
-    public function findValueOneBy(array $criteria, string $map_key, array $orderBy = []): mixed
+    public function findValueOneBy(array $criteria, string $map_key, array $options = []): mixed
     {
         $unique_id  = $this->loadCacheMap($criteria);
 
@@ -551,7 +647,7 @@ trait ObjectCollectionTrait
      *
      * @param  array $criteria 検索条件
      * @param  array $map_keys マップキー
-     * @param  array $order_by ソート設定
+     * @param  array $order_by オプション
      * @return array オブジェクト
      */
     public function findToMapBy(array $criteria, array $map_keys = [], array $order_by = []): array
@@ -637,7 +733,7 @@ trait ObjectCollectionTrait
      *
      * @param  array $criteria 検索条件
      * @param  array $map_keys マップキー
-     * @param  array $order_by ソート設定
+     * @param  array $order_by オプション
      * @return array オブジェクト
      */
     public function findOneToMapBy(array $criteria, array $map_keys = [], array $order_by = []): array
@@ -730,7 +826,7 @@ trait ObjectCollectionTrait
 
         $keyAccessType    = $this->getKeyAccessType();
 
-        foreach ($this->reverseCacheMap[$unique_id] as $cache_key => $criteria_keys) {
+        foreach ($this->reverseCacheMap[$unique_id] ?? [] as $cache_key => $criteria_keys) {
             $in_nest_list   = [];
 
             foreach ($criteria_keys as $map_key) {
@@ -805,9 +901,9 @@ trait ObjectCollectionTrait
 
                 unset($tmp);
             }
-
-            unset($this->collection[$unique_id]);
         }
+
+        unset($this->collection[$unique_id]);
 
         return $this;
     }
@@ -885,60 +981,96 @@ trait ObjectCollectionTrait
      */
     public function toMap(array $map_keys): array
     {
-        $cache_map = $this->loadCacheMap(\array_flip($map_keys));
+        $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
 
-        $tmp = &$cache_map;
-
-        unset($map_keys[\array_key_last($map_keys)]);
-
-        foreach ($map_keys as $map_key) {
-            $key = \key($tmp);
-            $tmp = &$tmp[$key];
-        }
-
-        foreach ($tmp as &$list) {
-            foreach ($list as &$value) {
-                $value = $this->collection[$value];
-
-                unset($value);
-            }
-
-            unset($list);
-        }
-
-        unset($tmp);
+        \array_walk_recursive($cache_map, function(&$data): void {
+            $data = $this->collection[$data];
+        });
 
         return $cache_map;
     }
 
     /**
-     * コレクションを指定したキーの階層構造を持つマップに変換して返します。
+     * コレクションを指定したキーの階層構造を持ち、単一のオブジェクトを持つマップに変換して返します。
      *
      * @param  array $map_keys 階層構造キー
      * @return array コレクションマップ
      */
     public function toOneMap(array $map_keys): array
     {
-        $cache_map = $this->loadCacheMap(\array_flip($map_keys));
+        $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
 
-        $tmp = &$cache_map;
+        $this->replaceCahceMapToOne($cache_map);
 
-        unset($map_keys[\array_key_last($map_keys)]);
+        return $cache_map;
+    }
 
-        foreach ($map_keys as $map_key) {
-            $key = \key($tmp);
-            $tmp = &$tmp[$key];
-        }
+    /**
+     * 指定したキーの値を持つ配列マップを返します。
+     *
+     * @param  array $map_keys 階層構造キー
+     * @return array 指定したキーの値を持つ配列マップ
+     */
+    public function toArrayMap(array $map_keys): array
+    {
+        $keyAccessType    = $this->getKeyAccessType();
 
-        foreach ($tmp as &$list) {
-            $target         = $list[\array_key_first($list)];
+        $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
 
-            $list = $this->collection[$target];
+        \array_walk_recursive($cache_map, function(&$data) use ($map_keys, $keyAccessType): void {
+            $map = [];
 
-            unset($list);
-        }
+            foreach ($map_keys as $map_key) {
+                $access_key     = $this->accessKeyCache[$map_key];
 
-        unset($tmp);
+                $map[$map_key]  = match ($keyAccessType->name) {
+                    KeyAccessTypeEnum::Property->name     => $this->collection[$data]->{$access_key},
+                    KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$data][$access_key],
+                    default                               => $this->collection[$data]->{$access_key}(),
+                };
+            }
+
+            $data = $map;
+        });
+
+        return $cache_map;
+    }
+
+    /**
+     * 指定したキーの単一の値を持つ配列マップを返します。
+     *
+     * @param  array $map_keys 階層構造キー
+     * @return array 指定したキーの値を持つ配列マップ
+     */
+    public function toArrayOneMap(array $map_keys): array
+    {
+        $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
+
+        $this->replaceCahceMapToArrayOne(
+            $cache_map,
+            $map_keys,
+            $this->getKeyAccessType(),
+        );
+
+        return $cache_map;
+    }
+
+    /**
+     * 指定したキーの値を持つ配列マップを返します。
+     *
+     * @param  array                    $map_keys 階層構造キー
+     * @param  null|int|string|callable $target   取得対象 省略時は 階層構造キーの第一要素を使用する
+     * @return array                    指定したキーの値を持つ配列マップ
+     */
+    public function getArrayMap(array $map_keys, null|int|string|callable $target = null): array
+    {
+        $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
+
+        $this->replaceCahceMapGetArrayOne(
+            $cache_map,
+            $target ?? $map_keys[\array_key_first($map_keys)],
+            $this->getKeyAccessType(),
+        );
 
         return $cache_map;
     }
@@ -954,6 +1086,34 @@ trait ObjectCollectionTrait
     }
 
     /**
+     * 逆順で返すイテレータを返します。
+     *
+     * @return \Traversable イテレータ
+     */
+    public function getIteratorReversed(): \Traversable
+    {
+        return (function(): \Generator {
+            foreach (\array_reverse(\array_keys($this->collection)) as $key) {
+                yield $this->collection[$key];
+            }
+        })();
+    }
+
+    /**
+     * ユニークキーでソートしたイテレータを返します。
+     *
+     * @return \Traversable イテレータ
+     */
+    public function getIteratorSortedByUniqueKey(bool $descending = false): \Traversable
+    {
+        $collection = $this->collection;
+
+        $descending ? \krsort($collection) : \ksort($collection);
+
+        return new \ArrayIterator($collection);
+    }
+
+    /**
      * コレクションの配列表現を返します。
      *
      * @return array コレクションの配列表現
@@ -964,14 +1124,29 @@ trait ObjectCollectionTrait
     }
 
     /**
-     * 受け入れるクラスが持つパブリックメソッドのリストを返します。
+     * コレクションのJSONにシリアライズするための表現を返します。
      *
-     * @return array 受け入れるクラスが持つパブリックメソッドのリスト
+     * @return mixed コレクションのJSONにシリアライズするための表現
+     * @see https://www.php.net/manual/ja/class.jsonserializable.php
      */
-    protected function getObjectMethodList(): array
+    public function jsonSerialize(): mixed
     {
-        if (empty($this->objectAccessPointList)) {
-            $object_method_list    = [];
+        if ($this->enabledJsonSerializer) {
+            return ($this->jsonSerializer)($this);
+        }
+
+        return $this->collection;
+    }
+
+    /**
+     * 受け入れるクラスが持つパブリックメソッドのマップを返します。
+     *
+     * @return array 受け入れるクラスが持つパブリックメソッドのマップ
+     */
+    protected function getObjectMethodMap(): array
+    {
+        if (empty($this->objectAccessPointMap)) {
+            $object_method_map    = [];
 
             foreach ((new \ReflectionClass(static::getAllowedClass(9)))->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
                 $method_name    = $method->getName();
@@ -980,20 +1155,20 @@ trait ObjectCollectionTrait
                     continue;
                 }
 
-                $object_method_list[$method->getName()]    = [
+                $object_method_map[$method->getName()]  = [
                     'map_key'   => $map_key = \mb_substr($method_name, 4),
                     'length'    => \mb_strlen($map_key),
                 ];
             }
 
-            \uksort($object_method_list, function($a, $b): int {
+            \uksort($object_method_map, function($a, $b): int {
                 return \strlen($b) <=> \strlen($a) ?: \strnatcmp($b, $a);
             });
 
-            $this->objectAccessPointList    = $object_method_list;
+            $this->objectAccessPointMap = $object_method_map;
         }
 
-        return $this->objectAccessPointList;
+        return $this->objectAccessPointMap;
     }
 
     /**
@@ -1147,5 +1322,102 @@ trait ObjectCollectionTrait
         };
 
         return $this;
+    }
+
+    /**
+     * キャッシュマップの末端配列を末端配列第一マップキーに紐づくオブジェクトに置き換えます。
+     *
+     * @param  array           $cache_map キャッシュマップ
+     * @return int|string|bool 末端の値
+     */
+    protected function replaceCahceMapToOne(array &$cache_map): int|string|bool
+    {
+        foreach ($cache_map as $key => &$value) {
+            if (\is_array($value)) {
+                if (!\is_bool($key = $this->replaceCahceMapToOne($value))) {
+                    $value = $this->collection[$key];
+                }
+            } else {
+                return $value;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * キャッシュマップの末端配列を末端配列第一マップキーに配列に置き換えます。
+     *
+     * @param  array             $cache_map     キャッシュマップ
+     * @param  array             $map_keys      マップキー
+     * @param  KeyAccessTypeEnum $keyAccessType オブジェクトの値の取得の仕方
+     * @return int|string|bool   末端の値
+     */
+    protected function replaceCahceMapToArrayOne(
+        array &$cache_map,
+        array $map_keys,
+        KeyAccessTypeEnum $keyAccessType,
+    ): int|string|bool {
+        foreach ($cache_map as $key => &$value) {
+            if (\is_array($value)) {
+                if (!\is_bool($key = $this->replaceCahceMapToArrayOne($value, $map_keys, $keyAccessType))) {
+                    $map    = [];
+
+                    foreach ($map_keys as $map_key) {
+                        $access_key     = $this->accessKeyCache[$map_key];
+
+                        $map[$map_key]  = match ($keyAccessType->name) {
+                            KeyAccessTypeEnum::Property->name     => $this->collection[$key]->{$access_key},
+                            KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$key][$access_key],
+                            default                               => $this->collection[$key]->{$access_key}(),
+                        };
+                    }
+
+                    $value  = $map;
+                }
+            } else {
+                return $value;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * キャッシュマップの末端配列を末端配列第一マップキーに配列に置き換えます。
+     *
+     * @param  array             $cache_map     キャッシュマップ
+     * @param  KeyAccessTypeEnum $keyAccessType オブジェクトの値の取得の仕方
+     * @return int|string|bool   末端の値
+     */
+    protected function replaceCahceMapGetArrayOne(
+        array &$cache_map,
+        int|string|callable $target,
+        KeyAccessTypeEnum $keyAccessType,
+    ): int|string|bool {
+        foreach ($cache_map as &$value) {
+            if (\is_array($value)) {
+                if (!\is_bool($key = $this->replaceCahceMapGetArrayOne($value, $target, $keyAccessType))) {
+                    if (\is_callable($target)) {
+                        $value  = $target(
+                            $this->collection[$key],
+                            $this->accessKeyCache,
+                        );
+                    } else {
+                        $access_key = $this->accessKeyCache[$target];
+
+                        $value  = match ($keyAccessType->name) {
+                            KeyAccessTypeEnum::Property->name     => $this->collection[$key]->{$access_key},
+                            KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$key][$access_key],
+                            default                               => $this->collection[$key]->{$access_key}(),
+                        };
+                    }
+                }
+            } else {
+                return $value;
+            }
+        }
+
+        return false;
     }
 }

@@ -12,7 +12,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -24,8 +24,15 @@ use tacddd\collections\CollectionInterface;
 /**
  * オブジェクトコレクション特性インターフェース
  */
-interface ObjectCollectionInterface extends CollectionInterface
+interface ObjectCollectionInterface extends
+    CollectionInterface,
+    \JsonSerializable
 {
+    /**
+     * @var string オプションキー：json_serializer
+     */
+    public const OPTION_JSON_SERIALIZER = 'json_serializer';
+
     /**
      * 与えられたオブジェクトからユニークIDを抽出して返します。
      *
@@ -52,10 +59,26 @@ interface ObjectCollectionInterface extends CollectionInterface
     /**
      * constructor
      *
-     * @param iterable $objects 初期状態として受け入れるオブジェクトの配列
-     * @param array    $options オプション
+     * @param iterable|object $objects 初期状態として受け入れるオブジェクトの群
+     * @param array           $options オプション
      */
-    public function __construct(iterable $objects = [], array $options = []);
+    public function __construct(iterable|object $objects = [], array $options = []);
+
+    /**
+     * このコレクションを元に新しいコレクションを作成して返します。
+     *
+     * @param  iterable|object $objects 初期状態として受け入れるオブジェクトの群
+     * @return static          新しいコレクション
+     */
+    public function with(iterable|object $objects = []): static;
+
+    /**
+     * コレクションのJSONにシリアライズするための表現を返します。
+     *
+     * @return mixed コレクションのJSONにシリアライズするための表現
+     * @see https://www.php.net/manual/ja/class.jsonserializable.php
+     */
+    public function jsonSerialize(): mixed;
 
     /**
      * オブジェクトを追加します。

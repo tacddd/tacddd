@@ -12,7 +12,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -42,18 +42,17 @@ function dd(...$args): void
 }
 
 /**
- * 指定された変数をダンプし終了します。
+ * 指定されたファイルの指定された行にある関数の引数定義表記を返します。
  *
- * @param mixed ...$args dump対象の引数
+ * @param  string|\SplFileInfo $file      ファイル
+ * @param  int                 $base_line 行
+ * @return array               引数定義
  */
-function d(...$args): void
-{
-    $backtraces = \debug_backtrace(\DEBUG_BACKTRACE_PROVIDE_OBJECT, 3);
-    $backtrace  = $backtraces['tacddd\\dd' === $backtraces[1]['function'] ?? '' ? 1 : 0];
-
-    $file       = $backtrace['file'];
-    $base_line  = $backtrace['line'];
-    $tokens     = \PhpToken::tokenize(\file_get_contents($file));
+function get_args_definition_text(
+    string|\SplFileInfo $file,
+    int $base_line,
+): array {
+    $tokens     = \PhpToken::tokenize(\file_get_contents($file instanceof \SplFileInfo ? $file->getPathname() : $file));
 
     $in_work    = false;
 
@@ -96,6 +95,11 @@ function d(...$args): void
 
             if ($parenthesis_stack === 1) {
                 $last_key               = \array_key_last($var_names);
+
+                if ($last_key === null) {
+                    continue;
+                }
+
                 $var_names[$last_key]   = \sprintf('%s%s)', $var_names[$last_key], \implode('', $sub_var_names));
                 $sub_var_names          = [];
 
@@ -129,18 +133,29 @@ function d(...$args): void
 
     $caller = \implode('', $caller_stack);
 
-    $debug = function($arg): \Generator {
-        yield match (\gettype($arg)) {
-            'boolean'   => $arg ? 'true' : 'false',
-            'integer'   => (string) $arg,
-            'double'    => false === \mb_strpos((string) $arg, '.') ? \sprintf('%s.0', $arg) : (string) $arg,
-            'string'    => $arg,
-            'array'     => \print_r($arg, true),
-            'object'    => \print_r($arg, true),
-            'resource'  => \sprintf('resource #%s', $arg),
-            'NULL'      => 'null',
-        };
-    };
+    return [
+        'caller'      => $caller,
+        'var_names'   => $var_names,
+    ];
+}
+
+/**
+ * 指定された変数をダンプします。
+ *
+ * @param mixed ...$args dump対象の引数
+ */
+function d(...$args): void
+{
+    $backtraces = \debug_backtrace(\DEBUG_BACKTRACE_PROVIDE_OBJECT, 3);
+    $backtrace  = $backtraces['tacddd\\dd' === $backtraces[1]['function'] ?? '' ? 1 : 0];
+
+    $file       = $backtrace['file'];
+    $base_line  = $backtrace['line'];
+
+    ['caller' => $caller, 'var_names' => $var_names] = get_args_definition_text(
+        $file       = $backtrace['file'],
+        $base_line  = $backtrace['line'],
+    );
 
     echo '//==============================================', \PHP_EOL,
     \sprintf('%s(%s): %s', $file, $base_line, $caller), \PHP_EOL,
@@ -150,7 +165,7 @@ function d(...$args): void
         $var_name   = $var_names[$idx];
 
         echo \sprintf('args #%d parameter: %s', $idx, $var_name), \PHP_EOL,
-        \sprintf('value: %s', to_debug_string($arg, 2)), \PHP_EOL,
+        \sprintf('value: %s', to_debug_string($arg, 4)), \PHP_EOL,
         '//----------------------------------------------', \PHP_EOL;
     }
 }

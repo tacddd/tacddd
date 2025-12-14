@@ -1,4 +1,5 @@
 <?php
+
 /**
  *   _____          ____  ____  ____
  *  |_   ___ _  ___|  _ \|  _ \|  _ \
@@ -12,7 +13,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);

@@ -12,7 +12,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -845,8 +845,23 @@ final class StringService implements StringServiceInterface
 
                     foreach (['public', 'protected', 'private', 'unknown modifier'] as $modifier) {
                         foreach ($tmp_properties[$state][$modifier] ?? [] as $property) {
-                            $property->setAccessible(true);
-                            $properties[] = \sprintf('%s%s %s = %s', $modifier, $state_text, \sprintf('$%s', $property->getName()), self::toDebugString($property->getValue($var), $depth, $options));
+                            try {
+                                $properties[] = \sprintf(
+                                    '%s%s %s = %s',
+                                    $modifier,
+                                    $state_text,
+                                    \sprintf('$%s', $property->getName()),
+                                    self::toDebugString($property->getValue($var), $depth, $options),
+                                );
+                            } catch (\Throwable $e) {
+                                $properties[] = \sprintf(
+                                    '%s%s %s = %s',
+                                    $modifier,
+                                    $state_text,
+                                    \sprintf('$%s', $property->getName()),
+                                    \sprintf('Property value capture error: %s', $e->getMessage()),
+                                );
+                            }
                         }
                     }
                 }

@@ -12,7 +12,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -28,10 +28,16 @@ interface ObjectCollectionMagicalAccessorInterface
      * @var array アクション設定
      */
     public const ACTION_SPEC_MAP = [
+        'toArrayOneMapOf'   => ['length' => 15, 'use_args' => false, 'separator' => 'And'],
         'findOneToMapBy'    => ['length' => 14, 'use_args' => true,  'separator' => 'In'],
+        'getArrayMapOf'     => ['length' => 13, 'use_args' => false, 'separator' => 'And', 'default_args' => [null]],
+        'filterValueBy'     => ['length' => 13, 'use_args' => true,  'separator' => 'And'],
+        'toArrayMapOf'      => ['length' => 12, 'use_args' => false, 'separator' => 'And'],
         'findToMapBy'       => ['length' => 11, 'use_args' => true,  'separator' => 'In'],
+        'findValueBy'       => ['length' => 11, 'use_args' => true,  'separator' => 'And'],
         'toOneMapIn'        => ['length' => 10, 'use_args' => false, 'separator' => 'In'],
         'findOneBy'         => ['length' => 9,  'use_args' => true,  'separator' => 'And'],
+        'filterBy'          => ['length' => 8,  'use_args' => true,  'separator' => 'And'],
         'removeBy'          => ['length' => 8,  'use_args' => true,  'separator' => 'And'],
         'toMapIn'           => ['length' => 7,  'use_args' => false, 'separator' => 'In'],
         'findBy'            => ['length' => 6,  'use_args' => true,  'separator' => 'And'],

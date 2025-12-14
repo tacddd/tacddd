@@ -12,7 +12,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -27,9 +27,9 @@ use tacddd\utilities\containers\ContainerService;
 class HtmlConfig implements HtmlConfigInterface
 {
     /**
-     * @var array エスケープタイプリスト
+     * @var array エスケープタイプマップ
      */
-    public const ESCAPE_TYPE_LIST   = [
+    public const ESCAPE_TYPE_MAP    = [
         self::ESCAPE_TYPE_HTML          => self::ESCAPE_TYPE_HTML,
         self::ESCAPE_TYPE_JAVASCRIPT    => self::ESCAPE_TYPE_JAVASCRIPT,
         self::ESCAPE_TYPE_JS            => self::ESCAPE_TYPE_JS,
@@ -86,7 +86,7 @@ class HtmlConfig implements HtmlConfigInterface
             return $this->escapeType;
         }
 
-        if (!isset(static::ESCAPE_TYPE_LIST[$escape_type])) {
+        if (!isset(static::ESCAPE_TYPE_MAP[$escape_type])) {
             throw new \Exception(ContainerService::getStringService()->buildDebugMessage('利用できないエスケープタイプを指定されました。', $escape_type));
         }
 

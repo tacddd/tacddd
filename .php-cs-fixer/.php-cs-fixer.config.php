@@ -1,4 +1,5 @@
 <?php
+
 /**
  *   _____          ____  ____  ____
  *  |_   ___ _  ___|  _ \|  _ \|  _ \
@@ -12,7 +13,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -32,7 +33,7 @@ return (new PhpCsFixer\Config())
     'backtick_to_shell_exec'                            => true,
     'binary_operator_spaces'                            => ['default'   => 'align_single_space'],
     'blank_line_after_namespace'                        => true,
-    'blank_line_after_opening_tag'                      => true,
+    'blank_line_after_opening_tag'                      => false,
     'blank_line_before_statement'                       => [
         'statements' => [
             'break',
@@ -350,12 +351,12 @@ return (new PhpCsFixer\Config())
         ],
         'sort_algorithm'    => 'alpha',
     ],
-    'ordered_interfaces'                                => [],      // @MEMO 'ordered_traits'と挙動を併せるため未設定
+    'ordered_interfaces'                                => false,   // @MEMO 'ordered_traits'と挙動を併せるため未設定
     'ordered_traits'                                    => false,   // @MEMO ヒューマンリーダブルを優先する
     // ==============================================
     // PHP Unit
     // ==============================================
-    'php_unit_construct'                                => [],
+    'php_unit_construct'                                => true,
     'php_unit_dedicate_assert'                          => [
         'target'    => 'newest',
     ],
@@ -386,18 +387,8 @@ return (new PhpCsFixer\Config())
     ],
     'php_unit_set_up_tear_down_visibility'              => false,
     //     'php_unit_size_class',  // @MEMO 明示的なデフォルト挙動
-    'php_unit_strict'                                   => [
-        'assertions'    => [
-            // @MEMO 配列比較時に困難が生じるため、強制sameを行わない
-            //             'assertAttributeEquals',
-            //             'assertAttributeNotEquals',
-            //             'assertEquals',
-            //             'assertNotEquals',
-        ],
-    ],
-    'php_unit_test_annotation'                          => [
-        // 'style' => 'annotation', // or 'prefix',
-    ],
+    'php_unit_strict'                                   => false,
+    'php_unit_test_annotation'                          => ['style' => 'annotation'],
     //     'php_unit_test_case_static_method_calls',   // @MEMO 明示的なデフォルト挙動
     //     'php_unit_test_class_requires_covers',      // @MEMO 明示的なデフォルト挙動
     // ==============================================
