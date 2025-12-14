@@ -12,7 +12,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -20,7 +20,6 @@ declare(strict_types=1);
 namespace tacddd\collections\objects\traits;
 
 use tacddd\collections\objects\enums\KeyAccessTypeEnum;
-use tacddd\collections\objects\traits\ObjectCollectionInterface;
 
 /**
  * オブジェクトコレクション特性
@@ -154,7 +153,7 @@ trait ObjectCollectionTrait
      * constructor
      *
      * @param iterable $objects|object 初期状態として受け入れるオブジェクト群
-     * @param array    $options オプション
+     * @param array    $options        オプション
      */
     public function __construct(iterable|object $objects = [], array $options = [])
     {
@@ -176,8 +175,8 @@ trait ObjectCollectionTrait
     /**
      * このコレクションを元に新しいコレクションを作成して返します。
      *
-     * @param iterable|object $objects 初期状態として受け入れるオブジェクトの群
-     * @return static 新しいコレクション
+     * @param  iterable|object $objects 初期状態として受け入れるオブジェクトの群
+     * @return static          新しいコレクション
      */
     public function with(iterable|object $objects = []): static
     {
@@ -454,8 +453,8 @@ trait ObjectCollectionTrait
     /**
      * コレクションをフィルタして返します。
      *
-     * @param  \Closure $criteria   フィルタ条件
-     * @param  array    $options    オプション
+     * @param  \Closure $criteria フィルタ条件
+     * @param  array    $options  オプション
      * @return static   検索結果
      */
     public function filterBy(\Closure $criteria, array $options = []): static
@@ -466,8 +465,8 @@ trait ObjectCollectionTrait
     /**
      * コレクションをフィルタして配列として返します。
      *
-     * @param  \Closure $criteria   フィルタ条件
-     * @param  array    $options    オプション
+     * @param  \Closure $criteria フィルタ条件
+     * @param  array    $options  オプション
      * @return static   検索結果
      */
     public function filterByAsArray(\Closure $criteria, array $options = []): array
@@ -486,10 +485,10 @@ trait ObjectCollectionTrait
     /**
      * 指定したキーのオブジェクトの値を探して返します。
      *
-     * @param  array    $criteria 検索条件
-     * @param  array    $map_key  マップキー
+     * @param  array    $criteria         検索条件
+     * @param  array    $map_key          マップキー
      * @param  string   $collection_class コレクションクラスパス
-     * @param  array    $options  オプション
+     * @param  array    $options          オプション
      * @return object[] 検索結果
      */
     public function findValueBy(array $criteria, string $map_key, string $collection_class, array $options = []): ObjectCollectionInterface
@@ -1087,7 +1086,7 @@ trait ObjectCollectionTrait
      */
     public function getIteratorReversed(): \Traversable
     {
-        return (function (): \Generator {
+        return (function(): \Generator {
             foreach (\array_reverse(\array_keys($this->collection)) as $key) {
                 yield $this->collection[$key];
             }

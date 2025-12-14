@@ -12,7 +12,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -66,6 +66,7 @@ trait ObjectCollectionMagicalAccessorTrait
                 $as_array       = \str_ends_with($method_name, 'AsArray');
 
                 $find_key       = \mb_substr($method_name, $spec['length']);
+
                 if ($as_array) {
                     $find_key   = \mb_substr($find_key, 0, -7);
                 }
@@ -112,24 +113,24 @@ trait ObjectCollectionMagicalAccessorTrait
                 }
 
                 return match ($action) {
-                    'findValueByAsArray'=> $this->findValueByAsArray(...$parameters),
-                    'filterByAsArray'   => $this->filterByAsArray(...$parameters),
-                    'findByAsArray'     => $this->findByAsArray(...$parameters),
-                    'toArrayOneMapOf'   => $this->toArrayOneMap(...$parameters),
-                    'findOneToMapBy'    => $this->findOneToMapBy(...$parameters),
-                    'getArrayMapOf'     => $this->getArrayMap(...$parameters),
-                    'filterValueBy'     => $this->filterValueBy(...$parameters),
-                    'toArrayMapOf'      => $this->toArrayMap(...$parameters),
-                    'findToMapBy'       => $this->findToMapBy(...$parameters),
-                    'findValueBy'       => $this->findValueBy(...$parameters),
-                    'toOneMapIn'        => $this->toOneMap(...$parameters),
-                    'findOneBy'         => $this->findOneBy(...$parameters),
-                    'filterBy'          => $this->filterBy(...$parameters),
-                    'removeBy'          => $this->removeBy(...$parameters),
-                    'toMapIn'           => $this->toMap(...$parameters),
-                    'findBy'            => $this->findBy(...$parameters),
-                    'hasBy'             => $this->hasBy(...$parameters),
-                    default             => throw new \Error(\sprintf('Call to undefined method %s::%s()', static::class, $method_name)),
+                    'findValueByAsArray' => $this->findValueByAsArray(...$parameters),
+                    'filterByAsArray'    => $this->filterByAsArray(...$parameters),
+                    'findByAsArray'      => $this->findByAsArray(...$parameters),
+                    'toArrayOneMapOf'    => $this->toArrayOneMap(...$parameters),
+                    'findOneToMapBy'     => $this->findOneToMapBy(...$parameters),
+                    'getArrayMapOf'      => $this->getArrayMap(...$parameters),
+                    'filterValueBy'      => $this->filterValueBy(...$parameters),
+                    'toArrayMapOf'       => $this->toArrayMap(...$parameters),
+                    'findToMapBy'        => $this->findToMapBy(...$parameters),
+                    'findValueBy'        => $this->findValueBy(...$parameters),
+                    'toOneMapIn'         => $this->toOneMap(...$parameters),
+                    'findOneBy'          => $this->findOneBy(...$parameters),
+                    'filterBy'           => $this->filterBy(...$parameters),
+                    'removeBy'           => $this->removeBy(...$parameters),
+                    'toMapIn'            => $this->toMap(...$parameters),
+                    'findBy'             => $this->findBy(...$parameters),
+                    'hasBy'              => $this->hasBy(...$parameters),
+                    default              => throw new \Error(\sprintf('Call to undefined method %s::%s()', static::class, $method_name)),
                 };
             }
         }

@@ -12,23 +12,22 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
 
 namespace tacddd\tests\cases\collections\objects;
 
-use Closure;
 use PHPUnit\Framework\Attributes\Test;
-use tacddd\tests\utilities\AbstractTestCase;
-use tacddd\collections\objects\ObjectCollectionFactory;
 use tacddd\collections\interfaces\UniqueIdFactoryInterface;
-use tacddd\tests\utilities\resources\dummy\objects\findValueBy\Id;
-use tacddd\tests\utilities\resources\dummy\objects\findValueBy\Name;
+use tacddd\collections\objects\ObjectCollectionFactory;
+use tacddd\tests\utilities\AbstractTestCase;
 use tacddd\tests\utilities\resources\dummy\objects\CollectionEntityDummy;
 use tacddd\tests\utilities\resources\dummy\objects\findValueBy\FindValueByCollectionEntityDummy;
 use tacddd\tests\utilities\resources\dummy\objects\findValueBy\FindValueByCollectionEntityDummyCollection;
+use tacddd\tests\utilities\resources\dummy\objects\findValueBy\Id;
+use tacddd\tests\utilities\resources\dummy\objects\findValueBy\Name;
 use tacddd\tests\utilities\resources\dummy\objects\findValueBy\NameCollection;
 
 /**
@@ -107,7 +106,7 @@ class ObjectCollectionFactoryTest extends AbstractTestCase
 
         $this->assertEquals(
             new NameCollection([$name1]),
-            $collection->findValueBy(['id' => 1], 'name', NameCollection::class)
+            $collection->findValueBy(['id' => 1], 'name', NameCollection::class),
         );
     }
 
@@ -120,8 +119,8 @@ class ObjectCollectionFactoryTest extends AbstractTestCase
             $qwer = new FindValueByCollectionEntityDummy(new Id(3), new Name('qwer')),
         ]);
 
-        //==============================================
-        $actual = new FindValueByCollectionEntityDummyCollection(function () use ($asdf, $zxcv, $qwer) {
+        // ==============================================
+        $actual = new FindValueByCollectionEntityDummyCollection(function() use ($asdf, $zxcv, $qwer) {
             return [
                 $asdf,
                 $zxcv,
@@ -131,17 +130,19 @@ class ObjectCollectionFactoryTest extends AbstractTestCase
 
         $this->assertEquals($expected, $actual);
 
-        //==============================================
-        $actual = new FindValueByCollectionEntityDummyCollection(function () use ($asdf, $zxcv, $qwer): \Generator {
+        // ==============================================
+        $actual = new FindValueByCollectionEntityDummyCollection(function() use ($asdf, $zxcv, $qwer): \Generator {
             yield $asdf;
+
             yield $zxcv;
+
             yield $qwer;
         });
 
         $this->assertEquals($expected, $actual);
 
-        //==============================================
-        $actual = new FindValueByCollectionEntityDummyCollection(function () use ($asdf) {
+        // ==============================================
+        $actual = new FindValueByCollectionEntityDummyCollection(function() use ($asdf) {
             return $asdf;
         });
 

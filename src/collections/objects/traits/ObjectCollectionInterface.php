@@ -12,7 +12,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -60,15 +60,15 @@ interface ObjectCollectionInterface extends
      * constructor
      *
      * @param iterable|object $objects 初期状態として受け入れるオブジェクトの群
-     * @param array    $options オプション
+     * @param array           $options オプション
      */
     public function __construct(iterable|object $objects = [], array $options = []);
 
     /**
      * このコレクションを元に新しいコレクションを作成して返します。
      *
-     * @param iterable|object $objects 初期状態として受け入れるオブジェクトの群
-     * @return static 新しいコレクション
+     * @param  iterable|object $objects 初期状態として受け入れるオブジェクトの群
+     * @return static          新しいコレクション
      */
     public function with(iterable|object $objects = []): static;
 
