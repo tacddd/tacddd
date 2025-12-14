@@ -100,8 +100,6 @@ class ResultFactoryServiceTest extends AbstractTestCase
         $this->assertSame($result, $actual->getResult());
         $this->assertSame($message, $actual->getMessage());
         $this->assertSame($details, $actual->getDetailsCollection());
-<<<<<<< HEAD
-=======
     }
 
     #[Test]
@@ -147,6 +145,5 @@ class ResultFactoryServiceTest extends AbstractTestCase
         $this->assertSame($details, $actual->getDetails());
         $this->assertSame($detailsCollection, $actual->getDetailsCollection());
         $this->assertFalse($actual->getOutcome());
->>>>>>> master
     }
 }

@@ -248,8 +248,6 @@ class ObjectCollectionTest extends AbstractTestCase
 
         (new CollectionDummy())->add(new \DateTimeImmutable());
     }
-<<<<<<< HEAD
-=======
 
     #[Test]
     public function toMap(): void
@@ -540,5 +538,4 @@ class ObjectCollectionTest extends AbstractTestCase
         ];
         $this->assertSame($expected, $actual->getArrayMap(['date_time', 'id']));
     }
->>>>>>> master
 }

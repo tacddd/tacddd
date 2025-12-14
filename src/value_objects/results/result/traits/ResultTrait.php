@@ -113,10 +113,6 @@ trait ResultTrait
      */
     public function hasAnyDetailsFailure(): bool
     {
-<<<<<<< HEAD
-        return $this->detailsCollection->hasAnyFailure();
-=======
         return $this->detailsCollection?->hasAnyFailure() ?? false;
->>>>>>> master
     }
 }
