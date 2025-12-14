@@ -1,5 +1,4 @@
 <?php
-
 /**
  *   _____          ____  ____  ____
  *  |_   ___ _  ___|  _ \|  _ \|  _ \
@@ -18,16 +17,18 @@
 
 declare(strict_types=1);
 
+namespace tacddd\presentation\nice\contracts;
+
 /**
- * 除外ファイルパス設定
- *
- * @see \PhpCsFixer\Finder::notPath()
+ * 「人間可読（Nice）」な文字列表現を提供する契約インターフェース。
  */
-return [
-    '*.xml',
-    '.php_cs',
-    '.project.php_cs',
-    'composer.*',
-    'phpunit.xml*',
-    'README.md',
-];
+interface Niceable
+{
+    /**
+     * 人間が読みやすい文字列へ変換して返します。
+     *
+     * @param  null|string|\UnitEnum $format フォーマット
+     * @return string                人間可読（nice）な文字列表現
+     */
+    public function nice(null|string|\UnitEnum $format = null): string;
+}

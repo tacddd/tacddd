@@ -1,5 +1,4 @@
 <?php
-
 /**
  *   _____          ____  ____  ____
  *  |_   ___ _  ___|  _ \|  _ \|  _ \
@@ -18,16 +17,25 @@
 
 declare(strict_types=1);
 
+namespace tacddd\presentation\nice\policy\enums;
+
 /**
- * 除外ファイルパス設定
- *
- * @see \PhpCsFixer\Finder::notPath()
+ * 省略記号の定義。
  */
-return [
-    '*.xml',
-    '.php_cs',
-    '.project.php_cs',
-    'composer.*',
-    'phpunit.xml*',
-    'README.md',
-];
+enum EllipsisEnum: string
+{
+    /**
+     * @var string 一点リーダ（Unicode '…'）
+     */
+    case SINGLE = '…';
+
+    /**
+     * @var string ピリオド三つ（"..."）
+     */
+    case THREE_DOTS = '...';
+
+    /**
+     * @var string 省略記号なし（空文字）
+     */
+    case NONE = '';
+}
