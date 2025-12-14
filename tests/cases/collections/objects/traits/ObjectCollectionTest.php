@@ -12,7 +12,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -109,10 +109,10 @@ class ObjectCollectionTest extends AbstractTestCase
         $this->assertSame($asdf, $collection->first());
         $this->assertSame($hjkl, $collection->last());
 
-        $this->assertSame(null, $collection->find(2));
+        $this->assertNull($collection->find(2));
 
         $this->assertSame([], $collection->findBy(['id' => 2]));
-        $this->assertSame(null, $collection->findOneBy(['id' => 2]));
+        $this->assertNull($collection->findOneBy(['id' => 2]));
         $this->assertSame([], $collection->findToMapBy(['id' => 2], ['group', 'id']));
 
         $this->assertSame(['qwer' => [3 => [$qwer], 4 => [$hjkl]]], $collection->findToMapBy(['group' => 'qwer'], ['group', 'id']));

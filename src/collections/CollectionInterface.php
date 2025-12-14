@@ -12,7 +12,7 @@
  * @copyright   Copyright (c) @2023  Wakabadou (http://www.wakabadou.net/) / Project ICKX (https://ickx.jp/). All rights reserved.
  * @license     http://opensource.org/licenses/MIT The MIT License.
  *              This software is released under the MIT License.
- * @varsion     1.0.0
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -54,9 +54,9 @@ interface CollectionInterface extends
     /**
      * 指定したキーのオブジェクトを探して返します。
      *
-     * @param  array    $criteria 検索条件
-     * @param  array    $order_by ソート設定
-     * @return static   検索結果
+     * @param  array  $criteria 検索条件
+     * @param  array  $order_by ソート設定
+     * @return static 検索結果
      */
     public function findBy(array $criteria, array $order_by = []): static;
 
@@ -72,8 +72,8 @@ interface CollectionInterface extends
     /**
      * コレクションをフィルタして返します。
      *
-     * @param  \Closure $criteria   フィルタ条件
-     * @param  array    $options    オプション
+     * @param  \Closure $criteria フィルタ条件
+     * @param  array    $options  オプション
      * @return static   検索結果
      */
     public function filterBy(\Closure $criteria, array $options = []): static;
@@ -81,8 +81,8 @@ interface CollectionInterface extends
     /**
      * コレクションをフィルタして配列として返します。
      *
-     * @param  \Closure $criteria   フィルタ条件
-     * @param  array    $options    オプション
+     * @param  \Closure $criteria フィルタ条件
+     * @param  array    $options  オプション
      * @return static   検索結果
      */
     public function filterByAsArray(\Closure $criteria, array $options = []): array;
