@@ -22,9 +22,9 @@ namespace tacddd\collections\objects\traits;
 use tacddd\collections\objects\enums\KeyAccessTypeEnum;
 
 /**
- * オブジェクトコレクション特性
+ * 読み取り専用オブジェクトコレクション特性
  */
-trait ObjectCollectionTrait
+trait ReadonlyObjectCollectionTrait
 {
     /**
      * @var null|\Closure JSONシリアライザ
@@ -181,72 +181,6 @@ trait ObjectCollectionTrait
     public function with(iterable|object $objects = []): static
     {
         return new static($objects, $this->options);
-    }
-
-    /**
-     * オブジェクトを追加します。
-     *
-     * @param  object $object オブジェクト
-     * @return static このインスタンス
-     */
-    public function add(object $object): static
-    {
-        if (!static::isAllowedClass($object)) {
-            throw new \TypeError(\sprintf('%sに受け入れ可能外のクラスを指定されました。class:%s, allowed_class:%s', static::class, $object::class, static::getAllowedClass()));
-        }
-
-        $unique_id = static::extractUniqueId($object);
-
-        foreach ($this->reverseCacheMap[$unique_id] ?? [] as $cache_key => $criteria_keys) {
-            $this->setCache($cache_key, $object, $this->createCriteriaForCache($criteria_keys, $object));
-        }
-
-        $this->collection[$unique_id]  = $object;
-
-        return $this;
-    }
-
-    /**
-     * オブジェクトを纏めて追加します。
-     *
-     * @param  iterable|object $objects オブジェクト
-     * @return static          このインスタンス
-     */
-    public function addAll(iterable|object $objects, iterable|object ...$args): static
-    {
-        if (\is_iterable($objects)) {
-            foreach ($objects as $object) {
-                $this->add($object);
-            }
-        } elseif ($objects instanceof \Closure) {
-            if (\Closure::class === static::getAllowedClass()) {
-                $this->add($objects);
-            } else {
-                $this->addAll($objects());
-            }
-        } else {
-            $this->add($objects);
-        }
-
-        if (!empty($args)) {
-            foreach ($args as $objects) {
-                if (\is_iterable($objects)) {
-                    foreach ($objects as $object) {
-                        $this->add($object);
-                    }
-                } elseif ($objects instanceof \Closure) {
-                    if (\Closure::class === static::getAllowedClass()) {
-                        $this->add($objects);
-                    } else {
-                        $this->addAll($objects());
-                    }
-                } else {
-                    $this->add($objects);
-                }
-            }
-        }
-
-        return $this;
     }
 
     /**
@@ -1130,6 +1064,72 @@ trait ObjectCollectionTrait
         }
 
         return $this->collection;
+    }
+
+    /**
+     * オブジェクトを追加します。
+     *
+     * @param  object $object オブジェクト
+     * @return static このインスタンス
+     */
+    protected function add(object $object): static
+    {
+        if (!static::isAllowedClass($object)) {
+            throw new \TypeError(\sprintf('%sに受け入れ可能外のクラスを指定されました。class:%s, allowed_class:%s', static::class, $object::class, static::getAllowedClass()));
+        }
+
+        $unique_id = static::extractUniqueId($object);
+
+        foreach ($this->reverseCacheMap[$unique_id] ?? [] as $cache_key => $criteria_keys) {
+            $this->setCache($cache_key, $object, $this->createCriteriaForCache($criteria_keys, $object));
+        }
+
+        $this->collection[$unique_id]  = $object;
+
+        return $this;
+    }
+
+    /**
+     * オブジェクトを纏めて追加します。
+     *
+     * @param  iterable|object $objects オブジェクト
+     * @return static          このインスタンス
+     */
+    protected function addAll(iterable|object $objects, iterable|object ...$args): static
+    {
+        if (\is_iterable($objects)) {
+            foreach ($objects as $object) {
+                $this->add($object);
+            }
+        } elseif ($objects instanceof \Closure) {
+            if (\Closure::class === static::getAllowedClass()) {
+                $this->add($objects);
+            } else {
+                $this->addAll($objects());
+            }
+        } else {
+            $this->add($objects);
+        }
+
+        if (!empty($args)) {
+            foreach ($args as $objects) {
+                if (\is_iterable($objects)) {
+                    foreach ($objects as $object) {
+                        $this->add($object);
+                    }
+                } elseif ($objects instanceof \Closure) {
+                    if (\Closure::class === static::getAllowedClass()) {
+                        $this->add($objects);
+                    } else {
+                        $this->addAll($objects());
+                    }
+                } else {
+                    $this->add($objects);
+                }
+            }
+        }
+
+        return $this;
     }
 
     /**
