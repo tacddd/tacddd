@@ -50,13 +50,13 @@ class ObjectCollectionTest extends AbstractTestCase
         $this->assertSame($qwer, $collection->last());
 
         $this->assertSame($zxcv, $collection->find(2));
-        $this->assertSame([$zxcv], $collection->findBy(['id' => 2]));
+        $this->assertEquals(new CollectionDummy([$zxcv]), $collection->findBy(['id' => 2]));
         $this->assertSame($zxcv, $collection->findOneBy(['id' => 2]));
         $this->assertSame(['zxcv' => [2 => [$zxcv]]], $collection->findToMapBy(['id' => 2], ['group', 'id']));
         $this->assertSame(['zxcv' => [2 => $zxcv]], $collection->findOneToMapBy(['id' => 2], ['group', 'id']));
 
         $this->assertSame($zxcv, $collection->find($zxcv));
-        $this->assertSame([$zxcv], $collection->findBy(['id' => $zxcv]));
+        $this->assertEquals(new CollectionDummy([$zxcv]), $collection->findBy(['id' => $zxcv]));
         $this->assertSame($zxcv, $collection->findOneBy(['id' => $zxcv]));
 
         // add
@@ -69,7 +69,7 @@ class ObjectCollectionTest extends AbstractTestCase
         $this->assertSame($hjkl, $collection->last());
 
         $this->assertSame($zxcv, $collection->find(2));
-        $this->assertSame([$zxcv], $collection->findBy(['id' => 2]));
+        $this->assertEquals(new CollectionDummy([$zxcv]), $collection->findBy(['id' => 2]));
         $this->assertSame($zxcv, $collection->findOneBy(['id' => 2]));
         $this->assertSame(['zxcv' => [2 => [$zxcv]]], $collection->findToMapBy(['id' => 2], ['group', 'id']));
         $this->assertSame(['zxcv' => [2 => $zxcv]], $collection->findOneToMapBy(['id' => 2], ['group', 'id']));
@@ -91,7 +91,7 @@ class ObjectCollectionTest extends AbstractTestCase
 
         $this->assertSame($nm, $collection->find(2));
 
-        $this->assertSame([$nm], $collection->findBy(['id' => 2]));
+        $this->assertEquals(new CollectionDummy([$nm]), $collection->findBy(['id' => 2]));
         $this->assertSame($nm, $collection->findOneBy(['id' => 2]));
 
         $this->assertSame(['nm' => [2 => [$nm]]], $collection->findToMapBy(['id' => 2], ['group', 'id']));
@@ -111,7 +111,7 @@ class ObjectCollectionTest extends AbstractTestCase
 
         $this->assertNull($collection->find(2));
 
-        $this->assertSame([], $collection->findBy(['id' => 2]));
+        $this->assertEquals(new CollectionDummy([]), $collection->findBy(['id' => 2]));
         $this->assertNull($collection->findOneBy(['id' => 2]));
         $this->assertSame([], $collection->findToMapBy(['id' => 2], ['group', 'id']));
 
@@ -158,32 +158,41 @@ class ObjectCollectionTest extends AbstractTestCase
         $this->assertSame($qwer, $collection->last());
 
         $this->assertSame($zxcv, $collection->find(2));
-        $this->assertSame([$zxcv], $collection->findBy(['id' => 2]));
+        $this->assertEquals(new EntityCollectionPropertyAccessDummy([$zxcv]), $collection->findBy(['id' => 2]));
         $this->assertSame($zxcv, $collection->findOneBy(['id' => 2]));
         $this->assertSame(['zxcv' => [2 => [$zxcv]]], $collection->findToMapBy(['id' => 2], ['group', 'id']));
         $this->assertSame(['zxcv' => [2 => $zxcv]], $collection->findOneToMapBy(['id' => 2], ['group', 'id']));
 
         $this->assertSame($zxcv, $collection->find($zxcv));
-        $this->assertSame([$zxcv], $collection->findBy(['id' => $zxcv]));
+        $this->assertEquals(new EntityCollectionPropertyAccessDummy([$zxcv]), $collection->findBy(['id' => $zxcv]));
         $this->assertSame($zxcv, $collection->findOneBy(['id' => $zxcv]));
     }
 
     #[Test]
     public function findValue(): void
     {
-        $collection     = new CollectionDummy([
-            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
-            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
-            $qwer   = new CollectionEntityDummy(3, 'zxcv', 'value3'),
+        $collection = new CollectionDummy([
+            $asdf = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer = new CollectionEntityDummy(3, 'zxcv', 'value3'),
         ]);
 
         $this->assertSame('value1', $collection->findValue(1, 'name'));
 
-        $this->assertSame([1 => 'asdf', 2 => 'zxcv', 3 => 'zxcv'], $collection->findValueAll('group'));
+        $this->assertSame(
+            [1 => 'asdf', 2 => 'zxcv', 3 => 'zxcv'],
+            $collection->findValueAll('group'),
+        );
 
-        $this->assertSame(['value2', 'value3'], $collection->findValueBy(['group' => 'zxcv'], 'name'));
+        $this->assertSame(
+            ['value2', 'value3'],
+            $collection->findValueByAsArray(['group' => 'zxcv'], 'name'),
+        );
 
-        $this->assertSame('value2', $collection->findValueOneBy(['group' => 'zxcv'], 'name'));
+        $this->assertSame(
+            'value2',
+            $collection->findValueOneBy(['group' => 'zxcv'], 'name'),
+        );
     }
 
     #[Test]
@@ -324,6 +333,7 @@ class ObjectCollectionTest extends AbstractTestCase
                 ],
             ],
         ];
+
         $this->assertSame($expected, $collection->toMap(['group', 'name', 'id']));
     }
 
@@ -442,38 +452,25 @@ class ObjectCollectionTest extends AbstractTestCase
     #[Test]
     public function toArrayOneMap(): void
     {
-        $actual   = new CollectionDummy([
-            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
-            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
-            $qwer   = new CollectionEntityDummy(3, 'zxcv', 'value3'),
+        $actual = new CollectionDummy([
+            $asdf = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer = new CollectionEntityDummy(3, 'zxcv', 'value3'),
         ]);
 
-        $expected   = [
-            1   => [
-                'id' => 1,
-            ],
-            2   => [
-                'id' => 2,
-            ],
-            3   => [
-                'id' => 3,
-            ],
-        ];
-        $this->assertSame($expected, $actual->toArrayOneMap(['id']));
-
-        $expected   = [
-            'asdf'    => [
-                1   => [
+        $expected = [
+            'asdf' => [
+                1 => [
                     'group' => 'asdf',
                     'id'    => 1,
                 ],
             ],
-            'zxcv'    => [
-                2   => [
+            'zxcv' => [
+                2 => [
                     'group' => 'zxcv',
                     'id'    => 2,
                 ],
-                3   => [
+                3 => [
                     'group' => 'zxcv',
                     'id'    => 3,
                 ],
@@ -537,5 +534,69 @@ class ObjectCollectionTest extends AbstractTestCase
             ],
         ];
         $this->assertSame($expected, $actual->getArrayMap(['date_time', 'id']));
+    }
+
+    #[Test]
+    public function findByOr(): void
+    {
+        $collection = new CollectionDummy([
+            $a = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $b = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $c = new CollectionEntityDummy(3, 'qwer', 'value3'),
+            $d = new CollectionEntityDummy(4, 'zxcv', 'value4'),
+            $e = new CollectionEntityDummy(5, 'hjkl', 'value5'),
+        ]);
+
+        // ==============================================
+        $this->assertEquals(
+            new CollectionDummy([$b, $c, $d]),
+            $collection->findBy([
+                'group' => ['zxcv', 'qwer'],
+            ]),
+        );
+
+        // ==============================================
+        $this->assertEquals(
+            new CollectionDummy([$b, $d]),
+            $collection->findBy([
+                'group' => ['zxcv', 'qwer'],
+                'id'    => [2, 4],
+            ]),
+        );
+
+        // ==============================================
+        $this->assertEquals(
+            new CollectionDummy([$b, $d]),
+            $collection->findBy([
+                'id' => [$b, $d],
+            ]),
+        );
+
+        // ==============================================
+        $one = $collection->findOneBy([
+            'group' => ['zxcv', 'qwer'],
+        ]);
+
+        $this->assertTrue(
+            $one === $b || $one === $c || $one === $d,
+        );
+
+        // ==============================================
+        $this->assertEquals(
+            (new CollectionDummy([$b])),
+            $collection->findBy([
+                'id'    => [1, 2],
+                'group' => ['zxcv', 'qwer'],
+            ]),
+        );
+
+        // ==============================================
+        $this->assertEquals(
+            (new CollectionDummy([$b, $d]))->toArray(),
+            $collection->findBy([
+                'group' => 'zxcv',
+                'name'  => ['value2', 'value4'],
+            ])->toArray(),
+        );
     }
 }
