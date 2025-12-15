@@ -19,8 +19,8 @@ declare(strict_types=1);
 
 namespace tacddd\utilities\builders;
 
-use tacddd\services\utilities\builder\html\Html;
-use tacddd\services\utilities\builder\html\HtmlElement;
+use tacddd\utilities\builders\html\Html;
+use tacddd\utilities\builders\html\HtmlElement;
 use tacddd\utilities\containers\ContainerService;
 
 /**

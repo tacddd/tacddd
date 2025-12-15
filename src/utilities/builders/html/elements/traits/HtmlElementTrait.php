@@ -17,13 +17,13 @@
 
 declare(strict_types=1);
 
-namespace tacddd\services\utilities\builder\html\elements\traits;
+namespace tacddd\utilities\builders\html\elements\traits;
 
-use tacddd\services\utilities\builder\html\Html;
-use tacddd\services\utilities\builder\html\HtmlAttribute;
-use tacddd\services\utilities\builder\html\HtmlTextNode;
-use tacddd\services\utilities\builder\html\traits\Htmlable;
-use tacddd\services\utilities\builder\html\traits\HtmlableTrait;
+use tacddd\utilities\builders\html\Html;
+use tacddd\utilities\builders\html\HtmlAttribute;
+use tacddd\utilities\builders\html\HtmlTextNode;
+use tacddd\utilities\builders\html\traits\Htmlable;
+use tacddd\utilities\builders\html\traits\HtmlableTrait;
 
 /**
  * 簡易的なHTML要素構築ビルダ特性です。

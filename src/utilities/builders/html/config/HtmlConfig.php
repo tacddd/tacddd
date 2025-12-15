@@ -17,7 +17,7 @@
 
 declare(strict_types=1);
 
-namespace tacddd\services\utilities\builder\html\config;
+namespace tacddd\utilities\builders\html\config;
 
 use tacddd\utilities\containers\ContainerService;
 
@@ -47,6 +47,11 @@ class HtmlConfig implements HtmlConfigInterface
     protected string $encoding = self::DEFAULT_ENCODING;
 
     /**
+     * @var bool プリティファイ
+     */
+    protected bool $prettyPrint = true;
+
+    /**
      * ファクトリ
      *
      * @param  array       $options オプション
@@ -71,6 +76,10 @@ class HtmlConfig implements HtmlConfigInterface
 
         if (isset($options['encoding'])) {
             $this->encoding = $options['encoding'];
+        }
+
+        if (isset($options['pretty_print'])) {
+            $this->prettyPrint  = $options['pretty_print'];
         }
     }
 
@@ -118,6 +127,23 @@ class HtmlConfig implements HtmlConfigInterface
         }
 
         $this->encoding = $encoding;
+
+        return $this;
+    }
+
+    /**
+     * プリティファイを取得・設定します。
+     *
+     * @param   null|bool   プリティファイ
+     * @return bool|static プリティファイまたはこのインスタンス
+     */
+    public function prettyPrint(?bool $pretty_print = null): bool|static
+    {
+        if ($pretty_print === null && \func_num_args() === 0) {
+            return $this->prettyPrint;
+        }
+
+        $this->prettyPrint  = $pretty_print;
 
         return $this;
     }

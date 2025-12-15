@@ -17,12 +17,12 @@
 
 declare(strict_types=1);
 
-namespace tacddd\services\utilities\builder\html;
+namespace tacddd\utilities\builders\html;
 
-use tacddd\services\utilities\builder\html\config\HtmlConfigInterface;
-use tacddd\services\utilities\builder\html\elements\traits\HtmlElementInterface;
-use tacddd\services\utilities\builder\html\elements\traits\HtmlElementTrait;
-use tacddd\services\utilities\builder\html\traits\Htmlable;
+use tacddd\utilities\builders\html\config\HtmlConfigInterface;
+use tacddd\utilities\builders\html\elements\traits\HtmlElementInterface;
+use tacddd\utilities\builders\html\elements\traits\HtmlElementTrait;
+use tacddd\utilities\builders\html\traits\Htmlable;
 
 /**
  * 簡易的なHTML要素構築ビルダです。
@@ -68,33 +68,57 @@ class HtmlElement implements HtmlElementInterface
      */
     public function toHtml(int $indent_lv = 0): string
     {
-        $indent = \str_repeat(' ', $indent_lv * 4);
+        $pretty = $this->htmlConfig->prettyPrint();
 
-        $element_name   = Html::escape($this->elementName, $this->htmlConfig);
+        $element_name = Html::escape($this->elementName, $this->htmlConfig);
 
-        $attributes = [
-            '',
-        ];
+        $attributes = [''];
 
         foreach ($this->attributes as $attribute_name => $value) {
             if (!($value instanceof HtmlAttribute)) {
-                if ($value === null) {
-                    $value  = Html::attribute($attribute_name);
-                } else {
-                    $value  = Html::attribute($attribute_name, $value);
-                }
+                $value = $value === null
+                    ? Html::attribute($attribute_name, null, $this->htmlConfig)
+                    : Html::attribute($attribute_name, $value, $this->htmlConfig);
             }
 
-            $attributes[]   = $value->toHtml();
+            $attributes[] = $value->toHtml();
         }
-        $attribute  = \implode(' ', $attributes);
+
+        $attribute = \implode(' ', $attributes);
+
+        if (!$pretty) {
+            // 改行・インデントを一切入れない
+            if (empty($this->children)) {
+                return \sprintf('<%s%s>', $element_name, $attribute);
+            }
+
+            $children   = [];
+
+            foreach ($this->children as $child) {
+                if (!($child instanceof Htmlable)) {
+                    $child = Html::textNode((string) $child, $this->htmlConfig);
+                }
+
+                $children[] = $child->toHtml(0);
+            }
+
+            return \sprintf(
+                '<%s%s>%s</%s>',
+                $element_name,
+                $attribute,
+                \implode('', $children),
+                $element_name,
+            );
+        }
+
+        $indent = \str_repeat(' ', $indent_lv * 4);
 
         if (!empty($this->children)) {
             $children   = [];
 
             if ($this->elementName === 'script') {
                 return \sprintf(
-                    '%s<script%s>%s%s%s</%script>',
+                    '%s<script%s>%s%s%s</script>',
                     $indent,
                     $attribute,
                     "\n",
@@ -120,7 +144,7 @@ class HtmlElement implements HtmlElementInterface
                     $element_name,
                     $attribute,
                     $use_lf ? "\n" : '',
-                    $child->toHtml($indent_lv + 1),
+                    $use_lf ? $child->toHtml($indent_lv + 1) : $child->toHtml(0),
                     $use_lf ? "\n" : '',
                     $use_lf ? $indent : '',
                     $element_name,
@@ -128,31 +152,64 @@ class HtmlElement implements HtmlElementInterface
             }
 
             $before_element_html    = null;
+            $child_indent           = \str_repeat(' ', ($indent_lv + 1) * 4);
+            $previous_was_br        = false;
 
             foreach ($this->children as $child) {
                 if (!($child instanceof Htmlable)) {
-                    $child  = Html::textNode($child);
+                    $child = Html::textNode((string) $child, $this->htmlConfig);
+                }
+
+                if ($child instanceof HtmlElement && \strcasecmp($child->elementName, 'br') === 0) {
+                    $children[]             = $child->toHtml(0);
+                    $children[]             = "\n";
+                    $children[]             = $child_indent;
+                    $before_element_html    = false;
+                    $previous_was_br        = true;
+                    continue;
                 }
 
                 if ($child instanceof HtmlTextNode) {
-                    $children[]             = Html::textNode($child)->toHtml($indent_lv + 1);
+                    $children[]             = $child->toHtml($previous_was_br ? 0 : $indent_lv + 1);
                     $before_element_html    = false;
-                } else {
-                    if ($before_element_html !== false) {
-                        $children[] = "\n";
+                    $previous_was_br        = false;
+                    continue;
+                }
+
+                if ($before_element_html !== false) {
+                    if ($previous_was_br) {
+                        $last_key = \array_key_last($children);
+
+                        if ($last_key !== null && $children[$last_key] === $child_indent) {
+                            unset($children[$last_key]);
+                        }
+
+                        $previous_was_br    = false;
                     }
-                    $children[]             = $child->toHtml($indent_lv + 1);
-                    $before_element_html    = true;
+
+                    $children[] = "\n";
+                }
+
+                $children[]             = $child->toHtml($indent_lv + 1);
+                $before_element_html    = true;
+            }
+
+            if ($previous_was_br) {
+                $last_key = \array_key_last($children);
+
+                if ($last_key !== null && $children[$last_key] === $child_indent) {
+                    unset($children[$last_key]);
                 }
             }
 
             $children[] = "\n";
 
             return \sprintf(
-                '%s<%s%s>%s%s</%s>',
+                '%s<%s%s>%s%s%s</%s>',
                 $indent,
                 $element_name,
                 $attribute,
+                "\n",
                 \implode('', $children),
                 $indent,
                 $element_name,

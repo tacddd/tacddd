@@ -17,10 +17,10 @@
 
 declare(strict_types=1);
 
-namespace tacddd\services\utilities\builder\html\elements\traits;
+namespace tacddd\utilities\builders\html\elements\traits;
 
-use tacddd\services\utilities\builder\html\HtmlTextNode;
-use tacddd\services\utilities\builder\html\traits\Htmlable;
+use tacddd\utilities\builders\html\HtmlTextNode;
+use tacddd\utilities\builders\html\traits\Htmlable;
 
 /**
  * 簡易的なHTML構築ビルダインターフェースです。
@@ -37,14 +37,14 @@ interface HtmlElementInterface extends Htmlable
     public function attr(string $attribute_name, string|array|null $value = null): string|array|static|null;
 
     /**
-     * コンテキストを設定します。
+     * コンテキストを設定・取得します。
      *
      * 設定済みの子要素が存在する場合、全て削除の上コンテキストに置き換えられます。
      *
-     * @param  string      $context コンテキスト
-     * @return self|static このインスタンス
+     * @param  string       $context コンテキスト
+     * @return array|static コンテキストまたはこのインスタンス
      */
-    public function context(string $context): self|static;
+    public function context(?string $context = null): array|static;
 
     /**
      * コンテキストを追加します。

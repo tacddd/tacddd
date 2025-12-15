@@ -17,11 +17,11 @@
 
 declare(strict_types=1);
 
-namespace tacddd\services\utilities\builder\html;
+namespace tacddd\utilities\builders\html;
 
-use tacddd\services\utilities\builder\html\config\HtmlConfigInterface;
-use tacddd\services\utilities\builder\html\traits\Htmlable;
-use tacddd\services\utilities\builder\html\traits\HtmlableTrait;
+use tacddd\utilities\builders\html\config\HtmlConfigInterface;
+use tacddd\utilities\builders\html\traits\Htmlable;
+use tacddd\utilities\builders\html\traits\HtmlableTrait;
 
 /**
  * 簡易的なHTMLテキストノード構築ビルダです。
@@ -67,6 +67,12 @@ class HtmlTextNode implements Htmlable
      */
     public function toHtml(int $indent_lv = 0): string
     {
-        return Html::escape($this->value, $this->htmlConfig);
+        $value = Html::escape($this->value, $this->htmlConfig);
+
+        if (!$this->htmlConfig->prettyPrint()) {
+            return $value;
+        }
+
+        return \str_repeat(' ', $indent_lv * 4) . $value;
     }
 }
