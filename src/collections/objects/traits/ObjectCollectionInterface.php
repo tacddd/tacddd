@@ -121,6 +121,14 @@ interface ObjectCollectionInterface extends
     public function containsAny(iterable $objects): bool;
 
     /**
+     * 指定した検索条件のオブジェクトが存在するかどうかを返します。
+     *
+     * @param  array $criteria 検索条件
+     * @return bool  オブジェクトが存在するかどうか
+     */
+    public function hasBy(array $criteria): bool;
+
+    /**
      * 指定したキーのオブジェクトを探して返します。
      *
      * @param  int|string|object $key ユニークID
@@ -129,12 +137,78 @@ interface ObjectCollectionInterface extends
     public function find(int|string|object $key): ?object;
 
     /**
+     * 指定したキーのオブジェクトを探して返します。
+     *
+     * @param  array  $criteria 検索条件
+     * @param  array  $options  オプション
+     * @return static 検索結果
+     */
+    public function findBy(array $criteria, array $options = []): static;
+
+    /**
+     * 指定したキーのオブジェクトを探して配列として返します。
+     *
+     * @param  array    $criteria 検索条件
+     * @param  array    $options  オプション
+     * @return object[] 検索結果
+     */
+    public function findByAsArray(array $criteria, array $options = []): array;
+
+    /**
+     * 指定したキーのオブジェクトを探して返します。
+     *
+     * @param  array  $criteria 検索条件
+     * @param  array  $options  オプション
+     * @return object 検索結果
+     */
+    public function findOneBy(array $criteria, array $options = []): ?object;
+
+    /**
+     * 指定したキーのオブジェクトの値を探して返します。
+     *
+     * @param  array    $criteria         検索条件
+     * @param  array    $map_key          マップキー
+     * @param  string   $collection_class コレクションクラスパス
+     * @param  array    $options          オプション
+     * @return object[] 検索結果
+     */
+    public function findValueBy(array $criteria, string $map_key, string $collection_class, array $options = []): ObjectCollectionInterface;
+
+    /**
+     * 指定したキーのオブジェクトの値を探して返します。
+     *
+     * @param  array    $criteria 検索条件
+     * @param  string   $map_key  マップキー
+     * @param  array    $options  オプション
+     * @return object[] 検索結果
+     */
+    public function findValueByAsArray(array $criteria, string $map_key, array $options = []): array;
+
+    /**
+     * 指定したキーのオブジェクトを探して値を返します。
+     *
+     * @param  array  $criteria 検索条件
+     * @param  string $map_key  マップキー
+     * @param  array  $options  オプション
+     * @return mixed  検索結果
+     */
+    public function findValueOneBy(array $criteria, string $map_key, array $options = []): mixed;
+
+    /**
      * オブジェクトを取り外します。
      *
      * @param  object $object オブジェクト
      * @return static このインスタンス
      */
     public function remove(object $object): static;
+
+    /**
+     * 指定したキーのオブジェクトを取り外します。
+     *
+     * @param  array  $criteria 検索条件
+     * @return static このインスタンス
+     */
+    public function removeBy(array $criteria): static;
 
     /**
      * コレクションの最初の要素を返します。

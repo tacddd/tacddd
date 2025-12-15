@@ -82,16 +82,24 @@ class MagicalAccessableObjectCollectionTest extends AbstractTestCase
     #[Test]
     public function collection(): void
     {
-        $collection     = new CollectionMagicalDummy([
-            $asdf   = new CollectionEntityDummy(1, 'asdf', 'value1'),
-            $zxcv   = new CollectionEntityDummy(2, 'zxcv', 'value2'),
-            $qwer   = new CollectionEntityDummy(3, 'qwer', 'value3'),
+        $collection = new CollectionMagicalDummy([
+            $asdf = new CollectionEntityDummy(1, 'asdf', 'value1'),
+            $zxcv = new CollectionEntityDummy(2, 'zxcv', 'value2'),
+            $qwer = new CollectionEntityDummy(3, 'qwer', 'value3'),
         ]);
 
         // init
         $this->assertSame($zxcv, $collection->find(2));
-        $this->assertSame([$zxcv], $collection->findById(2));
-        $this->assertSame([$zxcv], $collection->findBy(['id' => 2]));
+
+        $this->assertEquals(
+            new CollectionMagicalDummy([$zxcv]),
+            $collection->findById(2),
+        );
+
+        $this->assertEquals(
+            new CollectionMagicalDummy([$zxcv]),
+            $collection->findBy(['id' => 2]),
+        );
 
         $this->assertSame($zxcv, $collection->findOneById(2));
         $this->assertSame($zxcv, $collection->findOneBy(['id' => 2]));
@@ -105,13 +113,16 @@ class MagicalAccessableObjectCollectionTest extends AbstractTestCase
         // add
         $collection->add($hjkl = new CollectionEntityDummy(4, 'qwer', 'value4'));
 
-        $this->assertSame([$zxcv], $collection->findById(2));
+        $this->assertEquals(
+            new CollectionMagicalDummy([$zxcv]),
+            $collection->findById(2),
+        );
+
         $this->assertSame($zxcv, $collection->findOneById(2));
         $this->assertSame(['zxcv' => [2 => [$zxcv]]], $collection->findToMapByGroupInId('zxcv', 2));
         $this->assertSame(['zxcv' => [2 => $zxcv]], $collection->findOneToMapByGroupInId('zxcv', 2));
 
         $this->assertSame(['qwer' => [3 => [$qwer], 4 => [$hjkl]]], $collection->findToMapByGroup('qwer', ['group', 'id']));
-
         $this->assertSame(['qwer' => [3 => $qwer, 4 => $hjkl]], $collection->findOneToMapByGroup('qwer', ['group', 'id']));
 
         $this->assertSame(['qwer' => [$qwer, $hjkl]], $collection->findToMapByGroup('qwer'));
@@ -120,7 +131,11 @@ class MagicalAccessableObjectCollectionTest extends AbstractTestCase
         // set
         $collection->add($nm = new CollectionEntityDummy(2, 'nm', 'value2_2'));
 
-        $this->assertSame([$nm], $collection->findById(2));
+        $this->assertEquals(
+            new CollectionMagicalDummy([$nm]),
+            $collection->findById(2),
+        );
+
         $this->assertSame($nm, $collection->findOneById(2));
 
         $this->assertSame(['nm' => [2 => [$nm]]], $collection->findToMapById(2, ['group', 'id']));
@@ -138,7 +153,11 @@ class MagicalAccessableObjectCollectionTest extends AbstractTestCase
         $this->assertSame($asdf, $collection->first());
         $this->assertSame($hjkl, $collection->last());
 
-        $this->assertSame([], $collection->findById(2));
+        $this->assertEquals(
+            new CollectionMagicalDummy(),
+            $collection->findById(2),
+        );
+
         $this->assertNull($collection->findOneById(2));
         $this->assertSame([], $collection->findToMapById(2, ['group', 'id']));
 

@@ -62,9 +62,14 @@ trait ObjectCollectionTrait
     protected array $accessKeyCache = [];
 
     /**
+     * @var array 単一キー検索用インデックス
+     */
+    protected array $singleKeyIndex = [];
+
+    /**
      * @var array オブジェクトが持つアクセスポイントマップ
      */
-    protected array $objectAccessPointMap   = [];
+    protected array $objectAccessPointMap = [];
 
     /**
      * 指定された値からユニークIDを返します。
@@ -110,7 +115,7 @@ trait ObjectCollectionTrait
      */
     public static function isAllowedClass(object|string $class): bool
     {
-        $allowed_class  = static::getAllowedClass();
+        $allowed_class = static::getAllowedClass();
 
         if ($class instanceof $allowed_class) {
             return true;
@@ -160,11 +165,11 @@ trait ObjectCollectionTrait
         // ==============================================
         // options
         // ==============================================
-        $this->options  = $options;
+        $this->options = $options;
 
         // jsonSerializer
-        $this->enabledJsonSerializer    = \array_key_exists(static::OPTION_JSON_SERIALIZER, $this->options) && $this->options[static::OPTION_JSON_SERIALIZER] instanceof \Closure;
-        $this->jsonSerializer           = $this->enabledJsonSerializer ? $this->options[static::OPTION_JSON_SERIALIZER] : null;
+        $this->enabledJsonSerializer = \array_key_exists(static::OPTION_JSON_SERIALIZER, $this->options) && $this->options[static::OPTION_JSON_SERIALIZER] instanceof \Closure;
+        $this->jsonSerializer        = $this->enabledJsonSerializer ? $this->options[static::OPTION_JSON_SERIALIZER] : null;
 
         // ==============================================
         // objects add
@@ -197,11 +202,18 @@ trait ObjectCollectionTrait
 
         $unique_id = static::extractUniqueId($object);
 
+        if (isset($this->collection[$unique_id])) {
+            $old_object = $this->collection[$unique_id];
+            $this->removeFromSingleKeyIndex($old_object, $unique_id);
+        }
+
         foreach ($this->reverseCacheMap[$unique_id] ?? [] as $cache_key => $criteria_keys) {
             $this->setCache($cache_key, $object, $this->createCriteriaForCache($criteria_keys, $object));
         }
 
-        $this->collection[$unique_id]  = $object;
+        $this->collection[$unique_id] = $object;
+
+        $this->addToSingleKeyIndex($object, $unique_id);
 
         return $this;
     }
@@ -317,21 +329,9 @@ trait ObjectCollectionTrait
      */
     public function hasBy(array $criteria): bool
     {
-        $cache_map  = $this->loadCacheMap($criteria);
+        $cache_map = $this->loadCacheMap($criteria);
 
-        foreach ($criteria as $key => $value) {
-            if (\is_object($value)) {
-                $value  = $this->normalizeKey($value, $key);
-            }
-
-            if (\array_key_exists($value, $cache_map)) {
-                $cache_map = $cache_map[$value];
-            } else {
-                return false;
-            }
-        }
-
-        return true;
+        return !empty($this->resolveUniqueIdsByCriteria($cache_map, $criteria));
     }
 
     /**
@@ -360,7 +360,7 @@ trait ObjectCollectionTrait
             return $object;
         }
 
-        $keyAccessType    = $this->getKeyAccessType();
+        $keyAccessType = $this->getKeyAccessType();
 
         \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
 
@@ -381,12 +381,12 @@ trait ObjectCollectionTrait
     {
         $result = [];
 
-        $keyAccessType    = $this->getKeyAccessType();
+        $keyAccessType = $this->getKeyAccessType();
 
         foreach ($this->collection as $idx => $object) {
             \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
 
-            $result[$idx]   = match ($keyAccessType->name) {
+            $result[$idx] = match ($keyAccessType->name) {
                 KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
                 KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
                 default                               => $object->{$this->accessKeyCache[$map_key]}(),
@@ -417,33 +417,13 @@ trait ObjectCollectionTrait
      */
     public function findByAsArray(array $criteria, array $options = []): array
     {
-        $cache_map  = $this->loadCacheMap($criteria);
+        $unique_ids = $this->resolveCriteriaToUniqueIds($criteria);
 
-        $not_found  = false;
+        $result = [];
 
-        foreach ($criteria as $key => $value) {
-            if (\is_object($value)) {
-                $value  = $this->normalizeKey($value, $key);
-            }
-
-            if (\array_key_exists($value, $cache_map)) {
-                $cache_map = $cache_map[$value];
-            } else {
-                $not_found  = true;
-
-                break;
-            }
-        }
-
-        if ($not_found) {
-            return [];
-        }
-
-        $result         = [];
-
-        foreach ($cache_map as $unique_id) {
-            if (($object = $this->collection[$unique_id] ?? null) !== null) {
-                $result[]   = $object;
+        foreach ($unique_ids as $unique_id) {
+            if (isset($this->collection[$unique_id])) {
+                $result[] = $this->collection[$unique_id];
             }
         }
 
@@ -467,7 +447,7 @@ trait ObjectCollectionTrait
      *
      * @param  \Closure $criteria フィルタ条件
      * @param  array    $options  オプション
-     * @return static   検索結果
+     * @return object[] 検索結果
      */
     public function filterByAsArray(\Closure $criteria, array $options = []): array
     {
@@ -475,7 +455,7 @@ trait ObjectCollectionTrait
 
         foreach ($this->collection as $unique_kue => $object) {
             if ($criteria($object, $unique_kue, $options)) {
-                $result[]   = $object;
+                $result[] = $object;
             }
         }
 
@@ -497,7 +477,7 @@ trait ObjectCollectionTrait
             throw new \RuntimeException(\sprintf('%sは%sを実装している必要があります。', $collection_class, ObjectCollectionInterface::class));
         }
 
-        return new $collection_class($this->findValueByAsArray($criteria, $map_key));
+        return new $collection_class($this->findValueByAsArray($criteria, $map_key, $options));
     }
 
     /**
@@ -511,41 +491,28 @@ trait ObjectCollectionTrait
     public function findValueByAsArray(array $criteria, string $map_key, array $options = []): array
     {
         $cache_map  = $this->loadCacheMap($criteria);
+        $unique_ids = $this->resolveUniqueIdsByCriteria($cache_map, $criteria);
 
-        $not_found  = false;
-
-        foreach ($criteria as $key => $value) {
-            if (\is_object($value)) {
-                $value  = $this->normalizeKey($value, $key);
-            }
-
-            if (\array_key_exists($value, $cache_map)) {
-                $cache_map = $cache_map[$value];
-            } else {
-                $not_found  = true;
-
-                break;
-            }
-        }
-
-        if ($not_found) {
+        if (empty($unique_ids)) {
             return [];
         }
 
         $result = [];
 
-        $keyAccessType  = $this->getKeyAccessType();
+        $keyAccessType = $this->getKeyAccessType();
 
-        foreach ($cache_map as $unique_id) {
-            if (($object = $this->collection[$unique_id] ?? null) !== null) {
-                \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
-
-                $result[]   = match ($keyAccessType->name) {
-                    KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
-                    KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
-                    default                               => $object->{$this->accessKeyCache[$map_key]}(),
-                };
+        foreach ($unique_ids as $unique_id) {
+            if (($object = $this->collection[$unique_id] ?? null) === null) {
+                continue;
             }
+
+            \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
+
+            $result[] = match ($keyAccessType->name) {
+                KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
+                KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
+                default                               => $object->{$this->accessKeyCache[$map_key]}(),
+            };
         }
 
         return $result;
@@ -560,29 +527,13 @@ trait ObjectCollectionTrait
      */
     public function findOneBy(array $criteria, array $options = []): ?object
     {
-        $unique_id  = $this->loadCacheMap($criteria);
+        $unique_ids = $this->resolveCriteriaToUniqueIds($criteria);
 
-        $not_found  = false;
-
-        foreach ($criteria as $key => $value) {
-            if (\is_object($value)) {
-                $value  = $this->normalizeKey($value, $key);
-            }
-
-            if (\array_key_exists($value, $unique_id)) {
-                $unique_id = $unique_id[$value];
-            } else {
-                $not_found  = true;
-
-                break;
-            }
-        }
-
-        if ($not_found) {
+        if ($unique_ids === []) {
             return null;
         }
 
-        $unique_id  = $unique_id[\array_key_first($unique_id)];
+        $unique_id = $unique_ids[0];
 
         return $this->collection[$unique_id] ?? null;
     }
@@ -597,43 +548,29 @@ trait ObjectCollectionTrait
      */
     public function findValueOneBy(array $criteria, string $map_key, array $options = []): mixed
     {
-        $unique_id  = $this->loadCacheMap($criteria);
+        $cache_map  = $this->loadCacheMap($criteria);
+        $unique_ids = $this->resolveUniqueIdsByCriteria($cache_map, $criteria);
 
-        $not_found  = false;
-
-        foreach ($criteria as $key => $value) {
-            if (\is_object($value)) {
-                $value  = $this->normalizeKey($value, $key);
-            }
-
-            if (\array_key_exists($value, $unique_id)) {
-                $unique_id = $unique_id[$value];
-            } else {
-                $not_found  = true;
-
-                break;
-            }
-        }
-
-        if ($not_found) {
+        if (empty($unique_ids)) {
             return null;
         }
 
-        $unique_id  = $unique_id[\array_key_first($unique_id)];
+        $unique_id = $unique_ids[0];
+        $object    = $this->collection[$unique_id] ?? null;
 
-        $keyAccessType  = $this->getKeyAccessType();
-
-        if (($object = $this->collection[$unique_id] ?? null) !== null) {
-            \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
-
-            return match ($keyAccessType->name) {
-                KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
-                KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
-                default                               => $object->{$this->accessKeyCache[$map_key]}(),
-            };
+        if ($object === null) {
+            return null;
         }
 
-        return null;
+        $keyAccessType = $this->getKeyAccessType();
+
+        \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
+
+        return match ($keyAccessType->name) {
+            KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
+            KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
+            default                               => $object->{$this->accessKeyCache[$map_key]}(),
+        };
     }
 
     /**
@@ -646,47 +583,37 @@ trait ObjectCollectionTrait
      */
     public function findToMapBy(array $criteria, array $map_keys = [], array $order_by = []): array
     {
-        $cache_map  = $this->loadCacheMap($criteria);
+        $criteria_keys = [];
 
-        $not_found  = false;
-
-        foreach ($criteria as $key => $value) {
-            $criteria_keys[]    = $key;
-
-            if (\is_object($value)) {
-                $value  = $this->normalizeKey($value, $key);
-            }
-
-            if (\array_key_exists($value, $cache_map)) {
-                $cache_map  = $cache_map[$value];
-            } else {
-                $not_found  = true;
-
-                break;
-            }
+        foreach (\array_keys($criteria) as $criteria_key) {
+            $criteria_keys[] = $criteria_key;
         }
 
-        if ($not_found) {
+        $cache_map  = $this->loadCacheMap($criteria);
+        $unique_ids = $this->resolveUniqueIdsByCriteria($cache_map, $criteria);
+
+        if (empty($unique_ids)) {
             return [];
         }
 
-        $result     = [];
+        $result   = [];
+        $map_keys = empty($map_keys) ? $criteria_keys : $map_keys;
 
-        $map_keys   = empty($map_keys) ? $criteria_keys : $map_keys;
+        $keyAccessType = $this->getKeyAccessType();
 
-        $keyAccessType    = $this->getKeyAccessType();
+        foreach ($unique_ids as $unique_id) {
+            $object = $this->collection[$unique_id] ?? null;
 
-        foreach ($cache_map as $unique_id) {
-            if (($object = $this->collection[$unique_id] ?? null) === null) {
+            if ($object === null) {
                 continue;
             }
 
-            $in_nest_map_key     = [];
+            $in_nest_map_key = [];
 
             foreach ($map_keys as $map_key) {
                 \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
 
-                $in_nest_map_key[$map_key]  = static::normalizeKey(
+                $in_nest_map_key[$map_key] = static::normalizeKey(
                     match ($keyAccessType->name) {
                         KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
                         KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
@@ -732,47 +659,37 @@ trait ObjectCollectionTrait
      */
     public function findOneToMapBy(array $criteria, array $map_keys = [], array $order_by = []): array
     {
-        $cache_map  = $this->loadCacheMap($criteria);
+        $criteria_keys = [];
 
-        $not_found  = false;
-
-        foreach ($criteria as $key => $value) {
-            $criteria_keys[]    = $key;
-
-            if (\is_object($value)) {
-                $value  = $this->normalizeKey($value, $key);
-            }
-
-            if (\array_key_exists($value, $cache_map)) {
-                $cache_map  = $cache_map[$value];
-            } else {
-                $not_found  = true;
-
-                break;
-            }
+        foreach (\array_keys($criteria) as $criteria_key) {
+            $criteria_keys[] = $criteria_key;
         }
 
-        if ($not_found) {
+        $cache_map  = $this->loadCacheMap($criteria);
+        $unique_ids = $this->resolveUniqueIdsByCriteria($cache_map, $criteria);
+
+        if (empty($unique_ids)) {
             return [];
         }
 
-        $result     = [];
+        $result   = [];
+        $map_keys = empty($map_keys) ? $criteria_keys : $map_keys;
 
-        $map_keys   = empty($map_keys) ? $criteria_keys : $map_keys;
+        $keyAccessType = $this->getKeyAccessType();
 
-        $keyAccessType    = $this->getKeyAccessType();
+        foreach ($unique_ids as $unique_id) {
+            $object = $this->collection[$unique_id] ?? null;
 
-        foreach ($cache_map as $unique_id) {
-            if (($object = $this->collection[$unique_id] ?? null) === null) {
+            if ($object === null) {
                 continue;
             }
 
-            $in_nest_map_key     = [];
+            $in_nest_map_key = [];
 
             foreach ($map_keys as $map_key) {
                 \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
 
-                $in_nest_map_key[$map_key]  = static::normalizeKey(
+                $in_nest_map_key[$map_key] = static::normalizeKey(
                     match ($keyAccessType->name) {
                         KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
                         KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
@@ -814,14 +731,14 @@ trait ObjectCollectionTrait
      */
     public function remove(object $object): static
     {
-        $unique_id  = static::extractUniqueId($object);
+        $unique_id = static::extractUniqueId($object);
 
-        $key_map        = [];
+        $key_map = [];
 
-        $keyAccessType    = $this->getKeyAccessType();
+        $keyAccessType = $this->getKeyAccessType();
 
         foreach ($this->reverseCacheMap[$unique_id] ?? [] as $cache_key => $criteria_keys) {
-            $in_nest_list   = [];
+            $in_nest_list = [];
 
             foreach ($criteria_keys as $map_key) {
                 if (!\array_key_exists($map_key, $key_map)) {
@@ -840,33 +757,33 @@ trait ObjectCollectionTrait
                 $in_nest_list[] = $key_map[$map_key];
             }
 
-            $tmp        = &$this->cacheMap[$cache_key];
+            $tmp = &$this->cacheMap[$cache_key];
 
             foreach ($in_nest_list as $in_nest) {
-                $tmp    = &$tmp[$in_nest];
+                $tmp = &$tmp[$in_nest];
             }
 
             if ($tmp === null) {
                 continue;
             }
 
-            $is_empty       = false;
+            $is_empty = false;
 
             foreach ($tmp as $idx => $value) {
                 if ($value === $unique_id) {
                     unset($tmp[$idx]);
 
-                    $is_empty   = empty($tmp);
+                    $is_empty = empty($tmp);
                 }
             }
 
             unset($tmp);
 
             if ($is_empty) {
-                $tmp        = &$this->cacheMap[$cache_key];
+                $tmp = &$this->cacheMap[$cache_key];
 
-                $refs   = [];
-                $keys   = [];
+                $refs = [];
+                $keys = [];
 
                 foreach ($in_nest_list as $in_nest) {
                     if (\is_array($tmp)) {
@@ -878,11 +795,11 @@ trait ObjectCollectionTrait
                         }
                     }
 
-                    $tmp    = &$tmp[$in_nest];
+                    $tmp = &$tmp[$in_nest];
                 }
 
                 foreach (\array_reverse(\array_keys($keys)) as $idx) {
-                    $in_nest    = $keys[$idx];
+                    $in_nest = $keys[$idx];
 
                     if (empty($refs[$idx][$in_nest])) {
                         unset($refs[$idx][$in_nest]);
@@ -897,6 +814,8 @@ trait ObjectCollectionTrait
             }
         }
 
+        $this->removeFromSingleKeyIndex($object, $unique_id);
+
         unset($this->collection[$unique_id]);
 
         return $this;
@@ -910,7 +829,11 @@ trait ObjectCollectionTrait
      */
     public function removeBy(array $criteria): static
     {
-        $this->remove($this->findOneBy($criteria));
+        $object = $this->findOneBy($criteria);
+
+        if ($object !== null) {
+            $this->remove($object);
+        }
 
         return $this;
     }
@@ -922,7 +845,10 @@ trait ObjectCollectionTrait
      */
     public function clear(): static
     {
-        $this->collection = [];
+        $this->collection      = [];
+        $this->cacheMap        = [];
+        $this->reverseCacheMap = [];
+        $this->singleKeyIndex  = [];
 
         return $this;
     }
@@ -975,7 +901,7 @@ trait ObjectCollectionTrait
      */
     public function toMap(array $map_keys): array
     {
-        $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
+        $cache_map = $this->loadCacheMap(\array_flip($map_keys));
 
         \array_walk_recursive($cache_map, function(&$data): void {
             $data = $this->collection[$data];
@@ -992,7 +918,7 @@ trait ObjectCollectionTrait
      */
     public function toOneMap(array $map_keys): array
     {
-        $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
+        $cache_map = $this->loadCacheMap(\array_flip($map_keys));
 
         $this->replaceCahceMapToOne($cache_map);
 
@@ -1007,17 +933,17 @@ trait ObjectCollectionTrait
      */
     public function toArrayMap(array $map_keys): array
     {
-        $keyAccessType    = $this->getKeyAccessType();
+        $keyAccessType = $this->getKeyAccessType();
 
-        $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
+        $cache_map = $this->loadCacheMap(\array_flip($map_keys));
 
         \array_walk_recursive($cache_map, function(&$data) use ($map_keys, $keyAccessType): void {
             $map = [];
 
             foreach ($map_keys as $map_key) {
-                $access_key     = $this->accessKeyCache[$map_key];
+                $access_key = $this->accessKeyCache[$map_key];
 
-                $map[$map_key]  = match ($keyAccessType->name) {
+                $map[$map_key] = match ($keyAccessType->name) {
                     KeyAccessTypeEnum::Property->name     => $this->collection[$data]->{$access_key},
                     KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$data][$access_key],
                     default                               => $this->collection[$data]->{$access_key}(),
@@ -1038,7 +964,7 @@ trait ObjectCollectionTrait
      */
     public function toArrayOneMap(array $map_keys): array
     {
-        $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
+        $cache_map = $this->loadCacheMap(\array_flip($map_keys));
 
         $this->replaceCahceMapToArrayOne(
             $cache_map,
@@ -1058,7 +984,7 @@ trait ObjectCollectionTrait
      */
     public function getArrayMap(array $map_keys, null|int|string|callable $target = null): array
     {
-        $cache_map  = $this->loadCacheMap(\array_flip($map_keys));
+        $cache_map = $this->loadCacheMap(\array_flip($map_keys));
 
         $this->replaceCahceMapGetArrayOne(
             $cache_map,
@@ -1140,16 +1066,16 @@ trait ObjectCollectionTrait
     protected function getObjectMethodMap(): array
     {
         if (empty($this->objectAccessPointMap)) {
-            $object_method_map    = [];
+            $object_method_map = [];
 
             foreach ((new \ReflectionClass(static::getAllowedClass(9)))->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-                $method_name    = $method->getName();
+                $method_name = $method->getName();
 
                 if (!\str_starts_with($method_name, 'get')) {
                     continue;
                 }
 
-                $object_method_map[$method->getName()]  = [
+                $object_method_map[$method->getName()] = [
                     'map_key'   => $map_key = \mb_substr($method_name, 4),
                     'length'    => \mb_strlen($map_key),
                 ];
@@ -1176,7 +1102,7 @@ trait ObjectCollectionTrait
         $find_cache_key = [];
 
         foreach ($criteria as $key => $value) {
-            $find_cache_key[]  = \ucfirst(\strtr(\ucwords(\strtr($key, ['_' => ' '])), [' ' => '']));
+            $find_cache_key[] = \ucfirst(\strtr(\ucwords(\strtr((string) $key, ['_' => ' '])), [' ' => '']));
         }
 
         \sort($find_cache_key);
@@ -1193,9 +1119,9 @@ trait ObjectCollectionTrait
      */
     protected function createCriteriaForCache(array $criteria_keys, object $object): array
     {
-        $criteria   = [];
+        $criteria = [];
 
-        $keyAccessType    = $this->getKeyAccessType();
+        $keyAccessType = $this->getKeyAccessType();
 
         foreach ($criteria_keys as $map_key) {
             \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
@@ -1225,16 +1151,15 @@ trait ObjectCollectionTrait
         object $object,
         array $criteria,
     ): static {
-        $in_nest_list   = [];
-
-        $criteria_keys  = [];
+        $in_nest_list  = [];
+        $criteria_keys = [];
 
         $unique_id = static::extractUniqueId($object);
 
-        $keyAccessType    = $this->getKeyAccessType();
+        $keyAccessType = $this->getKeyAccessType();
 
         foreach ($criteria as $map_key => $value) {
-            $criteria_keys[]    = $map_key;
+            $criteria_keys[] = $map_key;
 
             \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $keyAccessType);
 
@@ -1355,19 +1280,19 @@ trait ObjectCollectionTrait
         foreach ($cache_map as $key => &$value) {
             if (\is_array($value)) {
                 if (!\is_bool($key = $this->replaceCahceMapToArrayOne($value, $map_keys, $keyAccessType))) {
-                    $map    = [];
+                    $map = [];
 
                     foreach ($map_keys as $map_key) {
-                        $access_key     = $this->accessKeyCache[$map_key];
+                        $access_key = $this->accessKeyCache[$map_key];
 
-                        $map[$map_key]  = match ($keyAccessType->name) {
+                        $map[$map_key] = match ($keyAccessType->name) {
                             KeyAccessTypeEnum::Property->name     => $this->collection[$key]->{$access_key},
                             KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$key][$access_key],
                             default                               => $this->collection[$key]->{$access_key}(),
                         };
                     }
 
-                    $value  = $map;
+                    $value = $map;
                 }
             } else {
                 return $value;
@@ -1393,14 +1318,14 @@ trait ObjectCollectionTrait
             if (\is_array($value)) {
                 if (!\is_bool($key = $this->replaceCahceMapGetArrayOne($value, $target, $keyAccessType))) {
                     if (\is_callable($target)) {
-                        $value  = $target(
+                        $value = $target(
                             $this->collection[$key],
                             $this->accessKeyCache,
                         );
                     } else {
                         $access_key = $this->accessKeyCache[$target];
 
-                        $value  = match ($keyAccessType->name) {
+                        $value = match ($keyAccessType->name) {
                             KeyAccessTypeEnum::Property->name     => $this->collection[$key]->{$access_key},
                             KeyAccessTypeEnum::ArrayAccess->name  => $this->collection[$key][$access_key],
                             default                               => $this->collection[$key]->{$access_key}(),
@@ -1413,5 +1338,290 @@ trait ObjectCollectionTrait
         }
 
         return false;
+    }
+
+    /**
+     * 検索条件値を正規化して返します。
+     */
+    protected function normalizeCriteriaValue(string $key, mixed $value): mixed
+    {
+        if (\is_array($value)) {
+            $normalized = [];
+
+            foreach ($value as $v) {
+                if (\is_object($v)) {
+                    $v = $this->normalizeKey($v, $key);
+                }
+
+                $normalized[] = $v;
+            }
+
+            return $normalized;
+        }
+
+        if (\is_object($value)) {
+            return $this->normalizeKey($value, $key);
+        }
+
+        return $value;
+    }
+
+    /**
+     * cache_map を検索条件に従って辿り、該当 unique_id 群（重複なし）を返します。
+     *
+     * @return array<int|string>
+     */
+    protected function resolveUniqueIdsByCriteria(array $cache_map, array $criteria): array
+    {
+        $pairs = [];
+
+        foreach ($criteria as $key => $value) {
+            $pairs[] = [$key, $this->normalizeCriteriaValue((string) $key, $value)];
+        }
+
+        $resolved = $this->resolveUniqueIdsRecursive($cache_map, $pairs, 0);
+
+        $seen   = [];
+        $result = [];
+
+        foreach ($resolved as $unique_id) {
+            $hash = \is_int($unique_id) ? 'i:' . $unique_id : 's:' . $unique_id;
+
+            if (isset($seen[$hash])) {
+                continue;
+            }
+
+            $seen[$hash] = true;
+            $result[]    = $unique_id;
+        }
+
+        return $result;
+    }
+
+    /**
+     * 検索条件を解析し、条件を満たすユニークIDの一覧を返します。
+     *
+     * @param  array $criteria 検索条件
+     * @return array 条件を満たすユニークIDの配列
+     */
+    protected function resolveCriteriaToUniqueIds(array $criteria): array
+    {
+        if ($criteria === []) {
+            return \array_keys($this->collection);
+        }
+
+        $key_unique_sets = [];
+        $smallest_key    = null;
+        $smallest_size   = null;
+
+        foreach ($criteria as $key => $value) {
+            $index_map  = $this->getSingleKeyIndexMap((string) $key);
+            $values     = \is_array($value) ? $value : [$value];
+            $unique_set = [];
+
+            foreach ($values as $val) {
+                if (\is_object($val)) {
+                    $val = $this->normalizeKey($val, (string) $key);
+                }
+
+                if (!isset($index_map[$val])) {
+                    continue;
+                }
+
+                foreach ($index_map[$val] as $unique_id => $true) {
+                    $unique_set[$unique_id] = true;
+                }
+            }
+
+            if ($unique_set === []) {
+                return [];
+            }
+
+            $set_size              = \count($unique_set);
+            $key_unique_sets[$key] = $unique_set;
+
+            if ($smallest_size === null || $set_size < $smallest_size) {
+                $smallest_size = $set_size;
+                $smallest_key  = $key;
+            }
+        }
+
+        $base_set = $key_unique_sets[$smallest_key];
+        unset($key_unique_sets[$smallest_key]);
+
+        if ($key_unique_sets === []) {
+            return \array_keys($base_set);
+        }
+
+        foreach ($base_set as $unique_id => $true) {
+            foreach ($key_unique_sets as $other_set) {
+                if (!isset($other_set[$unique_id])) {
+                    unset($base_set[$unique_id]);
+                    continue 2;
+                }
+            }
+        }
+
+        return \array_keys($base_set);
+    }
+
+    /**
+     * 単一キー検索用インデックスマップを返します。
+     *
+     * @param  string $map_key マップキー
+     * @return array  単一キー検索用インデックスマップ
+     */
+    protected function getSingleKeyIndexMap(string $map_key): array
+    {
+        if (!isset($this->singleKeyIndex[$map_key])) {
+            $this->buildSingleKeyIndex($map_key);
+        }
+
+        return $this->singleKeyIndex[$map_key];
+    }
+
+    /**
+     * 指定されたマップキーについて単一キー検索用インデックスを構築します。
+     *
+     * @param string $map_key マップキー
+     */
+    protected function buildSingleKeyIndex(string $map_key): void
+    {
+        $index_map = [];
+
+        $key_access_type = $this->getKeyAccessType();
+
+        \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $key_access_type);
+
+        foreach ($this->collection as $unique_id => $object) {
+            $value = static::normalizeKey(
+                match ($key_access_type->name) {
+                    KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
+                    KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
+                    default                               => $object->{$this->accessKeyCache[$map_key]}(),
+                },
+                $this->accessKeyCache[$map_key],
+            );
+
+            $index_map[$value][$unique_id] = true;
+        }
+
+        $this->singleKeyIndex[$map_key] = $index_map;
+    }
+
+    /**
+     * 構築済みの単一キー検索用インデックスへ追加します。
+     *
+     * @param object     $object    オブジェクト
+     * @param int|string $unique_id ユニークID
+     */
+    protected function addToSingleKeyIndex(object $object, int|string $unique_id): void
+    {
+        if ($this->singleKeyIndex === []) {
+            return;
+        }
+
+        $key_access_type = $this->getKeyAccessType();
+
+        foreach (\array_keys($this->singleKeyIndex) as $map_key) {
+            \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $key_access_type);
+
+            $value = static::normalizeKey(
+                match ($key_access_type->name) {
+                    KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
+                    KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
+                    default                               => $object->{$this->accessKeyCache[$map_key]}(),
+                },
+                $this->accessKeyCache[$map_key],
+            );
+
+            $this->singleKeyIndex[$map_key][$value][$unique_id] = true;
+        }
+    }
+
+    /**
+     * 構築済みの単一キー検索用インデックスから削除します。
+     *
+     * @param object     $object    オブジェクト
+     * @param int|string $unique_id ユニークID
+     */
+    protected function removeFromSingleKeyIndex(object $object, int|string $unique_id): void
+    {
+        if ($this->singleKeyIndex === []) {
+            return;
+        }
+
+        $key_access_type = $this->getKeyAccessType();
+
+        foreach (\array_keys($this->singleKeyIndex) as $map_key) {
+            \array_key_exists($map_key, $this->accessKeyCache) ?: $this->setAccessKeyCache($map_key, $key_access_type);
+
+            $value = static::normalizeKey(
+                match ($key_access_type->name) {
+                    KeyAccessTypeEnum::Property->name     => $object->{$this->accessKeyCache[$map_key]},
+                    KeyAccessTypeEnum::ArrayAccess->name  => $object[$this->accessKeyCache[$map_key]],
+                    default                               => $object->{$this->accessKeyCache[$map_key]}(),
+                },
+                $this->accessKeyCache[$map_key],
+            );
+
+            if (!isset($this->singleKeyIndex[$map_key][$value][$unique_id])) {
+                continue;
+            }
+
+            unset($this->singleKeyIndex[$map_key][$value][$unique_id]);
+
+            if ($this->singleKeyIndex[$map_key][$value] === []) {
+                unset($this->singleKeyIndex[$map_key][$value]);
+            }
+        }
+    }
+
+    /**
+     * resolveUniqueIdsByCriteria の再帰本体。
+     *
+     * @return array<int|string>
+     */
+    private function resolveUniqueIdsRecursive(array $node, array $pairs, int $index): array
+    {
+        if (!isset($pairs[$index])) {
+            $ids = [];
+
+            foreach ($node as $v) {
+                if (\is_array($v)) {
+                    foreach ($this->resolveUniqueIdsRecursive($v, $pairs, $index) as $vv) {
+                        $ids[] = $vv;
+                    }
+                } else {
+                    $ids[] = $v;
+                }
+            }
+
+            return $ids;
+        }
+
+        [, $value] = $pairs[$index];
+
+        if (\is_array($value)) {
+            $merged = [];
+
+            foreach ($value as $v) {
+                if (!\array_key_exists($v, $node)) {
+                    continue;
+                }
+
+                foreach ($this->resolveUniqueIdsRecursive($node[$v], $pairs, $index + 1) as $id) {
+                    $merged[] = $id;
+                }
+            }
+
+            return $merged;
+        }
+
+        if (!\array_key_exists($value, $node)) {
+            return [];
+        }
+
+        return $this->resolveUniqueIdsRecursive($node[$value], $pairs, $index + 1);
     }
 }
