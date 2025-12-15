@@ -17,7 +17,7 @@
 
 declare(strict_types=1);
 
-namespace tacddd\services\utilities\builder\html\config;
+namespace tacddd\utilities\builders\html\config;
 
 use tacddd\utilities\converters\StringService;
 
@@ -72,15 +72,24 @@ interface HtmlConfigInterface
     /**
      * エスケープタイプを取得・設定します。
      *
-     * @return string エスケープタイプまたはこのクラスパス
+     * @param  null|string   $escape_type エスケープタイプ
+     * @return string|static エスケープタイプまたはこのインスタンス
      */
-    public function escapeType($escape_type = null): string;
+    public function escapeType(?string $escape_type = null): string|static;
 
     /**
      * エンコーディングを取得・設定します。
      *
-     * @param  null|string $encoding エンコーディング
-     * @return string      エンコーディングまたはこのクラスパス
+     * @param  null|string   $encoding エンコーディング
+     * @return string|static エンコーディングまたはこのインスタンス
      */
-    public function encoding(?string $encoding = null): string;
+    public function encoding(?string $encoding = null): string|static;
+
+    /**
+     * プリティファイを取得・設定します。
+     *
+     * @param   null|bool   プリティファイ
+     * @return bool|static プリティファイまたはこのインスタンス
+     */
+    public function prettyPrint(?bool $pretty_print = null): bool|static;
 }

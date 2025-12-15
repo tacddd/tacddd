@@ -17,11 +17,11 @@
 
 declare(strict_types=1);
 
-namespace tacddd\services\utilities\builder\html;
+namespace tacddd\utilities\builders\html;
 
-use tacddd\services\utilities\builder\html\config\HtmlConfigInterface;
-use tacddd\services\utilities\builder\html\traits\Htmlable;
-use tacddd\services\utilities\builder\html\traits\HtmlableTrait;
+use tacddd\utilities\builders\html\config\HtmlConfigInterface;
+use tacddd\utilities\builders\html\traits\Htmlable;
+use tacddd\utilities\builders\html\traits\HtmlableTrait;
 
 /**
  * 簡易的なHTML構築ビルダです。
@@ -84,10 +84,10 @@ class HtmlAttribute implements Htmlable
     /**
      * 属性値を設定・取得します。
      *
-     * @param  null|mixed        $value 属性値
-     * @return null|mixed|static 属性値またはこのインスタンス
+     * @param  null|mixed $value 属性値
+     * @return mixed      属性値またはこのインスタンス
      */
-    public function value(mixed $value = null): mixed|static|null
+    public function value(mixed $value = null): mixed
     {
         if ($value === null && \func_num_args() === 0) {
             return $this->value;

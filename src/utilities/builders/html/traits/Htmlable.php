@@ -17,9 +17,9 @@
 
 declare(strict_types=1);
 
-namespace tacddd\services\utilities\builder\html\traits;
+namespace tacddd\utilities\builders\html\traits;
 
-use tacddd\services\utilities\builder\html\config\HtmlConfigInterface;
+use tacddd\utilities\builders\html\config\HtmlConfigInterface;
 
 /**
  * 簡易的なHTML構築ビルダインターフェースです。
