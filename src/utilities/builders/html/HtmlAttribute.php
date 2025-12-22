@@ -20,137 +20,40 @@ declare(strict_types=1);
 namespace tacddd\utilities\builders\html;
 
 use tacddd\utilities\builders\html\config\HtmlConfigInterface;
-use tacddd\utilities\builders\html\traits\Htmlable;
-use tacddd\utilities\builders\html\traits\HtmlableTrait;
 
 /**
- * 簡易的なHTML構築ビルダです。
+ * HTML属性です。
  */
-class HtmlAttribute implements Htmlable
+final class HtmlAttribute
 {
-    use HtmlableTrait;
-
     /**
-     * @var string 属性名
+     * ファクトリです。
      */
-    protected string $attributeName;
-
-    /**
-     * @var null|string 属性値
-     */
-    protected ?string $value    = null;
-
-    /**
-     * constructor
-     *
-     * @param  string              $attribute_name 属性名
-     * @param  null|string         $value          属税値
-     * @param  HtmlConfigInterface $htmlConfig     コンフィグ
-     * @return HtmlAttribute       このインスタンス
-     */
-    public static function factory(string $attribute_name, ?string $value = null, ?HtmlConfigInterface $htmlConfig = null): HtmlAttribute
+    public static function factory(string $name, mixed $value, ?HtmlConfigInterface $htmlConfig): self
     {
-        return new static($attribute_name, $value, $htmlConfig);
+        return new self($name, $value, $htmlConfig);
+    }
+
+    private function __construct(
+        private string $name,
+        private mixed $value,
+        private ?HtmlConfigInterface $htmlConfig,
+    ) {
     }
 
     /**
-     * constructor
-     *
-     * @param string              $attribute_name 属性名
-     * @param null|string         $value          属税値
-     * @param HtmlConfigInterface $htmlConfig     コンフィグ
+     * HTML属性文字列を生成します。
      */
-    public function __construct(string $attribute_name, ?string $value = null, ?HtmlConfigInterface $htmlConfig = null)
+    public function toHtml(): string
     {
-        if ($value instanceof HtmlAttribute) {
-            $value  = $value->value();
-        }
-
-        $this->attributeName    = $attribute_name;
-        $this->value            = $value;
-        $this->htmlConfig       = $htmlConfig === null ? Html::htmlConfig() : $htmlConfig;
-    }
-
-    /**
-     * 属性名を返します。
-     *
-     * @return string 属性名
-     */
-    public function getName(): string
-    {
-        return $this->attributeName;
-    }
-
-    /**
-     * 属性値を設定・取得します。
-     *
-     * @param  null|mixed $value 属性値
-     * @return mixed      属性値またはこのインスタンス
-     */
-    public function value(mixed $value = null): mixed
-    {
-        if ($value === null && \func_num_args() === 0) {
-            return $this->value;
-        }
-
-        if ($value instanceof HtmlAttribute) {
-            $value  = $value->value();
-        }
-
-        $this->value    = $value;
-
-        return $this;
-    }
-
-    /**
-     * 現在の状態を元にHTML文字列を構築し返します。
-     *
-     * @param  int    $indent_lv インデントレベル
-     * @return string 構築したHTML文字列
-     */
-    public function toHtml(int $indent_lv = 0): string
-    {
-        $htmlConfig = $this->htmlConfig();
-
-        $attribute_name = $this->attributeName;
-        $attribute_name = Html::escape($attribute_name, HtmlConfigInterface::ESCAPE_TYPE_HTML, $htmlConfig->encoding());
-
-        $value  = $this->value;
-
-        if ($value === null) {
-            return Html::escape($attribute_name, HtmlConfigInterface::ESCAPE_TYPE_HTML, $htmlConfig->encoding());
-        }
-
-        if (\is_array($value)) {
-            if ($this->attributeName === 'style') {
-                foreach ($value as $idx => $style) {
-                    $value[$idx]    = \trim($style, ' ;');
-                }
-                $value  = \sprintf('%s;', \implode('; ', $value));
-            } else {
-                $value  = \implode(' ', $value);
-            }
+        if ($this->value === null) {
+            return $this->name;
         }
 
         return \sprintf(
             '%s="%s"',
-            $attribute_name,
-            Html::escape($value, HtmlConfigInterface::ESCAPE_TYPE_HTML, $htmlConfig->encoding()),
+            $this->name,
+            Html::escape($this->value, $this->htmlConfig),
         );
-    }
-
-    /**
-     * 属性を返します。
-     *
-     * @param  string        $attribute_name 属性名
-     * @param  array         $args           引数
-     * @return HtmlAttribute 属性
-     */
-    public static function __callStatic(string $attribute_name, array $args): HtmlAttribute
-    {
-        $value      = $args[0] ?? null;
-        $htmlConfig = $args[1] ?? null;
-
-        return new static($attribute_name, $value, $htmlConfig);
     }
 }

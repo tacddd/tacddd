@@ -24,55 +24,50 @@ use tacddd\utilities\builders\html\traits\Htmlable;
 use tacddd\utilities\builders\html\traits\HtmlableTrait;
 
 /**
- * 簡易的なHTMLテキストノード構築ビルダです。
+ * 簡易的なHTMLテキストノードです。
  */
-class HtmlTextNode implements Htmlable
+final class HtmlTextNode implements Htmlable
 {
     use HtmlableTrait;
 
     /**
-     * @var string 値
+     * @var string テキスト
      */
-    protected string $value;
+    private string $value;
 
     /**
-     * constructor
+     * ファクトリです。
      *
-     * @param  string              $value      テキスト
-     * @param  HtmlConfigInterface $htmlConfig コンフィグ
-     * @return self|static         このインスタンス
+     * @param  string                   $value      テキスト
+     * @param  null|HtmlConfigInterface $htmlConfig 設定
+     * @return self                     テキストノード
      */
-    public static function factory(string $value, ?HtmlConfigInterface $htmlConfig = null): self|static
+    public static function factory(string $value, ?HtmlConfigInterface $htmlConfig = null): self
     {
-        return new static($value, $htmlConfig);
+        $instance = new self($value);
+        $instance->htmlConfig($htmlConfig ?? Html::defaultHtmlConfig());
+
+        return $instance;
     }
 
     /**
-     * constructor
+     * constructor です。
      *
-     * @param string              $value      テキスト
-     * @param HtmlConfigInterface $htmlConfig コンフィグ
+     * @param string $value テキスト
      */
-    public function __construct(string $value, ?HtmlConfigInterface $htmlConfig = null)
+    private function __construct(string $value)
     {
-        $this->value        = $value;
-        $this->htmlConfig   = $htmlConfig ?? Html::htmlConfig();
+        $this->value = $value;
     }
 
     /**
-     * 現在の状態を元にHTML文字列を構築し返します。
+     * 現在の状態を元にHTML文字列を構築して返します。
      *
      * @param  int    $indent_lv インデントレベル
-     * @return string 構築したHTML文字列
+     * @return string HTML文字列
      */
     public function toHtml(int $indent_lv = 0): string
     {
-        $value = Html::escape($this->value, $this->htmlConfig);
-
-        if (!$this->htmlConfig->prettyPrint()) {
-            return $value;
-        }
-
-        return \str_repeat(' ', $indent_lv * 4) . $value;
+        return Html::escape($this->value, $this->htmlConfig());
     }
 }

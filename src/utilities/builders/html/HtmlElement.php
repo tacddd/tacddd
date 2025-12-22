@@ -20,218 +20,283 @@ declare(strict_types=1);
 namespace tacddd\utilities\builders\html;
 
 use tacddd\utilities\builders\html\config\HtmlConfigInterface;
-use tacddd\utilities\builders\html\elements\traits\HtmlElementInterface;
-use tacddd\utilities\builders\html\elements\traits\HtmlElementTrait;
 use tacddd\utilities\builders\html\traits\Htmlable;
+use tacddd\utilities\builders\html\traits\HtmlableTrait;
 
 /**
- * 簡易的なHTML要素構築ビルダです。
+ * 簡易的なHTML要素です。
  */
-class HtmlElement implements HtmlElementInterface
+final class HtmlElement implements Htmlable
 {
-    use HtmlElementTrait;
+    use HtmlableTrait;
 
     /**
-     * factory
-     *
-     * @param  string      $element_name 要素名
-     * @param  array       $attributes   属性
-     * @param  array       $children     子要素
-     * @return self|static このインスタンス
+     * @var string 要素名
      */
-    public static function factory(string $element_name, array $children = [], array $attributes = [], $htmlConfig = null): self|static
-    {
-        return new static($element_name, $children, $attributes, $htmlConfig);
+    private string $elementName;
+
+    /**
+     * @var array<int, Htmlable> 子要素
+     */
+    private array $children;
+
+    /**
+     * @var array<string, mixed> 属性
+     */
+    private array $attributes;
+
+    /**
+     * ファクトリです。
+     *
+     * @param  string                   $element_name 要素名
+     * @param  array<int, Htmlable>     $children     子要素
+     * @param  array<string, mixed>     $attributes   属性
+     * @param  null|HtmlConfigInterface $htmlConfig   設定
+     * @return self                     要素
+     */
+    public static function factory(
+        string $element_name,
+        array $children = [],
+        array $attributes = [],
+        ?HtmlConfigInterface $htmlConfig = null,
+    ): self {
+        $instance = new self($element_name, $children, $attributes);
+        $instance->htmlConfig($htmlConfig ?? Html::defaultHtmlConfig());
+
+        return $instance;
     }
 
     /**
-     * constructor
-     *
-     * @param  string      $element_name 要素名
-     * @param  array       $attributes   属性
-     * @param  array       $children     子要素
-     * @return self|static このインスタンス
-     */
-    public function __construct(string $element_name, array $children = [], array $attributes = [], $htmlConfig = null)
-    {
-        $this->elementName  = $element_name;
-        $this->children     = \is_array($children) ? $children : [$children];
-        $this->attributes   = $attributes;
-        $this->htmlConfig   = $htmlConfig ?? Html::htmlConfig();
-    }
-
-    /**
-     * 現在の状態を元にHTML文字列を構築し返します。
+     * インデント文字列を返します。
      *
      * @param  int    $indent_lv インデントレベル
-     * @return string 構築したHTML文字列
+     * @return string インデント
+     */
+    private static function indent(int $indent_lv): string
+    {
+        return \str_repeat(' ', $indent_lv * 4);
+    }
+
+    /**
+     * void要素かどうかを返します。
+     *
+     * @param  string $tag タグ名
+     * @return bool   void要素ならtrue
+     */
+    private static function isVoidTag(string $tag): bool
+    {
+        return \in_array($tag, ['br', 'hr', 'img', 'input', 'meta', 'link', 'source', 'area', 'base', 'col', 'embed', 'param', 'track', 'wbr'], true);
+    }
+
+    /**
+     * inline要素かどうかを返します。
+     *
+     * @param  string $tag タグ名
+     * @return bool   inline要素ならtrue
+     */
+    private static function isInlineTag(string $tag): bool
+    {
+        return \in_array($tag, ['a', 'span', 'em', 'strong', 'b', 'i', 'u', 'small', 'code', 'kbd', 'samp', 'sub', 'sup', 'br'], true);
+    }
+
+    /**
+     * constructor です。
+     *
+     * @param string               $elementName 要素名
+     * @param array<int, Htmlable> $children    子要素
+     * @param array<string, mixed> $attributes  属性
+     */
+    private function __construct(string $elementName, array $children, array $attributes)
+    {
+        $this->elementName = $elementName;
+        $this->children    = $children;
+        $this->attributes  = $attributes;
+    }
+
+    /**
+     * 属性を設定します。
+     *
+     * @param  string $name  属性名
+     * @param  mixed  $value 属性値
+     * @return $this  このインスタンス
+     */
+    public function attr(string $name, mixed $value = null): self
+    {
+        $this->attributes[$name] = $value;
+
+        return $this;
+    }
+
+    /**
+     * 子要素を追加します。
+     *
+     * @param  Htmlable $child 子要素
+     * @return $this    このインスタンス
+     */
+    public function appendChildNode(Htmlable $child): self
+    {
+        $this->children[] = $child;
+
+        return $this;
+    }
+
+    /**
+     * 現在の状態を元にHTML文字列を構築して返します。
+     *
+     * @param  int    $indent_lv インデントレベル
+     * @return string HTML文字列
      */
     public function toHtml(int $indent_lv = 0): string
     {
-        $pretty = $this->htmlConfig->prettyPrint();
+        $config = $this->htmlConfig();
+        $pretty = $config?->prettyPrint() ?? false;
 
-        $element_name = Html::escape($this->elementName, $this->htmlConfig);
-
-        $attributes = [''];
-
-        foreach ($this->attributes as $attribute_name => $value) {
-            if (!($value instanceof HtmlAttribute)) {
-                $value = $value === null
-                    ? Html::attribute($attribute_name, null, $this->htmlConfig)
-                    : Html::attribute($attribute_name, $value, $this->htmlConfig);
-            }
-
-            $attributes[] = $value->toHtml();
-        }
-
-        $attribute = \implode(' ', $attributes);
+        $tag = $this->normalizedTagName();
 
         if (!$pretty) {
-            // 改行・インデントを一切入れない
-            if (empty($this->children)) {
-                return \sprintf('<%s%s>', $element_name, $attribute);
-            }
-
-            $children   = [];
-
-            foreach ($this->children as $child) {
-                if (!($child instanceof Htmlable)) {
-                    $child = Html::textNode((string) $child, $this->htmlConfig);
-                }
-
-                $children[] = $child->toHtml(0);
-            }
-
-            return \sprintf(
-                '<%s%s>%s</%s>',
-                $element_name,
-                $attribute,
-                \implode('', $children),
-                $element_name,
-            );
+            return $this->toHtmlCompact();
         }
 
-        $indent = \str_repeat(' ', $indent_lv * 4);
-
-        if (!empty($this->children)) {
-            $children   = [];
-
-            if ($this->elementName === 'script') {
-                return \sprintf(
-                    '%s<script%s>%s%s%s</script>',
-                    $indent,
-                    $attribute,
-                    "\n",
-                    Html::escape((string) $this->children, HtmlConfigInterface::ESCAPE_TYPE_JS, HtmlConfigInterface::ENCODING_FOR_JS),
-                    "\n",
-                );
-            }
-
-            if (\count($this->children) === 1) {
-                $use_lf = false;
-
-                foreach ($this->children as $child) {
-                    if (!($child instanceof Htmlable)) {
-                        $child  = Html::textNode($child);
-                    }
-
-                    $use_lf = !($child instanceof HtmlTextNode);
-                }
-
-                return \sprintf(
-                    '%s<%s%s>%s%s%s%s</%s>',
-                    $indent,
-                    $element_name,
-                    $attribute,
-                    $use_lf ? "\n" : '',
-                    $use_lf ? $child->toHtml($indent_lv + 1) : $child->toHtml(0),
-                    $use_lf ? "\n" : '',
-                    $use_lf ? $indent : '',
-                    $element_name,
-                );
-            }
-
-            $before_element_html    = null;
-            $child_indent           = \str_repeat(' ', ($indent_lv + 1) * 4);
-            $previous_was_br        = false;
-
-            foreach ($this->children as $child) {
-                if (!($child instanceof Htmlable)) {
-                    $child = Html::textNode((string) $child, $this->htmlConfig);
-                }
-
-                if ($child instanceof HtmlElement && \strcasecmp($child->elementName, 'br') === 0) {
-                    $children[]             = $child->toHtml(0);
-                    $children[]             = "\n";
-                    $children[]             = $child_indent;
-                    $before_element_html    = false;
-                    $previous_was_br        = true;
-                    continue;
-                }
-
-                if ($child instanceof HtmlTextNode) {
-                    $children[]             = $child->toHtml($previous_was_br ? 0 : $indent_lv + 1);
-                    $before_element_html    = false;
-                    $previous_was_br        = false;
-                    continue;
-                }
-
-                if ($before_element_html !== false) {
-                    if ($previous_was_br) {
-                        $last_key = \array_key_last($children);
-
-                        if ($last_key !== null && $children[$last_key] === $child_indent) {
-                            unset($children[$last_key]);
-                        }
-
-                        $previous_was_br    = false;
-                    }
-
-                    $children[] = "\n";
-                }
-
-                $children[]             = $child->toHtml($indent_lv + 1);
-                $before_element_html    = true;
-            }
-
-            if ($previous_was_br) {
-                $last_key = \array_key_last($children);
-
-                if ($last_key !== null && $children[$last_key] === $child_indent) {
-                    unset($children[$last_key]);
-                }
-            }
-
-            $children[] = "\n";
-
-            return \sprintf(
-                '%s<%s%s>%s%s%s</%s>',
-                $indent,
-                $element_name,
-                $attribute,
-                "\n",
-                \implode('', $children),
-                $indent,
-                $element_name,
-            );
+        // inline要素は prettyPrint 有効でも常に 1行（compact）で返します。
+        if (self::isInlineTag($tag)) {
+            return $this->toHtmlCompact();
         }
 
-        return \sprintf('%s<%s%s>', $indent, $element_name, $attribute);
+        return $this->toHtmlPretty($indent_lv);
     }
 
     /**
-     * sugar factory
+     * コンパクトにHTMLを出力します。
      *
-     * @param  string      $element_name 要素名
-     * @param  array       $args         引数
-     * @return self|static このインスタンス
+     * @return string HTML文字列
      */
-    public static function __callStatic(string $element_name, array $args): self|static
+    private function toHtmlCompact(): string
     {
-        $children   = $args[0] ?? [];
-        $attributes = $args[1] ?? [];
-        $htmlConfig = $args[2] ?? null;
+        $tag = $this->normalizedTagName();
 
-        return new static($element_name, $children, $attributes, $htmlConfig);
+        $attrs = $this->buildAttributesString();
+        $open  = $attrs === '' ? \sprintf('<%s>', $tag) : \sprintf('<%s %s>', $tag, $attrs);
+
+        if (self::isVoidTag($tag)) {
+            return $open;
+        }
+
+        $children = [];
+
+        foreach ($this->children as $child) {
+            $children[] = $child->toHtml(0);
+        }
+
+        return \sprintf('%s%s</%s>', $open, \implode('', $children), $tag);
+    }
+
+    /**
+     * prettyPrint 用にHTMLを出力します。
+     *
+     * @param  int    $indent_lv インデントレベル
+     * @return string HTML文字列
+     */
+    private function toHtmlPretty(int $indent_lv): string
+    {
+        $tag         = $this->normalizedTagName();
+        $indent      = self::indent($indent_lv);
+        $childIndent = self::indent($indent_lv + 1);
+
+        $attrs = $this->buildAttributesString();
+        $open  = $attrs === '' ? \sprintf('<%s>', $tag) : \sprintf('<%s %s>', $tag, $attrs);
+
+        if (self::isVoidTag($tag)) {
+            return $indent . $open;
+        }
+
+        if ($this->children === []) {
+            return \sprintf('%s%s</%s>', $indent, $open, $tag);
+        }
+
+        $lines = [];
+        $line  = $childIndent;
+
+        foreach ($this->children as $child) {
+            if ($child instanceof HtmlTextNode) {
+                $line .= $child->toHtml(0);
+                continue;
+            }
+
+            if ($child instanceof self) {
+                $childTag = $child->normalizedTagName();
+
+                // inline は同一行へ連結（br だけは行を確定）
+                if (self::isInlineTag($childTag)) {
+                    $childHtml = $child->toHtml(0);
+
+                    if ($childTag === 'br') {
+                        $line .= $childHtml;
+                        $lines[] = $line;
+                        $line    = $childIndent;
+                        continue;
+                    }
+
+                    $line .= $childHtml;
+                    continue;
+                }
+            }
+
+            if ($line !== $childIndent) {
+                $lines[] = $line;
+                $line    = $childIndent;
+            }
+
+            $childHtml = $child->toHtml($indent_lv + 1);
+            $lines     = \array_merge($lines, \explode("\n", $childHtml));
+        }
+
+        if ($line !== $childIndent) {
+            $lines[] = $line;
+        }
+
+        return \implode(
+            "\n",
+            \array_merge(
+                [$indent . $open],
+                $lines,
+                [\sprintf('%s</%s>', $indent, $tag)],
+            ),
+        );
+    }
+
+    /**
+     * 属性文字列を構築します。
+     *
+     * @return string 属性文字列
+     */
+    private function buildAttributesString(): string
+    {
+        if ($this->attributes === []) {
+            return '';
+        }
+
+        $pairs = [];
+
+        foreach ($this->attributes as $name => $value) {
+            if ($value === null) {
+                $pairs[] = $name;
+                continue;
+            }
+
+            $escaped = Html::escape((string) $value, $this->htmlConfig());
+            $pairs[] = \sprintf('%s="%s"', $name, $escaped);
+        }
+
+        return \implode(' ', $pairs);
+    }
+
+    /**
+     * 正規化済みタグ名を返します。
+     *
+     * @return string タグ名
+     */
+    private function normalizedTagName(): string
+    {
+        return \strtolower($this->elementName);
     }
 }

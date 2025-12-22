@@ -19,7 +19,7 @@ declare(strict_types=1);
 
 namespace tacddd\utilities\builders\html\config;
 
-use tacddd\utilities\converters\StringService;
+use tacddd\utilities\builders\html\safety\value_objects\HtmlSafetyRules;
 
 /**
  * 簡易的なHTML構築ビルダ設定インターフェースです。
@@ -27,47 +27,39 @@ use tacddd\utilities\converters\StringService;
 interface HtmlConfigInterface
 {
     /**
-     * @var string エスケープタイプ：HTML
+     * @var string HTMLエスケープ
      */
-    public const ESCAPE_TYPE_HTML          = StringService::ESCAPE_TYPE_HTML;
+    public const ESCAPE_TYPE_HTML = 'html';
 
     /**
-     * @var string エスケープタイプ：JavaScript
+     * @var string JavaScriptエスケープ
      */
-    public const ESCAPE_TYPE_JAVASCRIPT    = StringService::ESCAPE_TYPE_JAVASCRIPT;
+    public const ESCAPE_TYPE_JAVASCRIPT = 'javascript';
 
     /**
-     * @var string エスケープタイプ：JavaScript (省略形)
+     * @var string JSエスケープ（互換用）
      */
-    public const ESCAPE_TYPE_JS            = StringService::ESCAPE_TYPE_JS;
+    public const ESCAPE_TYPE_JS = 'js';
 
     /**
-     * @var string エスケープタイプ：CSS
+     * @var string CSSエスケープ
      */
-    public const ESCAPE_TYPE_CSS           = StringService::ESCAPE_TYPE_CSS;
+    public const ESCAPE_TYPE_CSS = 'css';
 
     /**
-     * @var string エスケープタイプ
+     * @var string デフォルトエスケープタイプ
      */
-    public const DEFAULT_ESCAPE_TYPE   = self::ESCAPE_TYPE_HTML;
+    public const DEFAULT_ESCAPE_TYPE = self::ESCAPE_TYPE_HTML;
+
+    /**
+     * @var string デフォルトエンコーディング
+     */
+    public const DEFAULT_ENCODING = 'UTF-8';
 
     /**
      * @var string JS向けエンコーディング
      */
-    public const ENCODING_FOR_JS   = 'UTF-8';
-
-    /**
-     * @var string エンコーディング
-     */
-    public const DEFAULT_ENCODING  = 'UTF-8';
-
-    /**
-     * ファクトリ
-     *
-     * @param  array       $options オプション
-     * @return self|static このインスタンス
-     */
-    public static function factory(array $options = []): self|static;
+    public const ENCODING_FOR_JS = 'UTF-8';
 
     /**
      * エスケープタイプを取得・設定します。
@@ -88,8 +80,16 @@ interface HtmlConfigInterface
     /**
      * プリティファイを取得・設定します。
      *
-     * @param   null|bool   プリティファイ
+     * @param  null|bool   $pretty_print プリティファイ
      * @return bool|static プリティファイまたはこのインスタンス
      */
     public function prettyPrint(?bool $pretty_print = null): bool|static;
+
+    /**
+     * HTMLの意図の安全性ルールを取得・設定します。
+     *
+     * @param  null|HtmlSafetyRules        $rules ルール
+     * @return null|HtmlSafetyRules|static ルールまたはこのインスタンス
+     */
+    public function safetyRules(?HtmlSafetyRules $rules = null): HtmlSafetyRules|static|null;
 }

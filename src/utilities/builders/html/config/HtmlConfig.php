@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 namespace tacddd\utilities\builders\html\config;
 
+use tacddd\utilities\builders\html\safety\value_objects\HtmlSafetyRules;
 use tacddd\utilities\containers\ContainerService;
 
 /**
@@ -29,7 +30,7 @@ class HtmlConfig implements HtmlConfigInterface
     /**
      * @var array エスケープタイプマップ
      */
-    public const ESCAPE_TYPE_MAP    = [
+    public const ESCAPE_TYPE_MAP = [
         self::ESCAPE_TYPE_HTML          => self::ESCAPE_TYPE_HTML,
         self::ESCAPE_TYPE_JAVASCRIPT    => self::ESCAPE_TYPE_JAVASCRIPT,
         self::ESCAPE_TYPE_JS            => self::ESCAPE_TYPE_JS,
@@ -39,7 +40,7 @@ class HtmlConfig implements HtmlConfigInterface
     /**
      * @var string エスケープタイプ
      */
-    protected string $escapeType   = self::DEFAULT_ESCAPE_TYPE;
+    protected string $escapeType = self::DEFAULT_ESCAPE_TYPE;
 
     /**
      * @var string エンコーディング
@@ -52,26 +53,30 @@ class HtmlConfig implements HtmlConfigInterface
     protected bool $prettyPrint = true;
 
     /**
-     * ファクトリ
-     *
-     * @param  array       $options オプション
-     * @return self|static このインスタンス
+     * @var null|HtmlSafetyRules 意図の安全性ルール
      */
-    public static function factory(array $options = []): self|static
+    protected ?HtmlSafetyRules $safetyRules = null;
+
+    /**
+     * ファクトリです。
+     *
+     * @param  array $options オプション
+     * @return self  このインスタンス
+     */
+    public static function factory(array $options = []): self
     {
-        return new static($options);
+        return new self($options);
     }
 
     /**
-     * ファクトリ
+     * コンストラクタです。
      *
-     * @param  array       $options オプション
-     * @return self|static このインスタンス
+     * @param array $options オプション
      */
     public function __construct(array $options = [])
     {
         if (isset($options['escape_type'])) {
-            $this->escapeType   = $options['escape_type'];
+            $this->escapeType = $options['escape_type'];
         }
 
         if (isset($options['encoding'])) {
@@ -79,7 +84,11 @@ class HtmlConfig implements HtmlConfigInterface
         }
 
         if (isset($options['pretty_print'])) {
-            $this->prettyPrint  = $options['pretty_print'];
+            $this->prettyPrint = (bool) $options['pretty_print'];
+        }
+
+        if (isset($options['safety_rules']) && $options['safety_rules'] instanceof HtmlSafetyRules) {
+            $this->safetyRules = $options['safety_rules'];
         }
     }
 
@@ -87,7 +96,7 @@ class HtmlConfig implements HtmlConfigInterface
      * エスケープタイプを取得・設定します。
      *
      * @param  null|string   $escape_type エスケープタイプ
-     * @return string|static エンコーディングまたはこのインスタンス
+     * @return string|static エスケープタイプまたはこのインスタンス
      */
     public function escapeType(?string $escape_type = null): string|static
     {
@@ -99,7 +108,7 @@ class HtmlConfig implements HtmlConfigInterface
             throw new \Exception(ContainerService::getStringService()->buildDebugMessage('利用できないエスケープタイプを指定されました。', $escape_type));
         }
 
-        $this->escapeType   = $escape_type;
+        $this->escapeType = $escape_type;
 
         return $this;
     }
@@ -115,7 +124,7 @@ class HtmlConfig implements HtmlConfigInterface
         static $mb_list_encodings;
 
         if (!isset($mb_list_encodings)) {
-            $mb_list_encodings  = \mb_list_encodings();
+            $mb_list_encodings = \mb_list_encodings();
         }
 
         if ($encoding === null && \func_num_args() === 0) {
@@ -134,7 +143,7 @@ class HtmlConfig implements HtmlConfigInterface
     /**
      * プリティファイを取得・設定します。
      *
-     * @param   null|bool   プリティファイ
+     * @param  null|bool   $pretty_print プリティファイ
      * @return bool|static プリティファイまたはこのインスタンス
      */
     public function prettyPrint(?bool $pretty_print = null): bool|static
@@ -143,7 +152,24 @@ class HtmlConfig implements HtmlConfigInterface
             return $this->prettyPrint;
         }
 
-        $this->prettyPrint  = $pretty_print;
+        $this->prettyPrint = (bool) $pretty_print;
+
+        return $this;
+    }
+
+    /**
+     * 意図の安全性ルールを取得・設定します。
+     *
+     * @param  null|HtmlSafetyRules        $rules ルール
+     * @return null|HtmlSafetyRules|static ルールまたはこのインスタンス
+     */
+    public function safetyRules(?HtmlSafetyRules $rules = null): null|HtmlSafetyRules|static
+    {
+        if ($rules === null && \func_num_args() === 0) {
+            return $this->safetyRules;
+        }
+
+        $this->safetyRules = $rules;
 
         return $this;
     }
