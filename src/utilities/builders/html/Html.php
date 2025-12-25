@@ -45,7 +45,7 @@ final class Html implements Htmlable
      * @param  null|HtmlConfigInterface      $htmlConfig 設定
      * @return self                          このインスタンス
      */
-    public static function create(array|Htmlable $elements, ?HtmlConfigInterface $htmlConfig): self
+    public static function factory(array|Htmlable $elements, ?HtmlConfigInterface $htmlConfig = null): self
     {
         return new self(
             \is_array($elements) ? $elements : [$elements],
@@ -247,7 +247,7 @@ final class Html implements Htmlable
             return $elements[0];
         }
 
-        return self::create($elements, $htmlConfig);
+        return self::factory($elements, $htmlConfig);
     }
 
     /**
@@ -498,6 +498,21 @@ final class Html implements Htmlable
         ?HtmlConfigInterface $htmlConfig,
     ) {
         $this->htmlConfig = $htmlConfig;
+    }
+
+    /**
+     * ブランクなHTML構造を返します。
+     *
+     * @param  array<int, Htmlable>|Htmlable $elements   要素
+     * @param  null|HtmlConfigInterface      $htmlConfig 設定
+     * @return self                          このインスタンス
+     */
+    public function spawn(array|Htmlable $elements, ?HtmlConfigInterface $htmlConfig = null): self
+    {
+        return new self(
+            \is_array($elements) ? $elements : [$elements],
+            $htmlConfig ?? $this->htmlConfig() ?? self::defaultHtmlConfig(),
+        );
     }
 
     /**
